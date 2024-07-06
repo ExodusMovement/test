@@ -108,7 +108,9 @@ if (options.typescript) {
 
 if (major === 18 || major === 20) {
   // We need to expand glob patterns for these
-  args.push(...(await glob(patterns)))
+  const files = await glob(patterns)
+  assert(files.length > 0, 'No tests found!')
+  args.push(...files)
 } else if (major >= 22) {
   // Yay we have native glob support
   args.push(...patterns)
