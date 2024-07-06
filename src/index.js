@@ -72,8 +72,19 @@ expect.extend({
   },
   toHaveBeenCalledWith: (fn, ...expected) => {
     assert.equal(fn?.mock?.constructor, MockFunctionContext)
+    for (const call of fn.mock.calls) {
+      try {
+        expect(call.arguments).toEqual(expected)
+        return { pass: true }
+      } catch {}
+    }
+
+    return { pass: false }
+  },
+  toHaveBeenLastCalledWith: (fn, ...expected) => {
+    assert.equal(fn?.mock?.constructor, MockFunctionContext)
     try {
-      assert.deepEqual(fn.mock.calls.at(-1).arguments, expected)
+      expect(fn.mock.calls.at(-1).arguments).toEqual(expected)
       return { pass: true }
     } catch (e) {
       return { pass: false, message: () => e.message }
