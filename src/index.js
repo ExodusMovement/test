@@ -4,9 +4,22 @@ import assert from 'node:assert/strict'
 
 const MockFunctionContext = mock.fn().mock.constructor
 
-Object.defineProperty(MockFunctionContext.prototype, 'callsArguments', {
-  get() {
-    return this.calls.map((call) => call.arguments)
+Object.defineProperties(MockFunctionContext.prototype, {
+  // this getter is called just .calls in jest, we document this difference
+  callsArguments: {
+    get() {
+      return this.calls.map((call) => call.arguments)
+    },
+  },
+  lastCall: {
+    get() {
+      return this.calls.at(-1)?.arguments
+    },
+  },
+  results: {
+    get() {
+      return this.calls.map((call) => ({ value: call.result }))
+    },
   },
 })
 
