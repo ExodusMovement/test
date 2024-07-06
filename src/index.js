@@ -42,6 +42,11 @@ describe.each = makeEach(describe)
 test.each = makeEach(test)
 it.each = makeEach(it)
 
+const [major, minor] = process.versions.node.split('.').map(Number)
+
+const assertHaveTimers = () =>
+  assert(mock.timers, 'Timer mocking requires Node.js >=20.4.0 || 18 >=18.19.0')
+
 const jest = {
   fn: (...args) => mock.fn(...args),
   spyOn: (obj, name) => {
@@ -51,12 +56,25 @@ const jest = {
     return obj[name].mock
   },
   useFakeTimers: () => {
-    mock.timers.enable()
+    assertHaveTimers()
+    try {
+      mock.timers.enable()
+    } catch (e) {
+      // We allow calling this multiple times and swallow the "MockTimers is already enabled!" error
+      if (e.code !== 'ERR_INVALID_STATE') throw e
+    }
   },
   runAllTimers: () => {
+    assertHaveTimers()
     mock.timers.tick(100_000_000_000) // > 3 years
   },
+  runOnlyPendingTimers: () => {
+    const noInfiniteLoopBug = major >= 22 || (major === 20 && minor >= 11)
+    assert(noInfiniteLoopBug, 'runOnlyPendingTimers requires Node.js >=20.11.0')
+    mock.timers.runAll()
+  },
   advanceTimersByTime: (time) => {
+    assertHaveTimers()
     mock.timers.tick(time)
   },
 }
