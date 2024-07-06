@@ -32,10 +32,11 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "test": "exodus-test --global",
+    "test": "exodus-test --global --typescript",
     "lint": "run -T eslint ."
   },
   "dependencies": {
+    "@swc-node/register": "^1.8.0",
     "c8": "^9.1.0",
     "expect": "^29.7.0",
     "fast-glob": "^3.2.11"

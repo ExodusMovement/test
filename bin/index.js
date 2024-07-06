@@ -8,7 +8,7 @@ import glob from 'fast-glob' // Only for Node.js <22 support
 
 const bindir = dirname(fileURLToPath(import.meta.url))
 
-const DEFAULT_PATTERNS = ['**/*.{test,spec}.?(c|m)js']
+const DEFAULT_PATTERNS = ['**/*.{test,spec}.?(c|m)js', '**/*.{test,spec}.ts']
 
 function versionCheck() {
   const [major, minor, patch] = process.versions.node.split('.').map(Number)
@@ -21,6 +21,7 @@ function versionCheck() {
 function parseOptions() {
   const options = {
     global: false,
+    typescript: false,
     coverage: false,
     coverageEngine: 'c8', // c8 or node
   }
@@ -40,6 +41,9 @@ function parseOptions() {
     switch (option) {
       case '--global':
         options.global = true
+        break
+      case '--typescript':
+        options.typescript = true
         break
       case '--coverage-engine':
         options.coverageEngine = args.shift()
@@ -68,7 +72,7 @@ const { options, patterns } = parseOptions()
 
 let program = 'node'
 
-const args = ['--test']
+const args = ['--test', '--enable-source-maps']
 if (options.coverage) {
   if (options.coverageEngine === 'node') {
     args.push('--experimental-test-coverage')
@@ -87,6 +91,14 @@ if (options.global) {
     args.push('--import', resolve(bindir, 'preload.js'))
   } else {
     throw new Error('Option --global requires Node.js >= v18.18.0')
+  }
+}
+
+if (options.typescript) {
+  if (major >= 22 || (major === 20 && minor >= 6) || (major === 18 && minor >= 18)) {
+    args.push('--import', '@swc-node/register/esm-register')
+  } else {
+    throw new Error('Option --typescript requires Node.js >=20.6.0 || 18 >=18.18.0')
   }
 }
 

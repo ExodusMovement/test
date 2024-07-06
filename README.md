@@ -51,6 +51,8 @@ Just use `"test: "exodus-test"`
 
 - `--global` -- register all test helpers as global variables
 
+- `--typescript` -- enable typescript support
+
 - `--coverage` -- enable coverage, prints coverage output (varies by coverage engine)
 
 - `--coverage-engine c8` -- use c8 coverage engine (default), also generates `./coverage/` dirs
