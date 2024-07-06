@@ -50,10 +50,15 @@ const jest = {
     obj[name] = mock.fn(obj[name])
     return obj[name].mock
   },
-  // We didn't implement timers yet, this might be slow for now
-  // Likely still better than using jest
-  useFakeTimers: () => {},
-  runAllTimers: () => {},
+  useFakeTimers: () => {
+    mock.timers.enable()
+  },
+  runAllTimers: () => {
+    mock.timers.tick(100_000_000_000) // > 3 years
+  },
+  advanceTimersByTime: (time) => {
+    mock.timers.tick(time)
+  },
 }
 
 expect.extend({
