@@ -128,6 +128,7 @@ function tap(name, fn) {
   test(name, () =>
     fn({
       ...assert,
+      pass: (name) => it(true, name),
       end: () => {},
     })
   )
