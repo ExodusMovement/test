@@ -17,3 +17,8 @@ describe('test.each from docs', () => {
     expect(a + b).toBe(expected)
   })
 })
+
+// Manually added
+test.each([1, 5, 9])('one(%i)', (a) => {
+  expect(a % 4).toBe(1)
+})
