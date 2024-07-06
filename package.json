@@ -1,0 +1,43 @@
+{
+  "name": "@exodus/test",
+  "version": "0.0.0",
+  "author": "Exodus Movement, Inc.",
+  "description": "A test suite runner",
+  "homepage": "https://github.com/ExodusMovement/test",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ExodusMovement/test.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ExodusMovement/test/issues"
+  },
+  "keywords": [
+    "test",
+    "expect",
+    "jest",
+    "node-test"
+  ],
+  "license": "UNLICENSED",
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "type": "module",
+  "bin": {
+    "exodus-test": "bin/index.js"
+  },
+  "main": "src/index.js",
+  "files": [
+    "bin/preload.js",
+    "!__tests__",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "test": "exodus-test --global",
+    "lint": "run -T eslint ."
+  },
+  "dependencies": {
+    "c8": "^9.1.0",
+    "expect": "^29.7.0",
+    "fast-glob": "^3.2.11"
+  }
+}
