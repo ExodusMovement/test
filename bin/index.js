@@ -3,6 +3,7 @@
 import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { basename, dirname, resolve } from 'node:path'
+import { createRequire } from 'node:module'
 import assert from 'node:assert/strict'
 import glob from 'fast-glob' // Only for Node.js <22 support
 
@@ -72,12 +73,15 @@ const { options, patterns } = parseOptions()
 
 let program = 'node'
 
+const require = createRequire(import.meta.url)
+const c8 = require.resolve('c8/bin/c8.js')
+
 const args = ['--test', '--enable-source-maps']
 if (options.coverage) {
   if (options.coverageEngine === 'node') {
     args.push('--experimental-test-coverage')
   } else if (options.coverageEngine === 'c8') {
-    program = 'c8'
+    program = c8
     args.unshift('node')
     // perhaps use text-summary ?
     args.unshift('-r', 'text', '-r', 'html')
@@ -112,7 +116,7 @@ if (major === 18 || major === 20) {
   throw new Error('Unreachable')
 }
 
-assert(['node', 'c8'].includes(program))
+assert(program && ['node', c8].includes(program))
 const node = spawn(program, args, { stdio: 'inherit' })
 
 node.on('close', (code) => {
