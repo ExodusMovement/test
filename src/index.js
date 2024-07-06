@@ -1,6 +1,7 @@
 import { mock, describe, test, it } from 'node:test'
 import { expect } from 'expect'
 import assert from 'node:assert/strict'
+import { format } from 'node:util'
 
 const MockFunctionContext = mock.fn().mock.constructor
 
@@ -36,14 +37,14 @@ const makeEach = (impl) => (list) => (template, fn) => {
     let name = template
 
     if (!args || typeof args === 'string' || typeof args === 'number') {
-      name = name.replace('%s', args)
+      name = format(name, args)
     } else {
       for (const [key, value] of Object.entries(args)) {
         name = name.replace(`$${key}`, value) // can collide but we don't care much yet
       }
 
       if (Array.isArray(args)) {
-        for (const arg of args) name = name.replace('%s', arg)
+        name = format(name, ...args)
       }
     }
 
