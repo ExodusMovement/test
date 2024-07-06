@@ -61,6 +61,14 @@ const [major, minor] = process.versions.node.split('.').map(Number)
 const assertHaveTimers = () =>
   assert(mock.timers, 'Timer mocking requires Node.js >=20.4.0 || 18 >=18.19.0')
 
+let timersWarned = false
+const warnOldTimers = () => {
+  if (timersWarned) return
+  timersWarned = true
+  const ok = major >= 22 || (major === 20 && minor >= 11)
+  if (!ok) console.warn('Warning: timer mocks are known to be glitchy before Node.js >=20.11.0')
+}
+
 const jest = {
   fn: (...args) => mock.fn(...args),
   spyOn: (obj, name) => {
@@ -71,6 +79,7 @@ const jest = {
   },
   useFakeTimers: () => {
     assertHaveTimers()
+    warnOldTimers()
     try {
       mock.timers.enable()
     } catch (e) {
@@ -80,6 +89,7 @@ const jest = {
   },
   runAllTimers: () => {
     assertHaveTimers()
+    warnOldTimers()
     mock.timers.tick(100_000_000_000) // > 3 years
   },
   runOnlyPendingTimers: () => {
@@ -89,6 +99,7 @@ const jest = {
   },
   advanceTimersByTime: (time) => {
     assertHaveTimers()
+    warnOldTimers()
     mock.timers.tick(time)
   },
 }
