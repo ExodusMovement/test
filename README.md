@@ -51,6 +51,8 @@ Just use `"test: "exodus-test"`
 
 - `--typescript` -- enable typescript support
 
+- `--babel` -- enable babel support
+
 - `--coverage` -- enable coverage, prints coverage output (varies by coverage engine)
 
 - `--coverage-engine c8` -- use c8 coverage engine (default), also generates `./coverage/` dirs

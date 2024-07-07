@@ -23,6 +23,7 @@ function parseOptions() {
   const options = {
     global: false,
     typescript: false,
+    babel: false,
     coverage: false,
     coverageEngine: 'c8', // c8 or node
   }
@@ -45,6 +46,9 @@ function parseOptions() {
         break
       case '--typescript':
         options.typescript = true
+        break
+      case '--babel':
+        options.babel = true
         break
       case '--coverage-engine':
         options.coverageEngine = args.shift()
@@ -104,6 +108,12 @@ if (options.typescript) {
   } else {
     throw new Error('Option --typescript requires Node.js >=20.6.0 || 18 >=18.18.0')
   }
+}
+
+if (options.babel) {
+  assert(!options.typescript, 'Options --babel and --typescript are mutually exclusive') // did not test actually
+  // TODO: are there cases when we should --import it?
+  args.push('-r', resolveRequire('@babel/register'))
 }
 
 // Our loader should be last, as enabling module mocks confuses other loaders
