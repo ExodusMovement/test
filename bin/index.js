@@ -91,19 +91,20 @@ if (options.coverage) {
   }
 }
 
-if (options.global) {
-  if (major >= 20 || (major === 18 && minor >= 18)) {
-    args.push('--import', resolve(bindir, 'preload.js'))
-  } else {
-    throw new Error('Option --global requires Node.js >= v18.18.0')
-  }
-}
-
 if (options.typescript) {
   if (major >= 22 || (major === 20 && minor >= 6) || (major === 18 && minor >= 18)) {
     args.push('--import', fileURLToPath(import.meta.resolve('@swc-node/register/esm-register')))
   } else {
     throw new Error('Option --typescript requires Node.js >=20.6.0 || 18 >=18.18.0')
+  }
+}
+
+// Our loader should be last, as enabling module mocks confuses other loaders
+if (options.global) {
+  if (major >= 20 || (major === 18 && minor >= 18)) {
+    args.push('--import', resolve(bindir, 'preload.js'))
+  } else {
+    throw new Error('Option --global requires Node.js >= v18.18.0')
   }
 }
 

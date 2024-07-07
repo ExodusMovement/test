@@ -1,4 +1,14 @@
-import { mock, describe, test, it } from 'node:test'
+import {
+  mock,
+  describe,
+  beforeEach,
+  afterEach,
+  before as beforeAll,
+  after as afterAll,
+  test,
+  it,
+} from 'node:test'
+
 import assert from 'node:assert/strict'
 import { format } from 'node:util'
 import { jestfn } from './jest.fn.js'
@@ -86,6 +96,11 @@ function tap(name, fn) {
       end: () => {},
     })
   )
+}
+
+if (mock.module) {
+  const jestGlobals = { jest, describe, it, beforeEach, afterEach, beforeAll, afterAll }
+  mock.module('@jest/globals', { defaultExport: jestGlobals, namedExports: jestGlobals })
 }
 
 export { tap, jest }
