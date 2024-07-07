@@ -33,6 +33,7 @@
   ],
   "scripts": {
     "test": "exodus-test --global --typescript",
+    "coverage": "exodus-test --global --typescript --coverage",
     "lint": "run -T eslint ."
   },
   "dependencies": {
