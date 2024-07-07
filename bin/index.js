@@ -47,6 +47,11 @@ function parseOptions() {
       case '--typescript':
         options.typescript = true
         break
+      case '--esbuild':
+        // an alias for tsx which uses esbuild internally
+        // no need to use a separate esbuild loader
+        options.typescript = true
+        break
       case '--babel':
         options.babel = true
         break

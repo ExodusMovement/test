@@ -51,7 +51,9 @@ Just use `"test: "exodus-test"`
 
 - `--typescript` -- use typescript loader (which also compiles esm to cjs where needed)
 
-- `--babel` -- use babel loader (slower than `--typescript`, makes sense if you have a special config)
+- `--esbuild` -- use esbuild loader (currently an alias for `--typescript`)
+
+- `--babel` -- use babel loader (slower than `--esbuild`, makes sense if you have a special config)
 
 - `--coverage` -- enable coverage, prints coverage output (varies by coverage engine)
 
