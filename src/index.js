@@ -63,7 +63,10 @@ const jest = {
     obj[name] = fn
     return fn
   },
-  useRealTimers: () => mock.timers.reset(),
+  useRealTimers: () => {
+    mock.timers.reset()
+    return jest
+  },
   useFakeTimers: ({ doNotFake = [], ...rest } = {}) => {
     assertHaveTimers()
     warnOldTimers()
@@ -77,23 +80,32 @@ const jest = {
       // We allow calling this multiple times and swallow the "MockTimers is already enabled!" error
       if (e.code !== 'ERR_INVALID_STATE') throw e
     }
+
+    return jest
   },
   runAllTimers: () => {
     assertHaveTimers()
     warnOldTimers()
     mock.timers.tick(100_000_000_000) // > 3 years
+    return jest
   },
   runOnlyPendingTimers: () => {
     const noInfiniteLoopBug = major >= 22 || (major === 20 && minor >= 11)
     assert(noInfiniteLoopBug, 'runOnlyPendingTimers requires Node.js >=20.11.0')
     mock.timers.runAll()
+    return jest
   },
   advanceTimersByTime: (time) => {
     assertHaveTimers()
     warnOldTimers()
     mock.timers.tick(time)
+    return jest
   },
   advanceTimersByTimeAsync: async (time) => jest.advanceTimersByTime(time),
+  setSystemTime: (time) => {
+    mock.timers.setTime(+time)
+    return jest
+  },
 }
 
 function tap(name, fn) {
