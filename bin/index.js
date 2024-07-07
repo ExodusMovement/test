@@ -3,7 +3,6 @@
 import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { basename, dirname, resolve } from 'node:path'
-import { createRequire } from 'node:module'
 import assert from 'node:assert/strict'
 import glob from 'fast-glob' // Only for Node.js <22 support
 
@@ -73,8 +72,7 @@ const { options, patterns } = parseOptions()
 
 let program = 'node'
 
-const require = createRequire(import.meta.url)
-const c8 = require.resolve('c8/bin/c8.js')
+const c8 = fileURLToPath(import.meta.resolve('c8/bin/c8.js'))
 
 const args = ['--test', '--enable-source-maps']
 if (options.coverage) {
@@ -100,7 +98,7 @@ if (options.global) {
 
 if (options.typescript) {
   if (major >= 22 || (major === 20 && minor >= 6) || (major === 18 && minor >= 18)) {
-    args.push('--import', '@swc-node/register/esm-register')
+    args.push('--import', fileURLToPath(import.meta.resolve('@swc-node/register/esm-register')))
   } else {
     throw new Error('Option --typescript requires Node.js >=20.6.0 || 18 >=18.18.0')
   }
