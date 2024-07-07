@@ -1,13 +1,15 @@
 import { mock } from 'node:test'
 import assert from 'node:assert/strict'
 
-// not an arrow as might be used as a constructor
-function noop() {}
-
 // We need parent and property for jest.spyOn and mockfn.mockRestore()
 export const jestfn = (baseimpl, parent, property) => {
+  // not an arrow as might be used as a constructor
+  // also, should be isolated between jest.fn calls
+  const noop = function () {}
+
   let mockname
   let mockimpl = baseimpl || noop
+  let reportedmockimpl = baseimpl || undefined
   const onceStack = []
 
   const fn = mock.fn(mockimpl)
@@ -18,6 +20,7 @@ export const jestfn = (baseimpl, parent, property) => {
     queuedMockClear()
     onceStack.length = 0
     mockimpl = noop
+    reportedmockimpl = undefined
     fnmock.mockImplementation(mockimpl)
   }
 
@@ -29,9 +32,15 @@ export const jestfn = (baseimpl, parent, property) => {
   }
 
   const queuedMock = (impl) => {
-    mockimpl = impl
+    mockimpl = impl || noop
     onceStack.length = 0
-    fnmock.mockImplementation(impl)
+    fnmock.mockImplementation(mockimpl)
+  }
+
+  // getMockImplementation() is undocumented and is changed only in real mockImplementation() call
+  const queuedMockReported = (impl) => {
+    queuedMock(impl)
+    reportedmockimpl = impl
   }
 
   const queuedMockOnce = (impl) => {
@@ -97,6 +106,8 @@ export const jestfn = (baseimpl, parent, property) => {
         return wrap((name) => {
           mockname = name
         })
+      case 'getMockImplementation':
+        return () => reportedmockimpl
       case 'mockClear':
         return wrap(() => queuedMockClear())
       case 'mockReset':
@@ -104,7 +115,7 @@ export const jestfn = (baseimpl, parent, property) => {
       case 'mockRestore':
         return wrap(() => queuedMockRestore())
       case 'mockImplementation':
-        return wrap((impl) => queuedMock(impl))
+        return wrap((impl) => queuedMockReported(impl))
       case 'mockImplementationOnce':
         return wrap((impl) => queuedMockOnce(impl))
       case 'mockReturnValue':

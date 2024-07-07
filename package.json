@@ -42,5 +42,9 @@
     "c8": "^9.1.0",
     "expect": "^29.7.0",
     "fast-glob": "^3.2.11"
+  },
+  "devDependencies": {
+    "@types/jest-when": "^3.5.2",
+    "jest-when": "^3.6.0"
   }
 }
