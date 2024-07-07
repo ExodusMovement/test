@@ -49,6 +49,7 @@ const jest = {
     obj[name] = fn
     return fn
   },
+  useRealTimers: () => mock.timers.reset(),
   useFakeTimers: () => {
     assertHaveTimers()
     warnOldTimers()
@@ -74,6 +75,7 @@ const jest = {
     warnOldTimers()
     mock.timers.tick(time)
   },
+  advanceTimersByTimeAsync: async (time) => jest.advanceTimersByTime(time),
 }
 
 function tap(name, fn) {
