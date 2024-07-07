@@ -28,6 +28,7 @@
   "main": "src/index.js",
   "files": [
     "bin/preload.js",
+    "src/jest.fn.js",
     "!__tests__",
     "CHANGELOG.md"
   ],

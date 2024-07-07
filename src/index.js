@@ -1,36 +1,7 @@
 import { mock, describe, test, it } from 'node:test'
-import { expect } from 'expect'
 import assert from 'node:assert/strict'
 import { format } from 'node:util'
-
-const MockFunctionContext = mock.fn().mock.constructor
-
-Object.defineProperties(MockFunctionContext.prototype, {
-  // this getter is called just .calls in jest, we document this difference
-  callsArguments: {
-    get() {
-      return this.calls.map((call) => call.arguments)
-    },
-  },
-  lastCall: {
-    get() {
-      return this.calls.at(-1)?.arguments
-    },
-  },
-  results: {
-    get() {
-      return this.calls.map((call) => ({ value: call.result }))
-    },
-  },
-})
-
-const mockImplementationOrig = MockFunctionContext.prototype.mockImplementation
-MockFunctionContext.prototype.mockImplementation = function (...args) {
-  mockImplementationOrig.call(this, ...args)
-  return this
-}
-
-MockFunctionContext.prototype.mockRestore = MockFunctionContext.prototype.restore
+import { jestfn } from './jest.fn.js'
 
 const makeEach = (impl) => (list) => (template, fn) => {
   for (const args of list) {
@@ -70,12 +41,13 @@ const warnOldTimers = () => {
 }
 
 const jest = {
-  fn: (...args) => mock.fn(...args),
+  fn: (impl) => jestfn(impl), // hide extra arguments
   spyOn: (obj, name) => {
     assert(Object.hasOwn(obj, name))
+    const fn = jestfn(obj[name], obj, name)
     // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
-    obj[name] = mock.fn(obj[name])
-    return obj[name].mock
+    obj[name] = fn
+    return fn
   },
   useFakeTimers: () => {
     assertHaveTimers()
@@ -103,37 +75,6 @@ const jest = {
     mock.timers.tick(time)
   },
 }
-
-expect.extend({
-  toHaveBeenCalled: (fn) => {
-    assert.equal(fn?.mock?.constructor, MockFunctionContext)
-    return { pass: fn.mock.callCount() > 0 }
-  },
-  toHaveBeenCalledTimes: (fn, count) => {
-    assert.equal(fn?.mock?.constructor, MockFunctionContext)
-    return { pass: fn.mock.callCount() === count }
-  },
-  toHaveBeenCalledWith: (fn, ...expected) => {
-    assert.equal(fn?.mock?.constructor, MockFunctionContext)
-    for (const call of fn.mock.calls) {
-      try {
-        expect(call.arguments).toEqual(expected)
-        return { pass: true }
-      } catch {}
-    }
-
-    return { pass: false }
-  },
-  toHaveBeenLastCalledWith: (fn, ...expected) => {
-    assert.equal(fn?.mock?.constructor, MockFunctionContext)
-    try {
-      expect(fn.mock.calls.at(-1).arguments).toEqual(expected)
-      return { pass: true }
-    } catch (e) {
-      return { pass: false, message: () => e.message }
-    }
-  },
-})
 
 function tap(name, fn) {
   test(name, () =>

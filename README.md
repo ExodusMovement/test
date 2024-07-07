@@ -8,8 +8,6 @@ Most likely it will just work on your simple jest tests as as drop-in replacemen
 
 `import { describe, it, assert, jest, expect } from '@exodus/test'`
 
-Replace `.calls` with `.callsArguments`, as the former one now contains more detailed information
-
 ### Moving from tap/tape
 
 `import { tap as test } from '@exodus/test'`
