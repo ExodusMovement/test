@@ -74,7 +74,10 @@ let program = 'node'
 
 const c8 = fileURLToPath(import.meta.resolve('c8/bin/c8.js'))
 
-const args = ['--test', '--enable-source-maps']
+const args = ['--test', '--enable-source-maps', '--no-warnings=ExperimentalWarning']
+
+if (major >= 22) args.push('--experimental-test-module-mocks')
+
 if (options.coverage) {
   if (options.coverageEngine === 'node') {
     args.push('--experimental-test-coverage')
