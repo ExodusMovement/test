@@ -114,7 +114,7 @@ if (options.typescript) {
 if (options.babel) {
   assert(!options.typescript, 'Options --babel and --typescript are mutually exclusive') // did not test actually
   // TODO: are there cases when we should --import it?
-  args.push('-r', resolveRequire('@babel/register'))
+  args.push('-r', resolveRequire('./babel.cjs'))
 }
 
 // Our loader should be last, as enabling module mocks confuses other loaders

@@ -27,6 +27,7 @@
   },
   "main": "src/index.js",
   "files": [
+    "bin/babel.cjs",
     "bin/preload.js",
     "bin/typescript.js",
     "src/jest.fn.js",
