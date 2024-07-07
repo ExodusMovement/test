@@ -84,7 +84,7 @@ const resolveImport = import.meta.resolve && ((query) => fileURLToPath(import.me
 const c8 = resolveRequire('c8/bin/c8.js')
 if (resolveImport) assert.equal(c8, resolveImport('c8/bin/c8.js'))
 
-const args = ['--test', '--enable-source-maps', '--no-warnings=ExperimentalWarning']
+const args = ['--test', '--no-warnings=ExperimentalWarning']
 
 if (major > 22 || (major === 22 && minor >= 3)) args.push('--experimental-test-module-mocks')
 
@@ -104,6 +104,7 @@ if (options.coverage) {
 if (options.typescript) {
   if (major >= 22 || (major === 20 && minor >= 6) || (major === 18 && minor >= 18)) {
     assert(resolveImport)
+    args.push('--enable-source-maps')
     args.push('--import', resolveImport('@swc-node/register/esm-register'))
   } else {
     throw new Error('Option --typescript requires Node.js >=20.6.0 || 18 >=18.18.0')
