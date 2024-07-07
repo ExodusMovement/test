@@ -9,7 +9,7 @@ import glob from 'fast-glob' // Only for Node.js <22 support
 
 const bindir = dirname(fileURLToPath(import.meta.url))
 
-const DEFAULT_PATTERNS = ['**/*.{test,spec}.?(c|m)js', '**/*.{test,spec}.ts']
+const DEFAULT_PATTERNS = ['**/*.{test,spec}.{js,cjs,mjs,ts}', '**/{test,spec}.{js,cjs,mjs,ts}']
 
 function versionCheck() {
   const [major, minor, patch] = process.versions.node.split('.').map(Number)
