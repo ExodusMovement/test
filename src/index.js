@@ -11,6 +11,7 @@ import {
 
 import assert from 'node:assert/strict'
 import { format } from 'node:util'
+import { expect } from 'expect'
 import { jestfn } from './jest.fn.js'
 
 const makeEach = (impl) => (list) => (template, fn) => {
@@ -99,7 +100,7 @@ function tap(name, fn) {
 }
 
 if (mock.module) {
-  const jestGlobals = { jest, describe, it, beforeEach, afterEach, beforeAll, afterAll }
+  const jestGlobals = { jest, expect, describe, it, beforeEach, afterEach, beforeAll, afterAll }
   mock.module('@jest/globals', { defaultExport: jestGlobals, namedExports: jestGlobals })
 }
 
