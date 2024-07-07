@@ -40,8 +40,16 @@ export const jestfn = (baseimpl, parent, property) => {
   const queuedMockRestore = () => {
     queuedMockReset()
     // mocked function resets to noop, the original resets to baseimpl
-    // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
-    if (parent && property) parent[property] = baseimpl
+    if (parent && property) {
+      assert(property in parent && !(property in {}) && !(property in Object.prototype))
+      if (parent[property] === fnproxy) {
+        // we need to handle the case when that came from prototype
+        // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
+        delete parent[property]
+        // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
+        if (parent[property] !== baseimpl) parent[property] = baseimpl
+      }
+    }
   }
 
   const queuedMock = (impl) => {

@@ -57,7 +57,7 @@ const jest = {
   resetAllMocks: () => allMocks.mockReset(),
   restoreAllMocks: () => allMocks.mockRestore(),
   spyOn: (obj, name) => {
-    assert(Object.hasOwn(obj, name))
+    assert(obj && name && name in obj && !(name in {}) && !(name in Object.prototype))
     const fn = jestfn(obj[name], obj, name)
     // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
     obj[name] = fn
