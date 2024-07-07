@@ -12,7 +12,7 @@ import {
 import assert from 'node:assert/strict'
 import { format } from 'node:util'
 import { expect } from 'expect'
-import { jestfn } from './jest.fn.js'
+import { jestfn, allMocks } from './jest.fn.js'
 
 const makeEach = (impl) => (list) => (template, fn) => {
   for (const args of list) {
@@ -53,6 +53,9 @@ const warnOldTimers = () => {
 
 const jest = {
   fn: (impl) => jestfn(impl), // hide extra arguments
+  clearAllMocks: () => allMocks.mockClear(),
+  resetAllMocks: () => allMocks.mockReset(),
+  restoreAllMocks: () => allMocks.mockRestore(),
   spyOn: (obj, name) => {
     assert(Object.hasOwn(obj, name))
     const fn = jestfn(obj[name], obj, name)

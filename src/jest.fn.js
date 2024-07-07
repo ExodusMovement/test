@@ -1,6 +1,19 @@
 import { mock } from 'node:test'
 import assert from 'node:assert/strict'
 
+const registry = new Set()
+
+function applyAll(method) {
+  assert(['mockClear', 'mockReset', 'mockRestore'].includes(method))
+  for (const obj of registry) obj[method]()
+}
+
+export const allMocks = {
+  mockClear: () => applyAll('mockClear'),
+  mockReset: () => applyAll('mockReset'),
+  mockRestore: () => applyAll('mockRestore'),
+}
+
 // We need parent and property for jest.spyOn and mockfn.mockRestore()
 export const jestfn = (baseimpl, parent, property) => {
   // not an arrow as might be used as a constructor
@@ -95,6 +108,7 @@ export const jestfn = (baseimpl, parent, property) => {
 
     switch (key) {
       case 'bind':
+        // No need to add this to the registy as we already have the base instance
         return (...args) => new Proxy(obj.bind(...args), { get: fnProxyGet })
       case 'mock':
         return jestfnmock
@@ -136,6 +150,7 @@ export const jestfn = (baseimpl, parent, property) => {
   }
 
   const fnproxy = new Proxy(fn, { get: fnProxyGet })
+  registry.add(fnproxy)
 
   return fnproxy
 }
