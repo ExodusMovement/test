@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { basename, dirname, resolve } from 'node:path'
 import { createRequire } from 'node:module'
 import assert from 'node:assert/strict'
-import glob from 'fast-glob' // Only for Node.js <22 support
+import glob from 'fast-glob'
 
 const bindir = dirname(fileURLToPath(import.meta.url))
 
@@ -25,6 +25,7 @@ function parseOptions() {
     typescript: false,
     babel: false,
     coverage: false,
+    passWithNoTests: false,
     coverageEngine: 'c8', // c8 or node
   }
 
@@ -60,6 +61,9 @@ function parseOptions() {
         break
       case '--coverage':
         options.coverage = true
+        break
+      case '--passWithNoTests':
+        options.passWithNoTests = true
         break
       default:
         throw new Error(`Unknown option: ${option}`)
@@ -129,18 +133,30 @@ if (options.global) {
   }
 }
 
-if (major === 18 || major === 20) {
-  // We need to expand glob patterns for these
-  const ignore = ['node_modules']
-  const files = await glob(patterns, { ignore })
-  assert(files.length > 0, 'No tests found!')
-  args.push(...files)
-} else if (major >= 22) {
-  // Yay we have native glob support
-  args.push(...patterns)
-} else {
-  throw new Error('Unreachable')
+// We need to expand glob patterns for these
+const ignore = ['node_modules']
+const files = await glob(patterns, { ignore })
+
+if (files.length === 0) {
+  if (options.passWithNoTests) {
+    console.warn('No tests files found, but passing due to --passWithNoTests')
+    process.exit(0)
+  }
+
+  console.error('No tests files found!')
+  process.exit(1)
 }
+
+const tsTests = files.filter((file) => file.endsWith('.ts'))
+if (tsTests.length > 0 && !options.typescript) {
+  console.error(`Some tests require --typescript flag:\n  ${tsTests.join('\n  ')}`)
+  process.exit(1)
+} else if (tsTests.length === 0 && options.typescript) {
+  console.warn(`Flag --typescript has been used, but there were no TypeScript tests found!`)
+}
+
+assert(files.length > 0) // otherwise we can run recursively
+args.push(...files)
 
 assert(program && ['node', c8].includes(program))
 const node = spawn(program, args, { stdio: 'inherit' })

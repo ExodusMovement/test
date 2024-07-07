@@ -60,3 +60,5 @@ Just use `"test: "exodus-test"`
 - `--coverage-engine c8` -- use c8 coverage engine (default), also generates `./coverage/` dirs
 
 - `--coverage-engine node` -- use Node.js builtint coverage engine
+
+- `--passWithNoTests` -- do not error when no test files were found
