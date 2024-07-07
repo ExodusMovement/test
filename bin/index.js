@@ -105,7 +105,7 @@ if (options.typescript) {
   if (major >= 22 || (major === 20 && minor >= 6) || (major === 18 && minor >= 18)) {
     assert(resolveImport)
     args.push('--enable-source-maps')
-    args.push('--import', resolveImport('@swc-node/register/esm-register'))
+    args.push('--import', resolveImport('./typescript.js'))
   } else {
     throw new Error('Option --typescript requires Node.js >=20.6.0 || 18 >=18.18.0')
   }
