@@ -61,11 +61,15 @@ const jest = {
     return fn
   },
   useRealTimers: () => mock.timers.reset(),
-  useFakeTimers: () => {
+  useFakeTimers: ({ doNotFake = [], ...rest } = {}) => {
     assertHaveTimers()
     warnOldTimers()
+    assert.deepEqual(rest, {}, 'Unsupported options')
+    const allApis = ['setInterval', 'setTimeout', 'setImmediate', 'Date']
+    for (const name of doNotFake) assert(allApis.includes(name), `Unknown API: ${name}`)
+    const apis = allApis.filter((name) => !doNotFake.includes(name))
     try {
-      mock.timers.enable()
+      mock.timers.enable({ apis })
     } catch (e) {
       // We allow calling this multiple times and swallow the "MockTimers is already enabled!" error
       if (e.code !== 'ERR_INVALID_STATE') throw e
