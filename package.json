@@ -29,7 +29,6 @@
   "files": [
     "bin/babel.cjs",
     "bin/preload.js",
-    "bin/typescript.js",
     "src/jest.fn.js",
     "!__tests__",
     "CHANGELOG.md"
@@ -41,12 +40,10 @@
   },
   "dependencies": {
     "@babel/register": "^7.0.0",
-    "@swc-node/register": "^1.8.0",
-    "@swc/core": "^1.4.13",
     "c8": "^9.1.0",
     "expect": "^29.7.0",
     "fast-glob": "^3.2.11",
-    "typescript": "^4.3.0"
+    "tsx": "^4.16.2"
   },
   "devDependencies": {
     "@types/jest-when": "^3.5.2",

@@ -103,17 +103,15 @@ if (options.coverage) {
 
 if (options.typescript) {
   if (major >= 22 || (major === 20 && minor >= 6) || (major === 18 && minor >= 18)) {
-    args.push('--enable-source-maps')
     assert(resolveImport)
-    args.push('--import', resolveImport('./typescript.js'))
+    args.push('--import', resolveImport('tsx'))
   } else {
-    throw new Error('Option --typescript requires Node.js >=20.6.0 || 18 >=18.18.0')
+    args.push('-r', resolveRequire('tsx/cjs'))
   }
 }
 
 if (options.babel) {
-  assert(!options.typescript, 'Options --babel and --typescript are mutually exclusive') // did not test actually
-  // TODO: are there cases when we should --import it?
+  assert(!options.typescript, 'Options --babel and --typescript are mutually exclusive')
   args.push('-r', resolveRequire('./babel.cjs'))
 }
 

@@ -49,9 +49,9 @@ Just use `"test: "exodus-test"`
 
 - `--global` -- register all test helpers as global variables
 
-- `--typescript` -- enable typescript support
+- `--typescript` -- use typescript loader (which also compiles esm to cjs where needed)
 
-- `--babel` -- enable babel support
+- `--babel` -- use babel loader (slower than `--typescript`, makes sense if you have a special config)
 
 - `--coverage` -- enable coverage, prints coverage output (varies by coverage engine)
 
