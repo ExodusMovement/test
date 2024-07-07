@@ -23,6 +23,7 @@ function parseOptions() {
   const options = {
     global: false,
     typescript: false,
+    esbuild: false,
     babel: false,
     coverage: false,
     passWithNoTests: false,
@@ -49,9 +50,7 @@ function parseOptions() {
         options.typescript = true
         break
       case '--esbuild':
-        // an alias for tsx which uses esbuild internally
-        // no need to use a separate esbuild loader
-        options.typescript = true
+        options.esbuild = true
         break
       case '--babel':
         options.babel = true
@@ -110,7 +109,7 @@ if (options.coverage) {
   }
 }
 
-if (options.typescript) {
+if (options.typescript || options.esbuild) {
   if (major >= 22 || (major === 20 && minor >= 6) || (major === 18 && minor >= 18)) {
     assert(resolveImport)
     args.push('--import', resolveImport('tsx'))
