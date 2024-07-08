@@ -62,3 +62,5 @@ Just use `"test: "exodus-test"`
 - `--coverage-engine node` -- use Node.js builtint coverage engine
 
 - `--passWithNoTests` -- do not error when no test files were found
+
+- `--write-snapshots` -- write snapshots instead of verifying them (has `--test-update-snapshots` alias)

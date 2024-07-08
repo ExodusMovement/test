@@ -27,6 +27,7 @@ function parseOptions() {
     babel: false,
     coverage: false,
     passWithNoTests: false,
+    writeSnapshots: false,
     coverageEngine: 'c8', // c8 or node
   }
 
@@ -64,6 +65,10 @@ function parseOptions() {
       case '--passWithNoTests':
         options.passWithNoTests = true
         break
+      case '--test-update-snapshots': // Node.js name for this, might get suggested in errors
+      case '--write-snapshots':
+        options.writeSnapshots = true
+        break
       default:
         throw new Error(`Unknown option: ${option}`)
     }
@@ -94,7 +99,16 @@ if (resolveImport) assert.equal(c8, resolveImport('c8/bin/c8.js'))
 
 const args = ['--test', '--no-warnings=ExperimentalWarning']
 
-if (major > 22 || (major === 22 && minor >= 3)) args.push('--experimental-test-module-mocks')
+const haveModuleMocks = major > 22 || (major === 22 && minor >= 3)
+if (haveModuleMocks) args.push('--experimental-test-module-mocks')
+
+const haveSnapshots = major > 22 || (major === 22 && minor >= 3)
+if (haveSnapshots) args.push('--experimental-test-snapshots')
+
+if (options.writeSnapshots) {
+  assert(haveSnapshots, 'For snapshots, use Node.js >=22.3.0')
+  args.push('--test-update-snapshots')
+}
 
 if (options.coverage) {
   if (options.coverageEngine === 'node') {
