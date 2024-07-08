@@ -29,6 +29,7 @@
   "files": [
     "bin/babel.cjs",
     "bin/preload.js",
+    "src/jest.js",
     "src/jest.fn.js",
     "src/tape.js",
     "!__tests__",

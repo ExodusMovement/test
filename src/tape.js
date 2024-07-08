@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { test } from 'node:test'
 
 const knownOptions = new Set(['skip', 'todo', 'concurrency'])
 
@@ -88,7 +89,7 @@ function tapeWrapAssert(t) {
   return api
 }
 
-export function tapeWrap(test) {
+function tapeWrap(test) {
   const tap = (name, ...args) => {
     const fn = args.pop()
     assert(args.length <= 1)
@@ -100,3 +101,5 @@ export function tapeWrap(test) {
   tap.skip = (...args) => test.skip(...args)
   return tap
 }
+
+export const tape = tapeWrap(test)
