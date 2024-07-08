@@ -1,6 +1,6 @@
 # @exodus/test
 
-A runner for `node:test`, `jest`, and `tape` testsuites on top of `node:test`
+A runner for `node:test`, `jest`, and `tape` test suites on top of `node:test`
 
 Most likely it will just work on your simple jest tests as as drop-in replacement
 
@@ -50,7 +50,7 @@ Add `{ concurrency: true }`, like this: `describe('my testsuite', { concurrency:
 
 ## Binary
 
-Just use `"test: "exodus-test"`
+Just use `"test": "exodus-test"`
 
 ### Options
 
