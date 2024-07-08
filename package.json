@@ -29,6 +29,7 @@
     "./jest": "./src/jest.js",
     "./tape": "./src/tape.js"
   },
+  "prettier": "@exodus/prettier",
   "files": [
     "bin/babel.cjs",
     "bin/jest.js",
@@ -41,7 +42,8 @@
   "scripts": {
     "test": "exodus-test --jest --typescript",
     "coverage": "exodus-test --jest --typescript --coverage",
-    "lint": "eslint ."
+    "lint": "prettier --list-different . && eslint .",
+    "lint:fix": "prettier --write . && eslint --fix ."
   },
   "dependencies": {
     "@babel/register": "^7.0.0",
@@ -51,7 +53,11 @@
     "tsx": "^4.16.2"
   },
   "devDependencies": {
+    "@exodus/eslint-config": "^5.24.0",
+    "@exodus/prettier": "^1.0.0",
     "@types/jest-when": "^3.5.2",
+    "@typescript-eslint/eslint-plugin": "^7.15.0",
+    "eslint": "^8.44.0",
     "jest-when": "^3.6.0"
   },
   "packageManager": "pnpm@9.4.0+sha1.9217c800d4ab947a7aee520242a7b70d64fc7638"
