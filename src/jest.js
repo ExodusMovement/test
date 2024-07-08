@@ -104,7 +104,7 @@ export {
   afterEach,
   before as beforeAll,
   after as afterAll,
-  test,
   describe,
+  test,
   it,
 } from 'node:test'
