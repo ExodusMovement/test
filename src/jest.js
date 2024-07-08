@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { mock, describe, test, it } from 'node:test'
 import { format } from 'node:util'
 import { jestfn, allMocks } from './jest.fn.js'
+import { jestmock, requireActual, requireMock } from './jest.mock.js'
 import './jest.snapshot.js'
 
 const makeEach = (impl) => (list) => (template, fn) => {
@@ -53,14 +54,9 @@ const jest = {
     obj[name] = fn
     return fn
   },
-  mock: (name, mocker) => {
-    assert(mocker, 'Non-partial module mocks are not implemented yet')
-    const value = mocker()
-    mock.module(name, {
-      defaultExport: value.default,
-      namedExports: value,
-    })
-  },
+  mock: jestmock,
+  requireMock,
+  requireActual,
   useRealTimers: () => {
     mock.timers.reset()
     return jest
