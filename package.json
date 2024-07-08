@@ -40,8 +40,8 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "test": "exodus-test --jest --typescript",
-    "coverage": "exodus-test --jest --typescript --coverage",
+    "test": "./bin/index.js --jest --typescript",
+    "coverage": "./bin/index.js --jest --typescript --coverage",
     "lint": "prettier --list-different . && eslint .",
     "lint:fix": "prettier --write . && eslint --fix ."
   },
