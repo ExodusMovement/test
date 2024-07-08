@@ -103,3 +103,4 @@ function tapeWrap(test) {
 }
 
 export const tape = tapeWrap(test)
+export default tape
