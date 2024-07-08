@@ -25,15 +25,13 @@
   "bin": {
     "exodus-test": "bin/index.js"
   },
-  "main": "src/index.js",
   "exports": {
-    ".": "./src/index.js",
     "./jest": "./src/jest.js",
     "./tape": "./src/tape.js"
   },
   "files": [
     "bin/babel.cjs",
-    "bin/preload.js",
+    "bin/jest.js",
     "src/jest.js",
     "src/jest.fn.js",
     "src/tape.js",
@@ -41,8 +39,8 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "test": "exodus-test --global --typescript",
-    "coverage": "exodus-test --global --typescript --coverage",
+    "test": "exodus-test --jest --typescript",
+    "coverage": "exodus-test --jest --typescript --coverage",
     "lint": "run -T eslint ."
   },
   "dependencies": {

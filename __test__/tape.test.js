@@ -1,4 +1,4 @@
-import { tape as test } from '../src/index.js'
+import test from '../src/tape.js'
 
 const myThing = 5
 

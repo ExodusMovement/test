@@ -1,18 +1,42 @@
 # @exodus/test
 
+A runner for `node:test`, `jest`, and `tape` testsuites on top of `node:test`
+
 Most likely it will just work on your simple jest tests as as drop-in replacement
+
+Comes with typescript support, optional esm/cjs interop, and also loading babel transforms!
+
+Use `--coverage` to generate coverage output
 
 ## Library
 
+### Using with `node:test` natively
+
+You can just use pure [`node:test`](https://nodejs.org/api/test.html) in your tests,
+this runner is fully compatible with that (and will set version-specific options for you)!
+
 ### Moving from jest
 
-`import { describe, it, assert, jest, expect } from '@exodus/test'`
+```js
+import {
+  jest,
+  expect,
+  describe,
+  it,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from '@exodus/test/jest'
+```
+
+Or, run with [`--jest` option](#options) to register jest globals
 
 ### Moving from tap/tape
 
-`import { tap as test } from '@exodus/test'`
-
-Not all features might be supported
+```js
+import test from '@exodus/test/tap'
+```
 
 ### Running tests asynchronously
 
@@ -20,26 +44,9 @@ Add `{ concurrency: true }`, like this: `describe('my testsuite', { concurrency:
 
 ### List of exports
 
-Adapters:
+- `@exodus/test/jest` -- `jest` mock
 
-- `jest` -- jest mock adapter
-- `tap` -- tap/tape adapter
-- `mock`
-
-Assertions:
-
-- `assert` -- alias for `node:assert/strict`
-- `expect` -- expect with additional features for function mocks
-
-Suite:
-
-- `describe`
-- `test`
-- `it` -- alias for `test`
-- `beforeEach`
-- `afterEach`
-- `before` -- alias for `beforeAll`
-- `after` -- alias for `afterAll`
+- `@exodus/test/tape` -- `tape` mock (can also be helpful when moving from `tap`)
 
 ## Binary
 
@@ -47,7 +54,7 @@ Just use `"test: "exodus-test"`
 
 ### Options
 
-- `--global` -- register all test helpers as global variables
+- `--jest` -- register jest test helpers as global variables
 
 - `--typescript` -- use typescript loader (which also compiles esm to cjs where needed)
 

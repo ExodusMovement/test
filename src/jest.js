@@ -1,17 +1,6 @@
-import {
-  mock,
-  describe,
-  beforeEach,
-  afterEach,
-  before as beforeAll,
-  after as afterAll,
-  test,
-  it,
-} from 'node:test'
-
 import assert from 'node:assert/strict'
+import { mock, describe, test, it } from 'node:test'
 import { format } from 'node:util'
-import { expect } from 'expect'
 import { jestfn, allMocks } from './jest.fn.js'
 
 const makeEach = (impl) => (list) => (template, fn) => {
@@ -106,11 +95,6 @@ const jest = {
     mock.timers.setTime(+time)
     return jest
   },
-}
-
-if (mock.module) {
-  const jestGlobals = { jest, expect, describe, it, beforeEach, afterEach, beforeAll, afterAll }
-  mock.module('@jest/globals', { defaultExport: jestGlobals, namedExports: jestGlobals })
 }
 
 export { jest }

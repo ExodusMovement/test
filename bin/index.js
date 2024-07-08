@@ -21,7 +21,7 @@ function versionCheck() {
 
 function parseOptions() {
   const options = {
-    global: false,
+    jest: false,
     typescript: false,
     esbuild: false,
     babel: false,
@@ -44,8 +44,9 @@ function parseOptions() {
   while (args[0]?.startsWith('--')) {
     const option = args.shift()
     switch (option) {
-      case '--global':
-        options.global = true
+      case '--global': // compat, will be removed in release
+      case '--jest':
+        options.jest = true
         break
       case '--typescript':
         options.typescript = true
@@ -138,11 +139,11 @@ if (options.babel) {
 }
 
 // Our loader should be last, as enabling module mocks confuses other loaders
-if (options.global) {
+if (options.jest) {
   if (major >= 20 || (major === 18 && minor >= 18)) {
-    args.push('--import', resolve(bindir, 'preload.js'))
+    args.push('--import', resolve(bindir, 'jest.js'))
   } else {
-    throw new Error('Option --global requires Node.js >= v18.18.0')
+    throw new Error('Option --jest requires Node.js >= v18.18.0')
   }
 }
 
