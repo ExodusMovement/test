@@ -53,6 +53,14 @@ const jest = {
     obj[name] = fn
     return fn
   },
+  mock: (name, mocker) => {
+    assert(mocker, 'Non-partial module mocks are not implemented yet')
+    const value = mocker()
+    mock.module(name, {
+      defaultExport: value.default,
+      namedExports: value,
+    })
+  },
   useRealTimers: () => {
     mock.timers.reset()
     return jest
