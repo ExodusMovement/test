@@ -1,6 +1,6 @@
 {
   "name": "@exodus/test",
-  "version": "0.0.0",
+  "version": "1.0.0-rc.5",
   "author": "Exodus Movement, Inc.",
   "description": "A test suite runner",
   "homepage": "https://github.com/ExodusMovement/test",
