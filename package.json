@@ -37,6 +37,7 @@
     "src/jest.fn.js",
     "src/jest.mock.js",
     "src/jest.snapshot.js",
+    "src/jest.timers.js",
     "src/tape.js",
     "!__tests__",
     "CHANGELOG.md"
