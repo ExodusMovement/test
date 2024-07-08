@@ -1,0 +1,155 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`complex 1`] = `
+[
+  10,
+]
+`;
+
+exports[`complex 2`] = `
+[
+  {
+    "a": 10,
+  },
+]
+`;
+
+exports[`complex 3`] = `
+{
+  "a": 10,
+}
+`;
+
+exports[`complex 4`] = `
+{
+  "a": 10,
+  "b": 20,
+}
+`;
+
+exports[`complex 5`] = `
+{
+  "data": [],
+  "type": "Buffer",
+}
+`;
+
+exports[`errors 1`] = `
+"Whoops
+I
+Failed"
+`;
+
+exports[`nested test nested test one 1`] = `
+{
+  "a": 20,
+  "b": [
+    1,
+    2,
+    "bar",
+    5,
+  ],
+  "d": {
+    "data": [
+      102,
+      111,
+      111,
+    ],
+    "type": "Buffer",
+  },
+  "e": {
+    "foo": "bar",
+  },
+}
+`;
+
+exports[`nested test test A 1`] = `
+{
+  "__proto__": [],
+  "b": [
+    1,
+    2,
+    ,
+    ,
+    5,
+  ],
+  "e": {
+    "foo": "bar",
+  },
+  "f": -Infinity,
+}
+`;
+
+exports[`nested test test A 2`] = `
+[
+  [Error: foo],
+  [TypeError: bar],
+  Uint16Array [
+    0,
+    0,
+    0,
+    0,
+  ],
+  null,
+]
+`;
+
+exports[`test A 1`] = `
+{
+  "a": 20,
+  "b": [
+    1,
+    2,
+    "bar",
+    5,
+  ],
+  "d": {
+    "data": [
+      102,
+      111,
+      111,
+    ],
+    "type": "Buffer",
+  },
+  "e": {
+    "foo": "bar",
+  },
+}
+`;
+
+exports[`test B 1`] = `
+{
+  "__proto__": [],
+  "b": [
+    1,
+    2,
+    ,
+    ,
+    5,
+  ],
+  "e": {
+    "foo": "bar",
+  },
+  "f": -Infinity,
+}
+`;
+
+exports[`test B 2`] = `
+[
+  [Error: foo],
+  [TypeError: bar],
+  Uint16Array [
+    0,
+    0,
+    0,
+    0,
+  ],
+  null,
+]
+`;
+
+exports[`test B 3`] = `
+{
+  "x": 1337,
+}
+`;

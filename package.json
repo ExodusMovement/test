@@ -35,6 +35,7 @@
     "bin/jest.js",
     "src/jest.js",
     "src/jest.fn.js",
+    "src/jest.snapshot.js",
     "src/tape.js",
     "!__tests__",
     "CHANGELOG.md"
@@ -50,6 +51,7 @@
     "c8": "^9.1.0",
     "expect": "^29.7.0",
     "fast-glob": "^3.2.11",
+    "pretty-format": "^29.7.0",
     "tsx": "^4.16.2"
   },
   "devDependencies": {

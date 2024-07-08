@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { mock, describe, test, it } from 'node:test'
 import { format } from 'node:util'
 import { jestfn, allMocks } from './jest.fn.js'
+import './jest.snapshot.js'
 
 const makeEach = (impl) => (list) => (template, fn) => {
   for (const args of list) {
