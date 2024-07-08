@@ -13,6 +13,7 @@ import assert from 'node:assert/strict'
 import { format } from 'node:util'
 import { expect } from 'expect'
 import { jestfn, allMocks } from './jest.fn.js'
+import { tapeWrap } from './tape.js'
 
 const makeEach = (impl) => (list) => (template, fn) => {
   for (const args of list) {
@@ -108,22 +109,14 @@ const jest = {
   },
 }
 
-function tap(name, fn) {
-  test(name, () =>
-    fn({
-      ...assert,
-      pass: (name) => it(true, name),
-      end: () => {},
-    })
-  )
-}
+const tape = tapeWrap(test)
 
 if (mock.module) {
   const jestGlobals = { jest, expect, describe, it, beforeEach, afterEach, beforeAll, afterAll }
   mock.module('@jest/globals', { defaultExport: jestGlobals, namedExports: jestGlobals })
 }
 
-export { tap, jest }
+export { tape, jest }
 export { expect } from 'expect'
 export {
   mock,
