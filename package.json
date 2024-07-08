@@ -41,7 +41,7 @@
   "scripts": {
     "test": "exodus-test --jest --typescript",
     "coverage": "exodus-test --jest --typescript --coverage",
-    "lint": "run -T eslint ."
+    "lint": "eslint ."
   },
   "dependencies": {
     "@babel/register": "^7.0.0",
@@ -53,5 +53,6 @@
   "devDependencies": {
     "@types/jest-when": "^3.5.2",
     "jest-when": "^3.6.0"
-  }
+  },
+  "packageManager": "pnpm@9.4.0+sha1.9217c800d4ab947a7aee520242a7b70d64fc7638"
 }
