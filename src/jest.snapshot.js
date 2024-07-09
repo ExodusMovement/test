@@ -58,39 +58,37 @@ function wrapContextName(fn) {
   }
 }
 
-function expectError(fn) {
-  let err
-  expect(() => {
-    try {
-      fn()
-    } catch (e) {
-      err = e
-      throw e
-    }
-  }).toThrow()
-  return expect(err.message) // jest just checks error message, not error obj
+const throws = (fn, check) =>
+  context.assert.throws(fn, (e) => {
+    check(e.message) // jest stores only messages for errors
+    return true
+  })
+const snapInline = (obj, inline) => {
+  assert(inline !== undefined, 'Inline Snapshots generation is not supported')
+  assert(typeof inline === 'string')
+  context.assert.equal(serialize(obj).trim(), inline.trim())
 }
 
-expect.extend({
-  toMatchInlineSnapshot: (obj, inline) => {
-    assert(inline !== undefined, 'Inline Snapshots generation is not supported')
-    assert(typeof inline === 'string')
-    return wrap(() => expect(serialize(obj).trim()).toEqual(inline.trim()))
-  },
-  toMatchSnapshot: (obj) => {
+const snapOnDisk = (obj) =>
+  wrapContextName(() => {
     const str = serialize(obj)
     if (!str.includes('\n')) {
       // Node.js always wraps with newlines, while jest wraps only those that are already multiline
       // Hopefully, for simple objects there is no need to use snapshots and those can be just compared directly
-      const msg = `Snapshotting primitives or empty objects/arrays is not supported yet: ${str}`
-      return { pass: false, message: () => msg }
+      throw new Error(
+        `Snapshotting primitives or empty objects/arrays is not supported yet: ${str}`
+      )
     }
 
     maybeSetupJestSnapshots()
-    return wrap(() => wrapContextName(() => context.assert.snapshot(obj)))
-  },
-  toThrowErrorMatchingInlineSnapshot: (f, i) => wrap(() => expectError(f).toMatchInlineSnapshot(i)),
-  toThrowErrorMatchingSnapshot: (f) => wrap(() => expectError(f).toMatchSnapshot()),
+    return context.assert.snapshot(obj)
+  })
+
+expect.extend({
+  toMatchInlineSnapshot: (obj, i) => wrap(() => snapInline(obj, i)),
+  toMatchSnapshot: (obj) => wrap(() => snapOnDisk(obj)),
+  toThrowErrorMatchingInlineSnapshot: (f, i) => wrap(() => throws(f, (msg) => snapInline(msg, i))),
+  toThrowErrorMatchingSnapshot: (f) => wrap(() => throws(f, (msg) => snapOnDisk(msg))),
 })
 
 expect.addSnapshotSerializer = (plugin) => plugins.push(plugin)
