@@ -61,16 +61,32 @@ const aliases = {
   // match/notMatch are confusing as operate on strings in some impls and objs in others. we skip them
 }
 
-function tapeWrapAssert(t) {
-  // Note: we must use t.assert instead of assert everywhere as we have t.plan
+function tapeWrapAssert(t, callback) {
+  // Auto-call api.end() on planned test count reaching zero
+  let planned = null
+  let happened = 0
+  const track = (...calls) => {
+    happened += calls.length
+    if (planned === happened) api.end()
+    if (planned !== null) assert(planned >= happened, `plan (${planned}) < count (${happened})`)
+  }
 
+  // Note: we must use t.assert instead of assert everywhere as we have t.plan
   const api = {
     test: tapeWrap(t.test.bind(t)),
-    plan: (...r) => t.plan(...r),
+    plan: (count) => {
+      assert.equal(typeof count, 'number') // can not use t.assert here
+      planned = count + happened
+      t.plan(planned)
+      track()
+    },
     skip: (...r) => t.skip(...r),
     todo: (...r) => t.todo(...r),
     comment: (...r) => t.diagnostic(...r),
-    end: () => {},
+    end: () => {
+      if (callback) callback()
+      api.end = () => {}
+    },
   }
 
   // Copy implementations from here if they exist, preferring over t.assert
@@ -83,11 +99,13 @@ function tapeWrapAssert(t) {
 
   for (const [key, names] of Object.entries(aliases)) {
     const impl = Object.hasOwn(base, key) ? base[key] : (...r) => t.assert[key](...r)
-    Object.assign(api, Object.fromEntries(names.map((name) => [name, impl])))
+    Object.assign(api, Object.fromEntries(names.map((name) => [name, (...r) => track(impl(...r))])))
   }
 
   return api
 }
+
+const AsyncFunction = (async () => {}).constructor
 
 function tapeWrap(test) {
   const tap = (name, ...args) => {
@@ -95,7 +113,12 @@ function tapeWrap(test) {
     assert(args.length <= 1)
     const [opts = {}] = args
     verifyOptions(opts)
-    test(name, opts, (t) => fn(tapeWrapAssert(t)))
+    assert(fn instanceof Function)
+    if (fn instanceof AsyncFunction) {
+      test(name, opts, (t) => fn(tapeWrapAssert(t)))
+    } else {
+      test(name, opts, (t, callback) => fn(tapeWrapAssert(t, callback)))
+    }
   }
 
   tap.skip = (...args) => test.skip(...args)
