@@ -86,7 +86,7 @@ export function jestmock(name, mocker) {
 
   // Loaded ESM: isn't mocked
   // Loaded CJS: mocked via object overriding
-  // Loaded built-ins: not mocked for now (!!!)
+  // Loaded built-ins: mocked via object overriding where possible
   // New CJS: mocked via mock.module + require.cache
   // New ESM: mocked via mock.module
   // New built-ins: mocked via mock.module
