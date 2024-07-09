@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict'
-import { describe, test, it } from 'node:test'
+import { describe, test, it, afterEach } from 'node:test'
 import { format } from 'node:util'
 import { jestfn, allMocks } from './jest.fn.js'
 import { jestmock, requireActual, requireMock } from './jest.mock.js'
 import * as jestTimers from './jest.timers.js'
 import './jest.snapshot.js'
+import { expect } from 'expect'
 
 const makeEach = (impl) => (list) => (template, fn) => {
   for (const args of list) {
@@ -29,6 +30,10 @@ const makeEach = (impl) => (list) => (template, fn) => {
 describe.each = makeEach(describe)
 test.each = makeEach(test)
 it.each = makeEach(it)
+
+afterEach(() => {
+  for (const { error } of expect.extractExpectedAssertionsErrors()) throw error
+})
 
 const jest = {
   fn: (impl) => jestfn(impl), // hide extra arguments
