@@ -115,8 +115,5 @@ export function jestmock(name, mocker) {
     override(resolved, true) // Override builtin modules
   }
 
-  mock.module(name, {
-    defaultExport: value.default,
-    namedExports: value,
-  })
+  mock.module(name, { defaultExport: value.default, namedExports: value })
 }
