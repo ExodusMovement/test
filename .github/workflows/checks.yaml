@@ -28,5 +28,6 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
+      - uses: pnpm/action-setup@18ac635edf3d6cd3e88d281bceecc25c4dbc1e73
       - run: pnpm i --frozen-lockfile
       - run: ${{ matrix.cmd }}
