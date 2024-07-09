@@ -32,9 +32,7 @@ it.each = makeEach(it)
 
 const jest = {
   fn: (impl) => jestfn(impl), // hide extra arguments
-  clearAllMocks: () => allMocks.mockClear(),
-  resetAllMocks: () => allMocks.mockReset(),
-  restoreAllMocks: () => allMocks.mockRestore(),
+  ...allMocks,
   spyOn: (obj, name) => {
     assert(obj && name && name in obj && !(name in {}) && !(name in Object.prototype))
     const fn = jestfn(obj[name], obj, name)

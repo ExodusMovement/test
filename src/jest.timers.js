@@ -14,12 +14,12 @@ const warnOldTimers = () => {
   if (!ok) console.warn('Warning: timer mocks are known to be glitchy before Node.js >=20.11.0')
 }
 
-export const useRealTimers = () => {
+export function useRealTimers() {
   mock.timers.reset()
-  return jest
+  return this
 }
 
-export const useFakeTimers = ({ doNotFake = [], ...rest } = {}) => {
+export function useFakeTimers({ doNotFake = [], ...rest } = {}) {
   assertHaveTimers()
   warnOldTimers()
   assert.deepEqual(rest, {}, 'Unsupported options')
@@ -33,33 +33,35 @@ export const useFakeTimers = ({ doNotFake = [], ...rest } = {}) => {
     if (e.code !== 'ERR_INVALID_STATE') throw e
   }
 
-  return jest
+  return this
 }
 
-export const runAllTimers = () => {
+export function runAllTimers() {
   assertHaveTimers()
   warnOldTimers()
   mock.timers.tick(100_000_000_000) // > 3 years
-  return jest
+  return this
 }
 
-export const runOnlyPendingTimers = () => {
+export function runOnlyPendingTimers() {
   const noInfiniteLoopBug = major >= 22 || (major === 20 && minor >= 11)
   assert(noInfiniteLoopBug, 'runOnlyPendingTimers requires Node.js >=20.11.0')
   mock.timers.runAll()
-  return jest
+  return this
 }
 
-export const advanceTimersByTime = (time) => {
+export function advanceTimersByTime(time) {
   assertHaveTimers()
   warnOldTimers()
   mock.timers.tick(time)
-  return jest
+  return this
 }
 
-export const advanceTimersByTimeAsync = async (time) => jest.advanceTimersByTime(time)
+export async function advanceTimersByTimeAsync(time) {
+  return this.advanceTimersByTime(time)
+}
 
-export const setSystemTime = (time) => {
+export function setSystemTime(time) {
   mock.timers.setTime(+time)
-  return jest
+  return this
 }

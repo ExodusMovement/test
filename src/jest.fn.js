@@ -3,15 +3,17 @@ import assert from 'node:assert/strict'
 
 const registry = new Set()
 
-function applyAll(method) {
-  assert(['mockClear', 'mockReset', 'mockRestore'].includes(method))
-  for (const obj of registry) obj[method]()
-}
+const applyAllWrap = (method) =>
+  function () {
+    assert(['mockClear', 'mockReset', 'mockRestore'].includes(method))
+    for (const obj of registry) obj[method]()
+    return this
+  }
 
 export const allMocks = {
-  mockClear: () => applyAll('mockClear'),
-  mockReset: () => applyAll('mockReset'),
-  mockRestore: () => applyAll('mockRestore'),
+  clearAllMocks: applyAllWrap('mockClear'),
+  resetAllMocks: applyAllWrap('mockReset'),
+  restoreAllMocks: applyAllWrap('mockRestore'),
 }
 
 // We need parent and property for jest.spyOn and mockfn.mockRestore()

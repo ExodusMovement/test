@@ -116,4 +116,6 @@ export function jestmock(name, mocker) {
   }
 
   mock.module(name, { defaultExport: value.default, namedExports: value })
+
+  return this
 }
