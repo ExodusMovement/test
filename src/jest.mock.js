@@ -108,7 +108,7 @@ export function jestmock(name, mocker) {
   // fall through when e.g. this module doesn't exist or is ESM
   if (Object.hasOwn(require.cache, resolved)) {
     assert.equal(mapActual.get(resolved), require.cache[resolved].exports)
-    // If we did't have this prior but have now, it means we just loaded it and there are not leaked instances
+    // If we did't have this prior but have now, it means we just loaded it and there are no leaked instances
     if (havePrior) override(resolved)
     require.cache[resolved].exports = value
   } else if (builtinModules.includes(resolved.replace(/^node:/, ''))) {
