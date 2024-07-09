@@ -63,6 +63,7 @@ const throws = (fn, check) =>
     check(e.message) // jest stores only messages for errors
     return true
   })
+
 const snapInline = (obj, inline) => {
   assert(inline !== undefined, 'Inline Snapshots generation is not supported')
   assert(typeof inline === 'string')
@@ -75,9 +76,7 @@ const snapOnDisk = (obj) =>
     if (!str.includes('\n')) {
       // Node.js always wraps with newlines, while jest wraps only those that are already multiline
       // Hopefully, for simple objects there is no need to use snapshots and those can be just compared directly
-      throw new Error(
-        `Snapshotting primitives or empty objects/arrays is not supported yet: ${str}`
-      )
+      throw new Error(`Snapshots of primitives or empty objects/arrays is not supported: ${str}`)
     }
 
     maybeSetupJestSnapshots()
