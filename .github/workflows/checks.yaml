@@ -24,10 +24,12 @@ jobs:
             cmd: pnpm test
     steps:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+      - uses: pnpm/action-setup@18ac635edf3d6cd3e88d281bceecc25c4dbc1e73
+        with:
+          run_install: false
       - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - uses: pnpm/action-setup@18ac635edf3d6cd3e88d281bceecc25c4dbc1e73
       - run: pnpm i --frozen-lockfile
       - run: ${{ matrix.cmd }}
