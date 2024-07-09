@@ -26,7 +26,7 @@ it('simple inline', () => {
 const TEST_ONE = { a: 20, d: Buffer.from('foo'), b: [1, 2, 'bar', 5], e: { foo: 'bar' } }
 // eslint-disable-next-line no-sparse-arrays
 const TEST_TWO = { ['__proto__']: [], b: [1, 2, , , 5], e: { foo: 'bar' }, f: -Infinity }
-const TEST_THREE = [new Error('foo'), new TypeError('bar'), new Uint16Array(4, 2, 1_000_000), null]
+const TEST_THREE = [new Error('?!'), new TypeError('bar'), new Uint16Array([4, 2, 65_123]), null]
 
 // Test names repeat on a purpose!
 

@@ -82,13 +82,12 @@ exports[`nested test test A 1`] = `
 
 exports[`nested test test A 2`] = `
 [
-  [Error: foo],
+  [Error: ?!],
   [TypeError: bar],
   Uint16Array [
-    0,
-    0,
-    0,
-    0,
+    4,
+    2,
+    65123,
   ],
   null,
 ]
@@ -136,13 +135,12 @@ exports[`test B 1`] = `
 
 exports[`test B 2`] = `
 [
-  [Error: foo],
+  [Error: ?!],
   [TypeError: bar],
   Uint16Array [
-    0,
-    0,
-    0,
-    0,
+    4,
+    2,
+    65123,
   ],
   null,
 ]
