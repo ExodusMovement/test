@@ -1,0 +1,38 @@
+name: Checks
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    name: ${{ matrix.name }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Lint
+            cmd: pnpm lint
+          - name: Test
+            cmd: pnpm test
+    steps:
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+      - uses: pnpm/action-setup@18ac635edf3d6cd3e88d281bceecc25c4dbc1e73
+        with:
+          run_install: false
+      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
+      - run: pnpm i --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: ${{ matrix.cmd }}
