@@ -69,18 +69,20 @@ export const jestfn = (baseimpl, parent, property) => {
 
   const queuedMockOnce = (impl) => {
     onceStack.push(impl)
-    fnmock.mockImplementation(function (...args) {
-      try {
-        const impl = onceStack.shift() || mockimpl
-        return impl.call(this, ...args)
-      } finally {
-        // load fast path if we are done with the queue
-        if (onceStack.length === 0) {
-          assert(mockimpl)
-          fnmock.mockImplementation(mockimpl)
-        }
+    fnmock.mockImplementation(queueImplementation)
+  }
+
+  const queueImplementation = function (...args) {
+    try {
+      const impl = onceStack.shift() || mockimpl
+      return impl.call(this, ...args)
+    } finally {
+      // load fast path if we are done with the queue
+      if (onceStack.length === 0) {
+        assert(mockimpl)
+        fnmock.mockImplementation(mockimpl)
       }
-    })
+    }
   }
 
   const jestfnmock = {
