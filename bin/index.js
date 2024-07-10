@@ -26,9 +26,10 @@ function parseOptions() {
     esbuild: false,
     babel: false,
     coverage: false,
+    coverageEngine: 'c8', // c8 or node
+    watch: false,
     passWithNoTests: false,
     writeSnapshots: false,
-    coverageEngine: 'c8', // c8 or node
   }
 
   const args = [...process.argv]
@@ -62,6 +63,9 @@ function parseOptions() {
         break
       case '--coverage':
         options.coverage = true
+        break
+      case '--watch':
+        options.watch = true
         break
       case '--passWithNoTests':
         options.passWithNoTests = true
@@ -118,6 +122,11 @@ if (options.writeSnapshots) {
 if (options.forceExit) {
   assert((major === 20 && minor > 13) || major >= 22, 'For forceExit, use Node.js >= 20.14.0')
   args.push('--test-force-exit')
+}
+
+if (options.watch) {
+  assert((major === 18 && minor > 13) || major >= 20, 'For watch mode, use Node.js >= 18.13.0')
+  args.push('--watch')
 }
 
 if (options.coverage) {
