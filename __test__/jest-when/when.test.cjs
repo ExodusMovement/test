@@ -1,4 +1,4 @@
-// From https://github.com/timkindberg/jest-when/blob/master/src/when.test.js
+// From https://github.com/timkindberg/jest-when/blob/4476ba5741f69ec21c7cd5b7d767a52ca41e1258/src/when.test.js
 // Contains a filename change and single change in the expected error message test (see comment)
 
 const errMsg = ({ expect, actual }) =>
