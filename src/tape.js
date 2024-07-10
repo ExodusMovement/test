@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import assertLoose from 'node:assert'
 import { test } from 'node:test'
 
 const knownOptions = new Set(['skip', 'todo', 'concurrency'])
@@ -71,7 +72,7 @@ function tapeWrapAssert(t, callback) {
     if (plan !== null) assert(plan >= count, `plan (${plan}) < count (${count})`)
   }
 
-  const plannedAssert = () => (plan !== null && t.assert) || assert // t.assert is cached and affected by t.plan
+  const plannedAssert = () => (plan !== null && t.assert) || assertLoose // t.assert is cached and affected by t.plan
 
   // Note: we must use plannedAssert instead of assert everywhere on user calls as we have t.plan
   const api = {
