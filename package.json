@@ -59,6 +59,7 @@
   "devDependencies": {
     "@exodus/eslint-config": "^5.24.0",
     "@exodus/prettier": "^1.0.0",
+    "@jest/globals": "^29.7.0",
     "@types/jest-when": "^3.5.2",
     "@typescript-eslint/eslint-plugin": "^7.15.0",
     "eslint": "^8.44.0",

@@ -33,6 +33,9 @@ importers:
       '@exodus/prettier':
         specifier: ^1.0.0
         version: 1.0.0(prettier@3.3.2)
+      '@jest/globals':
+        specifier: ^29.7.0
+        version: 29.7.0
       '@types/jest-when':
         specifier: ^3.5.2
         version: 3.5.5
