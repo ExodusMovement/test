@@ -1,14 +1,18 @@
 import assert from 'node:assert/strict'
 import { createRequire, builtinModules, syncBuiltinESMExports } from 'node:module'
+import { existsSync } from 'node:fs'
+import { normalize } from 'node:path'
 import { mock } from 'node:test'
 import { jestfn } from './jest.fn.js'
 
-const require = createRequire(import.meta.url)
+const files = process.argv.slice(1)
+const baseUrl = files.length === 1 && existsSync(files[0]) ? normalize(files[0]) : undefined
+const require = createRequire(baseUrl || import.meta.url)
 const mapMocks = new Map()
 const mapActual = new Map()
 
-function resolveModule(name) {
-  assert(/^[@a-zA-Z]/u.test(name), 'Mocking relative paths is not supported')
+export function resolveModule(name) {
+  assert(baseUrl || /^[@a-zA-Z]/u.test(name), 'Mocking relative paths is not possible')
   return require.resolve(name)
 }
 
