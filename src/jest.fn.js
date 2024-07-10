@@ -35,6 +35,7 @@ export const jestfn = (baseimpl, parent, property) => {
     queuedMockClear()
     onceStack.length = 0
     mockimpl = noop
+    mockname = undefined
     reportedmockimpl = undefined
     fnmock.mockImplementation(mockimpl)
   }
@@ -125,7 +126,7 @@ export const jestfn = (baseimpl, parent, property) => {
       case '_isMockFunction':
         return true
       case 'getMockName':
-        return () => mockname
+        return () => mockname ?? 'jest.fn()'
       case 'mockName':
         return wrap((name) => {
           mockname = name
