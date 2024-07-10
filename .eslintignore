@@ -1,2 +1,3 @@
+__test__/tape/
 __test__/jest/jest-repo/
 __test__/jest-when/when.test.cjs

@@ -44,6 +44,7 @@
   ],
   "scripts": {
     "test": "./bin/index.js --jest --typescript",
+    "test:tape": "./bin/index.js --esbuild '__test__/tape/test/*.js' __test__/tape.test.js",
     "coverage": "./bin/index.js --jest --typescript --coverage",
     "lint": "prettier --list-different . && eslint .",
     "lint:fix": "prettier --write . && eslint --fix ."

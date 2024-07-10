@@ -1,0 +1,1 @@
+module.exports = require('../../src/tape.js').default // let esbuild handle that

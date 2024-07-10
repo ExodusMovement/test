@@ -22,6 +22,8 @@ jobs:
             cmd: pnpm lint
           - name: Test
             cmd: pnpm test
+          - name: Test (just tape, no --jest)
+            cmd: pnpm run test:tape
     steps:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - uses: pnpm/action-setup@18ac635edf3d6cd3e88d281bceecc25c4dbc1e73
