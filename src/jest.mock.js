@@ -25,6 +25,11 @@ export function requireMock(name) {
   return mapMocks.get(resolved)
 }
 
+export function resetModules() {
+  // Caveat: only resets CJS modules, not ESM
+  for (const key of Object.keys(require.cache)) delete require.cache[key]
+}
+
 const isObject = (obj) => [Object.prototype, null].includes(Object.getPrototypeOf(obj))
 
 function override(resolved, lax = false) {

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { describe as nodeDescribe, test as nodeTest, afterEach } from 'node:test'
 import { format, types } from 'node:util'
 import { jestfn, allMocks } from './jest.fn.js'
-import { jestmock, requireActual, requireMock } from './jest.mock.js'
+import { jestmock, requireActual, requireMock, resetModules } from './jest.mock.js'
 import * as jestTimers from './jest.timers.js'
 import './jest.snapshot.js'
 import { expect } from 'expect'
@@ -67,6 +67,7 @@ const jest = {
   mock: jestmock,
   requireMock,
   requireActual,
+  resetModules,
   ...jestTimers,
 }
 
