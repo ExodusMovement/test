@@ -52,7 +52,7 @@ const aliases = {
   rejects: ['rejects'],
   doesNotReject: ['resolves'],
 
-  // specially handled ones as do not exist in t.assert
+  // specially handled ones as do not exist in t.assert / assert
   notOk: ['notOk', 'false', 'notok'],
   pass: ['pass'],
   error: ['error', 'ifError', 'ifErr', 'iferror'], // tape
@@ -71,13 +71,15 @@ function tapeWrapAssert(t, callback) {
     if (planned !== null) assert(planned >= happened, `plan (${planned}) < count (${happened})`)
   }
 
-  // Note: we must use t.assert instead of assert everywhere as we have t.plan
+  const plannedAssert = () => t.assert || assert // has to be a method as .assert accesses are counted
+
+  // Note: we must use plannedAssert instead of assert everywhere on user calls as we have t.plan
   const api = {
     test: tapeWrap(t.test.bind(t)),
     plan: (count) => {
-      assert.equal(typeof count, 'number') // can not use t.assert here
+      assert.equal(typeof count, 'number') // can not use plannedAssert here to not consume counter
       planned = count + happened
-      t.plan(planned)
+      if (t.plan) t.plan(planned)
       track()
     },
     skip: (...r) => t.skip(...r),
@@ -89,16 +91,16 @@ function tapeWrapAssert(t, callback) {
     },
   }
 
-  // Copy implementations from here if they exist, preferring over t.assert
+  // Copy implementations from here if they exist, preferring over plannedAssert
   const base = {
-    pass: (...r) => t.assert.ok(true, ...r),
-    notOk: (x, ...r) => t.assert.ok(!x, ...r),
-    error: (err, msg) => t.assert.ok(!err, msg || err?.message),
-    assertion: (fn, ...args) => fn.apply(t.assert, args),
+    pass: (...r) => plannedAssert().ok(true, ...r),
+    notOk: (x, ...r) => plannedAssert().ok(!x, ...r),
+    error: (err, msg) => plannedAssert().ok(!err, msg || err?.message),
+    assertion: (fn, ...args) => fn.apply(plannedAssert(), args),
   }
 
   for (const [key, names] of Object.entries(aliases)) {
-    const impl = Object.hasOwn(base, key) ? base[key] : (...r) => t.assert[key](...r)
+    const impl = Object.hasOwn(base, key) ? base[key] : (...r) => plannedAssert()[key](...r)
     Object.assign(api, Object.fromEntries(names.map((name) => [name, (...r) => track(impl(...r))])))
   }
 
