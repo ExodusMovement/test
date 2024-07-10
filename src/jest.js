@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe as nodeDescribe, test as nodeTest, afterEach } from 'node:test'
-import { format } from 'node:util'
+import { format, types } from 'node:util'
 import { jestfn, allMocks } from './jest.fn.js'
 import { jestmock, requireActual, requireMock } from './jest.mock.js'
 import * as jestTimers from './jest.timers.js'
@@ -27,8 +27,24 @@ const makeEach = (impl) => (list) => (template, fn) => {
   }
 }
 
+const forceExit = process.execArgv.map((x) => x.replaceAll('_', '-')).includes('--test-force-exit')
+
 const describe = (...args) => nodeDescribe(...args)
-const test = (name, fn) => (fn.length === 0 ? nodeTest(name, fn) : nodeTest(name, (t, c) => fn(c)))
+const test = (name, fn) => {
+  if (fn.length > 0) return nodeTest(name, (t, c) => fn(c))
+  if (!forceExit) return nodeTest(name, fn)
+  return nodeTest(name, async (t) => {
+    const res = fn()
+    assert(
+      types.isPromise(res),
+      `Test "${t.fullName}" did not return a Promise or supply a callback, which is required in force-exit mode.
+For tests to not end abruptly, use either async functions (recommended), Promises, or specify callbacks to test() / it().
+Also, using expect.assertions() to ensure the planned number of assertions is being called is advised for async code.`
+    )
+    return res
+  })
+}
+
 describe.each = makeEach(describe)
 test.each = makeEach(test)
 describe.skip = (...args) => nodeDescribe.skip(...args)
