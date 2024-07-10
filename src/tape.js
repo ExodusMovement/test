@@ -113,8 +113,9 @@ function tapeWrapAssert(t, callback) {
 const AsyncFunction = (async () => {}).constructor
 
 function tapeWrap(test) {
-  const tap = (name, ...args) => {
+  const tap = (...args) => {
     const fn = args.pop()
+    const name = args.shift() || 'test'
     assert(args.length <= 1)
     const [opts = {}] = args
     verifyOptions(opts)
