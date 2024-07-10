@@ -8,6 +8,8 @@ Comes with typescript support, optional esm/cjs interop, and also loading babel 
 
 Use `--coverage` to generate coverage output
 
+Default `NODE_ENV` value is "test", use `NODE_ENV=` to override (e.g. to empty)
+
 ## Library
 
 ### Using with `node:test` natively

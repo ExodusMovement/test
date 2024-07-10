@@ -181,6 +181,8 @@ if (tsTests.length > 0 && !options.typescript) {
 assert(files.length > 0) // otherwise we can run recursively
 args.push(...files)
 
+if (!Object.hasOwn(process.env, 'NODE_ENV')) process.env.NODE_ENV = 'test'
+
 assert(program && ['node', c8].includes(program))
 const node = spawn(program, args, { stdio: 'inherit' })
 
