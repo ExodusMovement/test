@@ -127,6 +127,7 @@ function tapeWrap(test) {
   }
 
   tap.skip = (...args) => test.skip(...args)
+  if (test.only) tap.only = tapeWrap(test.only)
   return tap
 }
 
