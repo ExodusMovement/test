@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { describe, test, it, afterEach } from 'node:test'
+import { describe as nodeDescribe, test as nodeTest, afterEach } from 'node:test'
 import { format } from 'node:util'
 import { jestfn, allMocks } from './jest.fn.js'
 import { jestmock, requireActual, requireMock } from './jest.mock.js'
@@ -27,9 +27,12 @@ const makeEach = (impl) => (list) => (template, fn) => {
   }
 }
 
+const describe = (...args) => nodeDescribe(...args)
+const test = (name, fn) => (fn.length === 0 ? nodeTest(name, fn) : nodeTest(name, (t, c) => fn(c)))
 describe.each = makeEach(describe)
 test.each = makeEach(test)
-it.each = makeEach(it)
+describe.skip = (...args) => nodeDescribe.skip(...args)
+test.skip = (...args) => nodeTest.skip(...args)
 
 afterEach(() => {
   for (const { error } of expect.extractExpectedAssertionsErrors()) throw error
@@ -51,14 +54,6 @@ const jest = {
   ...jestTimers,
 }
 
-export { jest }
+export { jest, describe, test, test as it }
 export { expect } from 'expect'
-export {
-  beforeEach,
-  afterEach,
-  before as beforeAll,
-  after as afterAll,
-  describe,
-  test,
-  it,
-} from 'node:test'
+export { beforeEach, afterEach, before as beforeAll, after as afterAll } from 'node:test'
