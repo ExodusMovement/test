@@ -29,3 +29,10 @@ test('test using promises', async function (t) {
   const result = await someAsyncThing(21, 50)
   t.equal(result, 42)
 })
+
+test('plan in the middle', (t) => {
+  t.equal(2 + 2, 4)
+  t.plan(3)
+  t.equal(3 + 2, 5)
+  t.equal(3 - 2, 1)
+})

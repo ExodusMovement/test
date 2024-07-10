@@ -71,21 +71,23 @@ function tapeWrapAssert(t, callback) {
     if (plan !== null) assert(plan >= count, `plan (${plan}) < count (${count})`)
   }
 
-  const plannedAssert = () => t.assert || assert // has to be a method as .assert accesses are counted
+  const plannedAssert = () => (plan !== null && t.assert) || assert // t.assert is cached and affected by t.plan
 
   // Note: we must use plannedAssert instead of assert everywhere on user calls as we have t.plan
   const api = {
     test: tapeWrap(t.test.bind(t)),
-    plan: (more) => {
-      assert.equal(typeof more, 'number') // can not use plannedAssert here to not consume counter
-      plan = more + count
-      if (t.plan) t.plan(plan)
+    plan: (total) => {
+      assert.equal(typeof total, 'number')
+      plan = total
+      assert(plan >= count, `plan (${plan}) < count (${count})`)
+      if (t.plan) t.plan(plan - count) // plan the remaining tests through node
       track()
     },
     skip: (...r) => t.skip(...r),
     todo: (...r) => t.todo(...r),
     comment: (...r) => t.diagnostic(...r),
     end: () => {
+      if (plan !== null) assert.equal(plan, count, `plan (${plan}) !== count (${count})`)
       if (callback) callback()
       api.end = () => {}
     },
