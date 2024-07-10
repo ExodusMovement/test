@@ -63,12 +63,12 @@ const aliases = {
 
 function tapeWrapAssert(t, callback) {
   // Auto-call api.end() on planned test count reaching zero
-  let planned = null
-  let happened = 0
+  let plan = null
+  let count = 0
   const track = (...calls) => {
-    happened += calls.length
-    if (planned === happened) api.end()
-    if (planned !== null) assert(planned >= happened, `plan (${planned}) < count (${happened})`)
+    count += calls.length
+    if (plan === count) api.end()
+    if (plan !== null) assert(plan >= count, `plan (${plan}) < count (${count})`)
   }
 
   const plannedAssert = () => t.assert || assert // has to be a method as .assert accesses are counted
@@ -76,10 +76,10 @@ function tapeWrapAssert(t, callback) {
   // Note: we must use plannedAssert instead of assert everywhere on user calls as we have t.plan
   const api = {
     test: tapeWrap(t.test.bind(t)),
-    plan: (count) => {
-      assert.equal(typeof count, 'number') // can not use plannedAssert here to not consume counter
-      planned = count + happened
-      if (t.plan) t.plan(planned)
+    plan: (more) => {
+      assert.equal(typeof more, 'number') // can not use plannedAssert here to not consume counter
+      plan = more + count
+      if (t.plan) t.plan(plan)
       track()
     },
     skip: (...r) => t.skip(...r),
