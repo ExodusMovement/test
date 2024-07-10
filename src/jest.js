@@ -57,7 +57,8 @@ afterEach(() => {
 const jest = {
   fn: (impl) => jestfn(impl), // hide extra arguments
   ...allMocks,
-  spyOn: (obj, name) => {
+  spyOn: (obj, name, accessType) => {
+    assert(!accessType, `accessType "${accessType}" is not supported`)
     assert(obj && name && name in obj && !(name in {}) && !(name in Object.prototype))
     const fn = jestfn(obj[name], obj, name)
     // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
