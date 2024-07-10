@@ -70,6 +70,10 @@ function parseOptions() {
       case '--write-snapshots':
         options.writeSnapshots = true
         break
+      case '--test-force-exit':
+      case '--forceExit':
+        options.forceExit = true
+        break
       default:
         throw new Error(`Unknown option: ${option}`)
     }
@@ -109,6 +113,11 @@ if (haveSnapshots) args.push('--experimental-test-snapshots')
 if (options.writeSnapshots) {
   assert(haveSnapshots, 'For snapshots, use Node.js >=22.3.0')
   args.push('--test-update-snapshots')
+}
+
+if (options.forceExit) {
+  assert((major === 20 && minor > 13) || major >= 22, 'For forceExit, use Node.js >= 20.14.0')
+  args.push('--test-force-exit')
 }
 
 if (options.coverage) {
