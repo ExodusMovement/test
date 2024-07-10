@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { createRequire, builtinModules } from 'node:module'
+import { createRequire, builtinModules, syncBuiltinESMExports } from 'node:module'
 import { mock } from 'node:test'
 import { jestfn } from './jest.fn.js'
 
@@ -113,6 +113,7 @@ export function jestmock(name, mocker) {
     require.cache[resolved].exports = value
   } else if (builtinModules.includes(resolved.replace(/^node:/, ''))) {
     override(resolved, true) // Override builtin modules
+    syncBuiltinESMExports()
   }
 
   mock.module(name, { defaultExport: value.default, namedExports: value })
