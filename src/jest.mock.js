@@ -50,7 +50,9 @@ function override(resolved, lax = false) {
 
   // We want to skip overriding frozen properties that already match, e.g. fs.constants
   const filtered = Object.entries(value).filter(([k, v]) => !(k in {}) && current[k] !== v)
-  Object.assign(current, Object.fromEntries(filtered))
+  const access = { configurable: true, enumerable: true, writable: true }
+  const definitions = Object.fromEntries(filtered.map(([k, value]) => [k, { value, ...access }]))
+  Object.defineProperties(current, definitions)
   if (!lax) assert.deepEqual({ ...current }, value)
 }
 
