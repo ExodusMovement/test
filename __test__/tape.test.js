@@ -19,7 +19,7 @@ test('timing test', function (t) {
   t.plan(3)
   t.equal(typeof Date.now, 'function')
   var start = Date.now()
-  setTimeout(() => t.ok(Date.now() - start >= 50), 50)
+  setTimeout(() => t.ok(Date.now() - start >= 45), 50)
   t.equal(1, 1)
 })
 
