@@ -1,6 +1,6 @@
 // Copyright (c) Meta Platforms, Inc. and affiliates.. All Rights Reserved.
 
-import {expect, it} from '@jest/globals';
+// import {expect, it} from '@jest/globals';
 
 it('adds 1 + 2 to equal 3 in Typescript', () => {
   const sum = require('../sum.ts').default;
