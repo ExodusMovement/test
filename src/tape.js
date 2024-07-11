@@ -11,6 +11,18 @@ function verifyOptions(options) {
   }
 }
 
+// We don't seem to need it for jest, so let's let it live in this file
+function cleanAssertError(e, where) {
+  // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
+  e.stack = e.stack
+    .split('\n')
+    .filter((x) => !x.startsWith(`at ${where}:`))
+    .filter((x) => !x.includes(` (${where}:`))
+    .filter((x) => !x.includes(` (node:async_hooks:`))
+    .filter((x) => !x.includes(` (node:internal/test_runner`))
+    .join('\n')
+}
+
 // key: assert method, values: names after which it'll be available
 // note that it's not available by the original key unless explicitly listed in names
 // e.g. we are strict by default
@@ -105,7 +117,16 @@ function tapeWrapAssert(t, callback) {
 
   for (const [key, names] of Object.entries(aliases)) {
     const impl = Object.hasOwn(base, key) ? base[key] : (...r) => plannedAssert()[key](...r)
-    Object.assign(api, Object.fromEntries(names.map((name) => [name, (...r) => track(impl(...r))])))
+    const wrap = (...r) => {
+      try {
+        return impl(...r)
+      } catch (e) {
+        cleanAssertError(e, import.meta.url)
+        throw e
+      }
+    }
+
+    Object.assign(api, Object.fromEntries(names.map((name) => [name, (...r) => track(wrap(...r))])))
   }
 
   return api
