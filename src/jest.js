@@ -8,6 +8,8 @@ import './jest.snapshot.js'
 import { getCallerLocation, installLocationInNextTest } from './dark.cjs'
 import { expect } from 'expect'
 
+let defaultTimeout = 5000
+
 const makeEach = (impl) => (list) => (template, fn) => {
   for (const args of list) {
     let name = template
@@ -31,11 +33,12 @@ const makeEach = (impl) => (list) => (template, fn) => {
 const forceExit = process.execArgv.map((x) => x.replaceAll('_', '-')).includes('--test-force-exit')
 
 const describe = (...args) => nodeDescribe(...args)
-const test = (name, fn) => {
+const test = (name, fn, testTimeout) => {
+  const timeout = testTimeout ?? defaultTimeout
   installLocationInNextTest(getCallerLocation())
   if (fn.length > 0) return nodeTest(name, (t, c) => fn(c))
   if (!forceExit) return nodeTest(name, fn)
-  return nodeTest(name, async (t) => {
+  return nodeTest(name, { timeout }, async (t) => {
     const res = fn()
     assert(
       types.isPromise(res),
@@ -66,6 +69,11 @@ const jest = {
     // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
     obj[name] = fn
     return fn
+  },
+  setTimeout: (x) => {
+    assert.equal(typeof x, 'number')
+    defaultTimeout = x
+    return this
   },
   mock: jestmock,
   requireMock,
