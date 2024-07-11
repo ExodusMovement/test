@@ -7,6 +7,9 @@ import * as jestTimers from './jest.timers.js'
 import './jest.snapshot.js'
 import { getCallerLocation, installLocationInNextTest } from './dark.cjs'
 import { expect } from 'expect'
+import matchers from 'jest-extended'
+
+expect.extend(matchers)
 
 let defaultTimeout = 5000
 

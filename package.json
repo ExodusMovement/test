@@ -55,6 +55,7 @@
     "c8": "^9.1.0",
     "expect": "^29.7.0",
     "fast-glob": "^3.2.11",
+    "jest-extended": "^4.0.2",
     "pretty-format": "^29.7.0",
     "tsx": "^4.16.2"
   },
