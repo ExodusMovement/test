@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import assertLoose from 'node:assert'
 import { test } from 'node:test'
+import { getCallerLocation, installLocationInNextTest } from './dark.cjs'
 
 const knownOptions = new Set(['skip', 'todo', 'concurrency', 'timeout'])
 
@@ -120,6 +121,7 @@ function tapeWrap(test) {
     const [opts = {}] = args
     verifyOptions(opts)
     assert(fn instanceof Function)
+    installLocationInNextTest(getCallerLocation())
     if (fn instanceof AsyncFunction) {
       test(name, opts, (t) => fn(tapeWrapAssert(t)))
     } else {

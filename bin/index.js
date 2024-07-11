@@ -129,6 +129,8 @@ if (options.watch) {
   args.push('--watch')
 }
 
+args.push('--expose-internals') // this is unoptimal and hopefully temporary, see rationale in src/dark.cjs
+
 if (options.coverage) {
   if (options.coverageEngine === 'node') {
     args.push('--experimental-test-coverage')

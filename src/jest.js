@@ -5,6 +5,7 @@ import { jestfn, allMocks } from './jest.fn.js'
 import { jestmock, requireActual, requireMock, resetModules } from './jest.mock.js'
 import * as jestTimers from './jest.timers.js'
 import './jest.snapshot.js'
+import { getCallerLocation, installLocationInNextTest } from './dark.cjs'
 import { expect } from 'expect'
 
 const makeEach = (impl) => (list) => (template, fn) => {
@@ -31,6 +32,7 @@ const forceExit = process.execArgv.map((x) => x.replaceAll('_', '-')).includes('
 
 const describe = (...args) => nodeDescribe(...args)
 const test = (name, fn) => {
+  installLocationInNextTest(getCallerLocation())
   if (fn.length > 0) return nodeTest(name, (t, c) => fn(c))
   if (!forceExit) return nodeTest(name, fn)
   return nodeTest(name, async (t) => {
