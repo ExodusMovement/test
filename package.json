@@ -35,6 +35,7 @@
     "bin/jest.js",
     "src/dark.cjs",
     "src/jest.js",
+    "src/jest.config.js",
     "src/jest.fn.js",
     "src/jest.mock.js",
     "src/jest.snapshot.js",

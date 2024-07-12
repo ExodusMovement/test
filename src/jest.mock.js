@@ -7,9 +7,12 @@ import { jestfn } from './jest.fn.js'
 
 const files = process.argv.slice(1)
 const baseUrl = files.length === 1 && existsSync(files[0]) ? normalize(files[0]) : undefined
-const require = createRequire(baseUrl || import.meta.url)
 const mapMocks = new Map()
 const mapActual = new Map()
+
+const require = createRequire(baseUrl || import.meta.url)
+
+export const relativeRequire = require
 
 export function resolveModule(name) {
   assert(baseUrl || /^[@a-zA-Z]/u.test(name), 'Mocking relative paths is not possible')

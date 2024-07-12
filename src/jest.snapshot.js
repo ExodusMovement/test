@@ -4,16 +4,27 @@ import { expect } from 'expect'
 import { format } from 'pretty-format'
 import assert from 'node:assert/strict'
 import { basename, dirname, join } from 'node:path'
+import { config } from './jest.config.js'
+import { relativeRequire } from './jest.mock.js'
 
+const { snapshotFormat, snapshotSerializers } = config
 const plugins = []
-const opts = { indent: 2, escapeRegex: true, printFunctionName: false, printBasicPrototype: false }
-const serialize = (val) => format(val, { ...opts, plugins }).replaceAll(/\r\n|\r/gu, '\n')
+const serialize = (val) => format(val, { ...snapshotFormat, plugins }).replaceAll(/\r\n|\r/gu, '\n')
 
+let serializersAreSetup = false
 let snapshotsAreJest = false
+
+function maybeSetupSerializers() {
+  if (serializersAreSetup) return
+  // empty require and serializers should not let this fail, non-empty serializers and empty require should
+  if (snapshotSerializers.length > 0) plugins.push(...snapshotSerializers.map(relativeRequire))
+  serializersAreSetup = true
+}
 
 // We want to setup snapshots to behave like jest only when first used from jest API
 function maybeSetupJestSnapshots() {
   if (snapshotsAreJest) return
+  maybeSetupSerializers()
   const require = createRequire(import.meta.url)
   const { snapshot } = require('node:test') // attempt to load them, and we need to do that synchronously
   assert(snapshot, 'snapshots require Node.js >=22.3.0')
@@ -68,6 +79,7 @@ const throws = (fn, check) =>
 const snapInline = (obj, inline) => {
   assert(inline !== undefined, 'Inline Snapshots generation is not supported')
   assert(typeof inline === 'string')
+  maybeSetupSerializers()
   getAssert().strictEqual(serialize(obj).trim(), inline.trim())
 }
 
