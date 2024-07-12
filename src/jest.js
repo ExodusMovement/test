@@ -13,24 +13,49 @@ expect.extend(matchers)
 
 let defaultTimeout = 5000
 
-const makeEach = (impl) => (list) => (template, fn) => {
-  for (const arg of list) {
-    let name = template
-
-    const args = !arg || typeof arg !== 'object' ? [arg] : arg
-
-    for (const [key, value] of Object.entries(args)) {
-      name = name.replace(`$${key}`, value) // can collide but we don't care much yet
-    }
-
-    if (Array.isArray(args)) {
-      const length = [...name.replaceAll('%%', '').matchAll(/%./gu)].length
-      if (length > 0) name = format(name, ...args.slice(0, length))
-    }
-
-    impl(name, () => (Array.isArray(args) ? fn(...args) : fn(args)))
+function parseArgs(list, targs) {
+  if (!(Object.isFrozen(list) && list.length === targs.length + 1)) return list // template check
+  const [header, ...separators] = list.map((x) => x.trim())
+  const titles = header.split('|').map((x) => x.trim())
+  assert(titles.length > 0 && titles.every((x) => x.length > 0), 'Malformed .each table header')
+  assert(targs.length === separators.length)
+  assert(targs.length % titles.length === 0, 'Malformed .each table')
+  // a '|' b '|' c '\n' d '|' e '|' f, and \n is '' after trim
+  assert(
+    separators.every((s, i) => s === ((i + 1) % titles.length === 0 ? '' : '|')),
+    'Malformed .each table body'
+  )
+  const result = []
+  while (targs.length >= titles.length) {
+    const part = targs.splice(0, titles.length)
+    result.push(Object.fromEntries(titles.map((key, i) => [key, part[i]])))
   }
+
+  assert.equal(targs.length, 0)
+  return result
 }
+
+const makeEach =
+  (impl) =>
+  (list, ...rest) =>
+  (template, fn) => {
+    for (const arg of parseArgs(list, rest)) {
+      let name = template
+
+      const args = !arg || typeof arg !== 'object' ? [arg] : arg
+
+      for (const [key, value] of Object.entries(args)) {
+        name = name.replace(`$${key}`, value) // can collide but we don't care much yet
+      }
+
+      if (Array.isArray(args)) {
+        const length = [...name.replaceAll('%%', '').matchAll(/%./gu)].length
+        if (length > 0) name = format(name, ...args.slice(0, length))
+      }
+
+      impl(name, () => (Array.isArray(args) ? fn(...args) : fn(args)))
+    }
+  }
 
 const forceExit = process.execArgv.map((x) => x.replaceAll('_', '-')).includes('--test-force-exit')
 
