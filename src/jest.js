@@ -41,20 +41,33 @@ const makeEach =
   (template, fn) => {
     // Hack for common testing with simple arrow functions, until we can disable esbuild minification
     const formatArg = (x) => (x && x instanceof Function && `${x}` === '()=>{}' ? '() => {}' : x)
+    // better than nothing
+    const protos = new Set([null, Array.prototype, Object.prototype])
+    const stringify = (x) => (protos.has(Object.getPrototypeOf(x)) ? JSON.stringify(x) : `${x}`)
 
     const args = parseArgs(list, rest)
     const wrapped = args.every((x) => Array.isArray(x))
+    const objects = args.every((x) => x && typeof x === 'object') // arrays also are true
+    let i = 0
     for (const arg of args) {
-      let name = template
+      let name = template.replaceAll('$#', i++)
 
       const args = wrapped ? arg : [arg]
 
-      for (const [key, value] of Object.entries(args)) {
-        name = name.replace(`$${key}`, formatArg(value)) // can collide but we don't care much yet
+      if (objects) {
+        if (arg && typeof arg === 'object' && Object.keys(arg).length > 0) {
+          // Only for the non-wrapped version
+          for (const [key, value] of Object.entries(arg)) {
+            name = name.replace(`$${key}`, stringify(formatArg(value)))
+          }
+        } else {
+          console.log({ name, arg })
+          name = name.replaceAll(/\$\w+/gu, stringify(formatArg(arg)))
+        }
       }
 
       if (Array.isArray(args)) {
-        const length = [...name.replaceAll('%%', '').matchAll(/%./gu)].length
+        const length = [...name.replaceAll('%%', '').matchAll(/%[psdifjo]/gu)].length
         if (length > 0) name = format(name, ...args.slice(0, length).map(formatArg))
       }
 
