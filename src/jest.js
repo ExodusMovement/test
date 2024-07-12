@@ -39,18 +39,21 @@ const makeEach =
   (impl) =>
   (list, ...rest) =>
   (template, fn) => {
+    // Hack for common testing with simple arrow functions, until we can disable esbuild minification
+    const formatArg = (x) => (x && x instanceof Function && `${x}` === '()=>{}' ? '() => {}' : x)
+
     for (const arg of parseArgs(list, rest)) {
       let name = template
 
       const args = !arg || typeof arg !== 'object' ? [arg] : arg
 
       for (const [key, value] of Object.entries(args)) {
-        name = name.replace(`$${key}`, value) // can collide but we don't care much yet
+        name = name.replace(`$${key}`, formatArg(value)) // can collide but we don't care much yet
       }
 
       if (Array.isArray(args)) {
         const length = [...name.replaceAll('%%', '').matchAll(/%./gu)].length
-        if (length > 0) name = format(name, ...args.slice(0, length))
+        if (length > 0) name = format(name, ...args.slice(0, length).map(formatArg))
       }
 
       impl(name, () => (Array.isArray(args) ? fn(...args) : fn(args)))
