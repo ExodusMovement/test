@@ -14,19 +14,18 @@ expect.extend(matchers)
 let defaultTimeout = 5000
 
 const makeEach = (impl) => (list) => (template, fn) => {
-  for (const args of list) {
+  for (const arg of list) {
     let name = template
 
-    if (!args || typeof args === 'string' || typeof args === 'number') {
-      name = format(name, args)
-    } else {
-      for (const [key, value] of Object.entries(args)) {
-        name = name.replace(`$${key}`, value) // can collide but we don't care much yet
-      }
+    const args = !arg || typeof arg !== 'object' ? [arg] : arg
 
-      if (Array.isArray(args)) {
-        name = format(name, ...args)
-      }
+    for (const [key, value] of Object.entries(args)) {
+      name = name.replace(`$${key}`, value) // can collide but we don't care much yet
+    }
+
+    if (Array.isArray(args)) {
+      const length = [...name.replaceAll('%%', '').matchAll(/%./gu)].length
+      if (length > 0) name = format(name, ...args.slice(0, length))
     }
 
     impl(name, () => (Array.isArray(args) ? fn(...args) : fn(args)))
