@@ -70,11 +70,19 @@ function wrapContextName(fn) {
   }
 }
 
-const throws = (fn, check) =>
+const throws = ([fn, , wrapped], check) => {
+  if (wrapped) {
+    // Seems that we got unwrapped promise result
+    // We need to be careful to not consume 2 assertion counters, so wrap with an if
+    if (!(fn && fn instanceof Error)) getAssert().fail('Received function did not throw')
+    return check(fn.message)
+  }
+
   getAssert().throws(fn, (e) => {
     check(e.message) // jest stores only messages for errors
     return true
   })
+}
 
 const snapInline = (obj, inline) => {
   assert(inline !== undefined, 'Inline Snapshots generation is not supported')
@@ -103,8 +111,8 @@ const snapOnDisk = (obj) =>
 expect.extend({
   toMatchInlineSnapshot: (obj, i) => wrap(() => snapInline(obj, i)),
   toMatchSnapshot: (obj) => wrap(() => snapOnDisk(obj)),
-  toThrowErrorMatchingInlineSnapshot: (f, i) => wrap(() => throws(f, (msg) => snapInline(msg, i))),
-  toThrowErrorMatchingSnapshot: (f) => wrap(() => throws(f, (msg) => snapOnDisk(msg))),
+  toThrowErrorMatchingInlineSnapshot: (...a) => wrap(() => throws(a, (m) => snapInline(m, a[1]))),
+  toThrowErrorMatchingSnapshot: (...a) => wrap(() => throws(a, (m) => snapOnDisk(m))),
 })
 
 expect.addSnapshotSerializer = (plugin) => plugins.push(plugin)

@@ -126,3 +126,8 @@ it('errors', () => {
     throw new RangeError('Out of something')
   }).toThrowErrorMatchingInlineSnapshot('"Out of something"')
 })
+
+it('async errors', async () => {
+  await expect(Promise.reject(new TypeError('slow but nah'))).rejects.toThrowErrorMatchingSnapshot()
+  await expect(Promise.resolve(new Error('ok'))).resolves.toThrowErrorMatchingInlineSnapshot('"ok"')
+})
