@@ -2,6 +2,7 @@ import { mock } from 'node:test'
 import assert from 'node:assert/strict'
 
 const registry = new Set()
+let callId = 0
 
 const applyAllWrap = (method) =>
   function () {
@@ -27,7 +28,11 @@ export const jestfn = (baseimpl, parent, property) => {
   let reportedmockimpl = baseimpl || undefined
   const onceStack = []
 
-  const fn = mock.fn(mockimpl)
+  const fn = mock.fn(function (...args) {
+    const impl = onceStack.shift() || mockimpl
+    jestfnmock.invocationCallOrder.push(++callId)
+    return impl.call(this, ...args)
+  })
   const fnmock = fn.mock
 
   const queuedMockClear = () => fnmock.resetCalls()
@@ -37,7 +42,6 @@ export const jestfn = (baseimpl, parent, property) => {
     mockimpl = noop
     mockname = undefined
     reportedmockimpl = undefined
-    fnmock.mockImplementation(mockimpl)
   }
 
   const queuedMockRestore = () => {
@@ -58,7 +62,6 @@ export const jestfn = (baseimpl, parent, property) => {
   const queuedMock = (impl) => {
     mockimpl = impl || noop
     onceStack.length = 0
-    fnmock.mockImplementation(mockimpl)
   }
 
   // getMockImplementation() is undocumented and is changed only in real mockImplementation() call
@@ -69,23 +72,10 @@ export const jestfn = (baseimpl, parent, property) => {
 
   const queuedMockOnce = (impl) => {
     onceStack.push(impl)
-    fnmock.mockImplementation(queueImplementation)
-  }
-
-  const queueImplementation = function (...args) {
-    try {
-      const impl = onceStack.shift() || mockimpl
-      return impl.call(this, ...args)
-    } finally {
-      // load fast path if we are done with the queue
-      if (onceStack.length === 0) {
-        assert(mockimpl)
-        fnmock.mockImplementation(mockimpl)
-      }
-    }
   }
 
   const jestfnmock = {
+    invocationCallOrder: [],
     get calls() {
       return fnmock.calls.map((call) => call.arguments)
     },
