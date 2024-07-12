@@ -42,10 +42,12 @@ const makeEach =
     // Hack for common testing with simple arrow functions, until we can disable esbuild minification
     const formatArg = (x) => (x && x instanceof Function && `${x}` === '()=>{}' ? '() => {}' : x)
 
-    for (const arg of parseArgs(list, rest)) {
+    const args = parseArgs(list, rest)
+    const wrapped = args.every((x) => Array.isArray(x))
+    for (const arg of args) {
       let name = template
 
-      const args = !arg || typeof arg !== 'object' ? [arg] : arg
+      const args = wrapped ? arg : [arg]
 
       for (const [key, value] of Object.entries(args)) {
         name = name.replace(`$${key}`, formatArg(value)) // can collide but we don't care much yet
