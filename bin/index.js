@@ -167,7 +167,7 @@ if (options.jest) {
   }
 }
 
-const ignore = ['node_modules']
+const ignore = ['**/node_modules']
 if (process.env.EXODUS_TEST_IGNORE) {
   // fast-glob treats negative ignore patterns exactly the same as positive, let's not cause a confusion
   assert(!process.env.EXODUS_TEST_IGNORE.startsWith('!'), 'Ignore pattern should not be negative')
