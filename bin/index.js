@@ -167,11 +167,16 @@ if (options.jest) {
   }
 }
 
-// We need to expand glob patterns for these
 const ignore = ['node_modules']
-const files = await glob(patterns, { ignore })
+if (process.env.EXODUS_TEST_IGNORE) {
+  // fast-glob treats negative ignore patterns exactly the same as positive, let's not cause a confusion
+  assert(!process.env.EXODUS_TEST_IGNORE.startsWith('!'), 'Ignore pattern should not be negative')
+  ignore.push(process.env.EXODUS_TEST_IGNORE)
+}
 
-if (files.length === 0) {
+const allfiles = await glob(patterns, { ignore })
+
+if (allfiles.length === 0) {
   if (options.passWithNoTests) {
     console.warn('No tests files found, but passing due to --passWithNoTests')
     process.exit(0)
@@ -181,11 +186,30 @@ if (files.length === 0) {
   process.exit(1)
 }
 
+let subfiles // must be a strict subset of allfiles
+if (process.env.EXODUS_TEST_SELECT) {
+  const subfiles = await glob(process.env.EXODUS_TEST_SELECT, { ignore })
+
+  const allSet = new Set(allfiles)
+  const stray = subfiles.filter((file) => !allSet.has(file))
+  if (stray.length > 0) {
+    console.error(`Selected tests should be a subset of all tests:\n  ${stray.join('\n  ')}`)
+    process.exit(1)
+  }
+
+  if (subfiles.length === 0) {
+    console.error('No tests files selected due to EXODUS_TEST_SELECT, passing')
+    process.exit(0)
+  }
+}
+
+const files = subfiles ?? allfiles
+
 const tsTests = files.filter((file) => file.endsWith('.ts'))
 if (tsTests.length > 0 && !options.typescript) {
   console.error(`Some tests require --typescript flag:\n  ${tsTests.join('\n  ')}`)
   process.exit(1)
-} else if (tsTests.length === 0 && options.typescript) {
+} else if (!allfiles.some((file) => file.endsWith('.ts')) && options.typescript) {
   console.warn(`Flag --typescript has been used, but there were no TypeScript tests found!`)
 }
 
