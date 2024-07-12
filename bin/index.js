@@ -178,11 +178,11 @@ const allfiles = await glob(patterns, { ignore })
 
 if (allfiles.length === 0) {
   if (options.passWithNoTests) {
-    console.warn('No tests files found, but passing due to --passWithNoTests')
+    console.warn('No test files found, but passing due to --passWithNoTests')
     process.exit(0)
   }
 
-  console.error('No tests files found!')
+  console.error('No test files found!')
   process.exit(1)
 }
 
@@ -198,7 +198,7 @@ if (process.env.EXODUS_TEST_SELECT) {
   }
 
   if (subfiles.length === 0) {
-    console.error('No tests files selected due to EXODUS_TEST_SELECT, passing')
+    console.error('No test files selected due to EXODUS_TEST_SELECT, passing')
     process.exit(0)
   }
 }
