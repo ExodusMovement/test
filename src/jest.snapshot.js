@@ -73,14 +73,18 @@ const snapInline = (obj, inline) => {
 
 const snapOnDisk = (obj) =>
   wrapContextName(() => {
-    const str = serialize(obj)
-    if (!str.includes('\n')) {
+    maybeSetupJestSnapshots()
+
+    if (!serialize(obj).includes('\n')) {
       // Node.js always wraps with newlines, while jest wraps only those that are already multiline
-      // Hopefully, for simple objects there is no need to use snapshots and those can be just compared directly
-      throw new Error(`Snapshots of primitives or empty objects/arrays is not supported: ${str}`)
+      try {
+        getAssert().snapshot(obj)
+      } catch (e) {
+        if (`\n${e.expected}\n` === e.actual) return
+        throw e
+      }
     }
 
-    maybeSetupJestSnapshots()
     return getAssert().snapshot(obj)
   })
 

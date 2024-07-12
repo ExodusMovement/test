@@ -1,4 +1,4 @@
-it.skip('simple', () => {
+it('simple', () => {
   expect(10).toMatchSnapshot()
   expect(null).toMatchSnapshot()
   expect().toMatchSnapshot()
@@ -16,6 +16,36 @@ it('complex', () => {
   expect({ a: 10 }).toMatchSnapshot()
   expect({ a: 10, b: 20 }).toMatchSnapshot()
   expect(Buffer.from('')).toMatchSnapshot()
+})
+
+// repeat test name
+it('simple', () => {
+  expect(/hello/).toMatchSnapshot()
+  expect(true).toMatchSnapshot()
+  expect(NaN).toMatchSnapshot()
+  expect({}).toMatchSnapshot()
+  expect(42).toMatchSnapshot()
+  expect([]).toMatchSnapshot()
+  expect(-Infinity).toMatchSnapshot()
+})
+
+it('mixed', () => {
+  expect(true).toMatchSnapshot()
+  expect([1, 2, 3]).toMatchSnapshot()
+  expect({ foo: 'bar' }).toMatchSnapshot()
+  expect(43).toMatchSnapshot()
+  expect({}).toMatchSnapshot()
+  expect([]).toMatchSnapshot()
+})
+
+// repeat test name
+it('mixed', () => {
+  expect([5, 4, 3]).toMatchSnapshot()
+  expect([]).toMatchSnapshot()
+  expect(false).toMatchSnapshot()
+  expect(41).toMatchSnapshot()
+  expect({ bar: 'buz' }).toMatchSnapshot()
+  expect({}).toMatchSnapshot()
 })
 
 it('simple inline', () => {

@@ -40,6 +40,50 @@ I
 Failed"
 `;
 
+exports[`mixed 1`] = `true`;
+
+exports[`mixed 2`] = `
+[
+  1,
+  2,
+  3,
+]
+`;
+
+exports[`mixed 3`] = `
+{
+  "foo": "bar",
+}
+`;
+
+exports[`mixed 4`] = `43`;
+
+exports[`mixed 5`] = `{}`;
+
+exports[`mixed 6`] = `[]`;
+
+exports[`mixed 7`] = `
+[
+  5,
+  4,
+  3,
+]
+`;
+
+exports[`mixed 8`] = `[]`;
+
+exports[`mixed 9`] = `false`;
+
+exports[`mixed 10`] = `41`;
+
+exports[`mixed 11`] = `
+{
+  "bar": "buz",
+}
+`;
+
+exports[`mixed 12`] = `{}`;
+
 exports[`nested test nested test one 1`] = `
 {
   "a": 20,
@@ -92,6 +136,38 @@ exports[`nested test test A 2`] = `
   null,
 ]
 `;
+
+exports[`simple 1`] = `10`;
+
+exports[`simple 2`] = `null`;
+
+exports[`simple 3`] = `undefined`;
+
+exports[`simple 4`] = `[]`;
+
+exports[`simple 5`] = `/xx/`;
+
+exports[`simple 6`] = `Infinity`;
+
+exports[`simple 7`] = `false`;
+
+exports[`simple 8`] = `true`;
+
+exports[`simple 9`] = `{}`;
+
+exports[`simple 10`] = `/hello/`;
+
+exports[`simple 11`] = `true`;
+
+exports[`simple 12`] = `NaN`;
+
+exports[`simple 13`] = `{}`;
+
+exports[`simple 14`] = `42`;
+
+exports[`simple 15`] = `[]`;
+
+exports[`simple 16`] = `-Infinity`;
 
 exports[`test A 1`] = `
 {
