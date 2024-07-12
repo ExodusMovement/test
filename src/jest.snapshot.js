@@ -33,6 +33,7 @@ const wrap = (check) => {
 
 let context
 beforeEach((t) => (context = t))
+const getAssert = () => context?.assert ?? assert // do not use non-strict comparisons on this!
 
 // Wrap reported context.fullName so that snapshots are placed/looked for under jest-compatible keys
 function wrapContextName(fn) {
@@ -59,7 +60,7 @@ function wrapContextName(fn) {
 }
 
 const throws = (fn, check) =>
-  context.assert.throws(fn, (e) => {
+  getAssert().throws(fn, (e) => {
     check(e.message) // jest stores only messages for errors
     return true
   })
@@ -67,7 +68,7 @@ const throws = (fn, check) =>
 const snapInline = (obj, inline) => {
   assert(inline !== undefined, 'Inline Snapshots generation is not supported')
   assert(typeof inline === 'string')
-  context.assert.equal(serialize(obj).trim(), inline.trim())
+  getAssert().strictEqual(serialize(obj).trim(), inline.trim())
 }
 
 const snapOnDisk = (obj) =>
@@ -80,7 +81,7 @@ const snapOnDisk = (obj) =>
     }
 
     maybeSetupJestSnapshots()
-    return context.assert.snapshot(obj)
+    return getAssert().snapshot(obj)
   })
 
 expect.extend({
