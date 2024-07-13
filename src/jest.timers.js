@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { mock } from 'node:test'
+import { jestConfig } from './jest.config.js'
 
 const [major, minor] = process.versions.node.split('.').map(Number)
 
@@ -19,7 +20,9 @@ export function useRealTimers() {
   return this
 }
 
-export function useFakeTimers({ doNotFake = [], ...rest } = {}) {
+const doNotFakeDefault = jestConfig().fakeTimers?.doNotFake ?? []
+
+export function useFakeTimers({ doNotFake = doNotFakeDefault, ...rest } = {}) {
   assertHaveTimers()
   warnOldTimers()
   assert.deepEqual(rest, {}, 'Unsupported options')

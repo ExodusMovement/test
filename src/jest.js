@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe as nodeDescribe, test as nodeTest, afterEach } from 'node:test'
 import { format, types } from 'node:util'
+import { jestConfig } from './jest.config.js'
 import { jestfn, allMocks } from './jest.fn.js'
 import { jestmock, requireActual, requireMock, resetModules } from './jest.mock.js'
 import * as jestTimers from './jest.timers.js'
@@ -11,7 +12,7 @@ import matchers from 'jest-extended'
 
 expect.extend(matchers)
 
-let defaultTimeout = 5000
+let defaultTimeout = jestConfig().testTimeout // overridable via jest.setTimeout()
 
 function parseArgs(list, targs) {
   if (!(Object.isFrozen(list) && list.length === targs.length + 1)) return list // template check

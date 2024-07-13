@@ -4,10 +4,10 @@ import { expect } from 'expect'
 import { format } from 'pretty-format'
 import assert from 'node:assert/strict'
 import { basename, dirname, join } from 'node:path'
-import { config } from './jest.config.js'
+import { jestConfig } from './jest.config.js'
 import { relativeRequire } from './jest.mock.js'
 
-const { snapshotFormat, snapshotSerializers } = config
+const { snapshotFormat, snapshotSerializers } = jestConfig()
 const plugins = []
 const serialize = (val) => format(val, { ...snapshotFormat, plugins }).replaceAll(/\r\n|\r/gu, '\n')
 

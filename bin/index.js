@@ -158,20 +158,33 @@ if (options.babel) {
   args.push('-r', resolveRequire('./babel.cjs'))
 }
 
-// Our loader should be last, as enabling module mocks confuses other loaders
-if (options.jest) {
-  if (major >= 20 || (major === 18 && minor >= 18)) {
-    args.push('--import', resolve(bindir, 'jest.js'))
-  } else {
-    throw new Error('Option --jest requires Node.js >= v18.18.0')
-  }
-}
-
 const ignore = ['**/node_modules']
 if (process.env.EXODUS_TEST_IGNORE) {
   // fast-glob treats negative ignore patterns exactly the same as positive, let's not cause a confusion
   assert(!process.env.EXODUS_TEST_IGNORE.startsWith('!'), 'Ignore pattern should not be negative')
   ignore.push(process.env.EXODUS_TEST_IGNORE)
+}
+
+// Our loader should be last, as enabling module mocks confuses other loaders
+if (options.jest) {
+  const { loadJestConfig } = await import('../src/jest.config.js')
+  const config = await loadJestConfig(process.cwd())
+  ignore.push(...config.testPathIgnorePatterns)
+  if (major >= 20 || (major === 18 && minor >= 18)) {
+    args.push('--import', resolve(bindir, 'jest.js'))
+  } else {
+    throw new Error('Option --jest requires Node.js >= v18.18.0')
+  }
+
+  if (config.testFailureExitCode !== undefined) {
+    if (Number(config.testFailureExitCode) === 0) {
+      console.warn('Jest is configured to succeed with exit code 0 on test failures!')
+    }
+
+    process.on('exit', (code) => {
+      if (code !== 0) process.exitCode = config.testFailureExitCode
+    })
+  }
 }
 
 const allfiles = await glob(patterns, { ignore })
