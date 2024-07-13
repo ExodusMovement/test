@@ -6,6 +6,7 @@ function getTestNamePath(t, { require } = {}) {
 
   // We are on Node.js < 22.3.0 where even t.fullName doesn't exist yet, polyfill
   const namePath = Symbol('namePath')
+  const getNamePath = Symbol('getNamePath')
   try {
     if (t[namePath]) return t[namePath]
 
@@ -14,16 +15,16 @@ function getTestNamePath(t, { require } = {}) {
 
     const usePathName = Symbol('usePathName')
     const restoreName = Symbol('restoreName')
-    Test.prototype.getNamePath = function () {
+    Test.prototype[getNamePath] = function () {
       if (this === this.root) return []
-      return [...(this.parent?.getNamePath() || []), this.name]
+      return [...(this.parent?.[getNamePath]() || []), this.name]
     }
 
     const diagnostic = Test.prototype.diagnostic
     Test.prototype.diagnostic = function (...args) {
       if (args[0] === usePathName) {
         this[restoreName] = this.name
-        this.name = this.getNamePath()
+        this.name = this[getNamePath]()
         return
       }
 
