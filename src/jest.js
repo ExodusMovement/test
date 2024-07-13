@@ -44,7 +44,7 @@ const makeEach =
     const formatArg = (x) => (x && x instanceof Function && `${x}` === '()=>{}' ? '() => {}' : x)
     // better than nothing
     const protos = new Set([null, Array.prototype, Object.prototype])
-    const stringify = (x) => (protos.has(Object.getPrototypeOf(x)) ? JSON.stringify(x) : `${x}`)
+    const printed = (x) => (x && protos.has(Object.getPrototypeOf(x)) ? JSON.stringify(x) : `${x}`)
 
     const args = parseArgs(list, rest)
     const wrapped = args.every((x) => Array.isArray(x))
@@ -59,11 +59,10 @@ const makeEach =
         if (arg && typeof arg === 'object' && Object.keys(arg).length > 0) {
           // Only for the non-wrapped version
           for (const [key, value] of Object.entries(arg)) {
-            name = name.replace(`$${key}`, stringify(formatArg(value)))
+            name = name.replace(`$${key}`, printed(formatArg(value)))
           }
         } else {
-          console.log({ name, arg })
-          name = name.replaceAll(/\$\w+/gu, stringify(formatArg(arg)))
+          name = name.replaceAll(/\$\w+/gu, printed(formatArg(arg)))
         }
       }
 

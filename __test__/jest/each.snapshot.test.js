@@ -64,3 +64,13 @@ describe.each`
     expect(a + b).toBe(expected)
   })
 })
+
+describe.each([
+  [undefined, 0],
+  [2, 3],
+  [null, false],
+])('describe', (...args) => {
+  test.each([{}, [300], [undefined, 2]])('name', (...brgs) => {
+    expect({ args, brgs }).toMatchSnapshot()
+  })
+})

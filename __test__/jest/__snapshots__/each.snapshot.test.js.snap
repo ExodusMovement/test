@@ -40,6 +40,129 @@ exports[`2 + 1 args are correct 1`] = `
 ]
 `;
 
+exports[`describe name 1`] = `
+{
+  "args": [
+    undefined,
+    0,
+  ],
+  "brgs": [
+    {},
+  ],
+}
+`;
+
+exports[`describe name 2`] = `
+{
+  "args": [
+    undefined,
+    0,
+  ],
+  "brgs": [
+    [
+      300,
+    ],
+  ],
+}
+`;
+
+exports[`describe name 3`] = `
+{
+  "args": [
+    undefined,
+    0,
+  ],
+  "brgs": [
+    [
+      undefined,
+      2,
+    ],
+  ],
+}
+`;
+
+exports[`describe name 4`] = `
+{
+  "args": [
+    2,
+    3,
+  ],
+  "brgs": [
+    {},
+  ],
+}
+`;
+
+exports[`describe name 5`] = `
+{
+  "args": [
+    2,
+    3,
+  ],
+  "brgs": [
+    [
+      300,
+    ],
+  ],
+}
+`;
+
+exports[`describe name 6`] = `
+{
+  "args": [
+    2,
+    3,
+  ],
+  "brgs": [
+    [
+      undefined,
+      2,
+    ],
+  ],
+}
+`;
+
+exports[`describe name 7`] = `
+{
+  "args": [
+    null,
+    false,
+  ],
+  "brgs": [
+    {},
+  ],
+}
+`;
+
+exports[`describe name 8`] = `
+{
+  "args": [
+    null,
+    false,
+  ],
+  "brgs": [
+    [
+      300,
+    ],
+  ],
+}
+`;
+
+exports[`describe name 9`] = `
+{
+  "args": [
+    null,
+    false,
+  ],
+  "brgs": [
+    [
+      undefined,
+      2,
+    ],
+  ],
+}
+`;
+
 exports[`test.each names and values are correct, as verified by snapshots -F: $a, $b 1`] = `
 [
   [
