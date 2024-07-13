@@ -94,17 +94,15 @@ const snapInline = (obj, inline) => {
 const snapOnDisk = (obj) => {
   maybeSetupJestSnapshots()
 
-  if (!serialize(obj).includes('\n')) {
-    // Node.js always wraps with newlines, while jest wraps only those that are already multiline
-    try {
-      wrapContextName(() => getAssert().snapshot(obj))
-    } catch (e) {
-      if (`\n${e.expected}\n` === e.actual) return
-      throw e
-    }
+  // Node.js always wraps with newlines, while jest wraps only those that are already multiline
+  try {
+    wrapContextName(() => getAssert().snapshot(obj))
+  } catch (e) {
+    const escaped = e.expected.replaceAll(/([\\`])/gu, '\\$1')
+    const final = escaped.includes('\n') ? escaped : `\n${escaped}\n`
+    if (final === e.actual) return
+    throw e
   }
-
-  return wrapContextName(() => getAssert().snapshot(obj))
 }
 
 expect.extend({

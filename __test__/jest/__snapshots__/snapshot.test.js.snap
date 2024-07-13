@@ -229,3 +229,42 @@ exports[`test B 3`] = `
   "x": 1337,
 }
 `;
+
+exports[`weird  names 
+ 1`] = `
+"
+"
+`;
+
+exports[`weird  names  !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~ 1`] = `" !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~"`;
+
+exports[`weird  names $ 1`] = `"$"`;
+
+exports[`weird  names > 1`] = `">"`;
+
+exports[`weird  names \\
+\`
+\\\`\` 1`] = `
+"\\
+\`
+\\\`\`"
+`;
+
+exports[`weird  names \\ 1`] = `"\\"`;
+
+exports[`weird  names \` \`
+ \` 1`] = `
+"\` \`
+ \`"
+`;
+
+exports[`weird  names \` \` \` 1`] = `"\` \` \`"`;
+
+exports[`weird  names \` 1`] = `"\`"`;
+
+exports[`weird  names {} 1`] = `"{}"`;
+
+exports[`weird  names multi
+line 1`] = `0`;
+
+exports[`weird  names with \` 1`] = `42`;

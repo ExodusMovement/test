@@ -131,3 +131,25 @@ it('async errors', async () => {
   await expect(Promise.reject(new TypeError('slow but nah'))).rejects.toThrowErrorMatchingSnapshot()
   await expect(Promise.resolve(new Error('ok'))).resolves.toThrowErrorMatchingInlineSnapshot('"ok"')
 })
+
+describe('weird  names', () => {
+  const ascii = Array.from({ length: 128 })
+    .fill()
+    .map((a, i) => i)
+    .slice(0x20)
+    .map((i) => String.fromCodePoint(i))
+    .join('')
+  for (const key of ['\n', '{}', '$', '`', '>', '` ` `', '` `\n `', '\\', '\\\n`\n\\``', ascii]) {
+    it(key, () => {
+      expect(key).toMatchSnapshot()
+    })
+  }
+
+  it('multi\nline', () => {
+    expect(0).toMatchSnapshot()
+  })
+
+  it('with `', () => {
+    expect(42).toMatchSnapshot()
+  })
+})
