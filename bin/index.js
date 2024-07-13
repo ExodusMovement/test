@@ -30,6 +30,7 @@ function parseOptions() {
     watch: false,
     passWithNoTests: false,
     writeSnapshots: false,
+    debug: { files: false },
   }
 
   const args = [...process.argv]
@@ -77,6 +78,9 @@ function parseOptions() {
       case '--test-force-exit':
       case '--forceExit':
         options.forceExit = true
+        break
+      case '--debug-files':
+        options.debug.files = true
         break
       default:
         throw new Error(`Unknown option: ${option}`)
@@ -220,6 +224,11 @@ if (process.env.EXODUS_TEST_SELECT) {
 }
 
 const files = subfiles ?? allfiles
+
+if (options.debug.files) {
+  console.log(files.join('\n'))
+  process.exit(1) // do not succeed!
+}
 
 const tsTests = files.filter((file) => /\.[mc]?tsx?$/u.test(file))
 if (tsTests.length > 0 && !options.typescript) {
