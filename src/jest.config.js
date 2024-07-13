@@ -10,7 +10,7 @@ async function getJestConfig(dir) {
 
   try {
     const pkg = JSON.parse(await readFile(path.resolve(dir, 'package.json'), 'utf8'))
-    if (pkg.jest) return pkg.jest
+    return pkg.jest
   } catch {}
 
   const parent = path.dirname(dir)
