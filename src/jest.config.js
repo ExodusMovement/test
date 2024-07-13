@@ -24,12 +24,22 @@ async function getJestConfig(dir) {
       }
     }
 
+    if (dynamic === undefined) {
+      try {
+        dynamic = JSON.parse(await readFile(path.resolve(dir, 'jest.config.json'), 'utf8'))
+      } catch (e) {
+        if (e.code !== 'ENOENT') throw e
+      }
+    }
+
     // We don't deep merge (yet?)
     const conf = { ...pkg.jest, ...dynamic }
     assert(!conf.rootDir, 'Jest config.rootDir is not supported yet')
     conf.rootDir = dir
     return conf
-  } catch {}
+  } catch (e) {
+    if (e.code !== 'ENOENT') throw e
+  }
 
   const parent = path.dirname(dir)
   return parent === dir ? undefined : getJestConfig(parent)
