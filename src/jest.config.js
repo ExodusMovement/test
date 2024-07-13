@@ -97,6 +97,9 @@ function verifyJestConfig(c) {
     assert.equal(c.testEnvironment, 'node', 'Only "node" testEnvironment is supported')
   }
 
+  const environmentOptions = c.testEnvironmentOptions || {}
+  assert.deepEqual(environmentOptions, {}, 'Jest config.testEnvironmentOptions is not supported')
+
   assert(!c.automock, 'Automocking all modules is not currently supported (config.automock)')
   if (c.moduleDirectories) {
     const valid = ['node_modules']
@@ -113,8 +116,6 @@ function verifyJestConfig(c) {
   const TODO = ['globalSetup', 'globalTeardown', 'randomize', 'projects', 'roots']
   TODO.push('resolver', 'unmockedModulePathPatterns', 'watchPathIgnorePatterns', 'snapshotResolver')
   for (const key of TODO) assert.equal(c[key], undefined, `Jest config.${key} is not supported yet`)
-  const environmentOpts = c.testEnvironmentOptions || {}
-  assert.deepEqual(environmentOpts, {}, 'Jest config.testEnvironmentOptions is not supported yet')
 }
 
 let config = normalizeJestConfig({})
