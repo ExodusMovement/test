@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { createRequire } from 'node:module'
+import { specialEnvironments } from './jest.environment.js'
 
 const files = process.argv.slice(1)
 const baseDir = files.length === 1 ? path.dirname(path.resolve(files[0])) : undefined
@@ -69,32 +70,10 @@ const normalizeJestConfig = (config) => ({
   },
 })
 
-const specialEnvs = {
-  __proto__: null,
-
-  'setup-polly-jest/jest-environment-node': (require) => {
-    const { Polly } = require('@pollyjs/core')
-    const { JestPollyGlobals } = require('setup-polly-jest/lib/common')
-    const pollyGlobals = new JestPollyGlobals(globalThis)
-    pollyGlobals.isJestPollyEnvironment = true
-
-    beforeEach((t) => {
-      if (!pollyGlobals.isPollyActive) return
-      pollyGlobals.pollyContext.polly = new Polly(t.fullName, pollyGlobals.pollyContext.options)
-    })
-
-    afterEach(async () => {
-      if (!pollyGlobals.pollyContext.polly) return
-      await pollyGlobals.pollyContext.polly.stop()
-      pollyGlobals.pollyContext.polly = null
-    })
-  },
-}
-
 function verifyJestConfig(c) {
   assert(!configUsed, 'Can not apply new config as the current one was already used')
 
-  if (!Object.hasOwn(specialEnvs, c.testEnvironment)) {
+  if (!Object.hasOwn(specialEnvironments, c.testEnvironment)) {
     assert.equal(c.testEnvironment, 'node', 'Only "node" testEnvironment is supported')
   }
 
@@ -147,7 +126,10 @@ export async function installJestEnvironment(jestGlobals) {
 
   const require = createRequire(config.rootDir)
 
-  if (Object.hasOwn(specialEnvs, c.testEnvironment)) specialEnvs[c.testEnvironment](require)
+  if (Object.hasOwn(specialEnvironments, c.testEnvironment)) {
+    specialEnvironments[c.testEnvironment](require, jestGlobals, c.testEnvironmentOptions)
+  }
+
   for (const file of c.setupFiles || []) require(file)
   for (const file of c.setupFilesAfterEnv || []) require(file)
 
