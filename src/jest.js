@@ -105,6 +105,7 @@ afterEach(() => {
 })
 
 const jest = {
+  exodus: Object.create(null), // declare ourselves
   fn: (impl) => jestfn(impl), // hide extra arguments
   ...allMocks,
   spyOn: (obj, name, accessType) => {
