@@ -1,5 +1,7 @@
 const { fileURLToPath } = require('node:url')
 
+const mayBeUrlToPath = (str) => (str.startsWith('file://') ? fileURLToPath(str) : str)
+
 let locForNextTest
 
 let installLocationInNextTest = function (loc) {
@@ -9,9 +11,7 @@ let installLocationInNextTest = function (loc) {
 // WARNING
 // Do not refactor, do not wrap
 // This function has to be called unwrapped directly inside our test() impl
-let getCallerLocation = () => {}
-
-const mayBeUrlToPath = (str) => (str.startsWith('file://') ? fileURLToPath(str) : str)
+let getCallerLocation
 
 // This is unoptimal
 // Ideally, an option for overriding file locations should be added to Node.js,
@@ -21,28 +21,90 @@ const mayBeUrlToPath = (str) => (str.startsWith('file://') ? fileURLToPath(str) 
 // This whole logic is limited only to updating caller locations for reports
 // We don't do use exposed Node.js internas for anything else
 
-try {
-  const { Test } = require('node:internal/test_runner/test')
-  const locStorage = new Map()
-  Object.defineProperty(Test.prototype, 'loc', {
-    get() {
-      return locStorage.get(this)
-    },
-    set(val) {
-      locStorage.set(this, val)
-      if (locForNextTest) {
-        const loc = locForNextTest
-        locForNextTest = undefined
-        locStorage.set(this, { line: loc[0], column: loc[1], file: mayBeUrlToPath(loc[2]) })
+function createCallerLocationHook() {
+  if (getCallerLocation) return { installLocationInNextTest, getCallerLocation }
+
+  try {
+    const { Test } = require('node:internal/test_runner/test')
+    const locStorage = new Map()
+    Object.defineProperty(Test.prototype, 'loc', {
+      get() {
+        return locStorage.get(this)
+      },
+      set(val) {
+        locStorage.set(this, val)
+        if (locForNextTest) {
+          const loc = locForNextTest
+          locForNextTest = undefined
+          locStorage.set(this, { line: loc[0], column: loc[1], file: mayBeUrlToPath(loc[2]) })
+        }
+      },
+    })
+
+    // We can replicate getCallerLocation() with public V8 Error CallSite API, but we won't
+    // need it anyway if we don't have a path for hook into internal Test implementation
+
+    const { internalBinding } = require('node:internal/test/binding')
+    getCallerLocation = internalBinding('util').getCallerLocation
+  } catch {
+    getCallerLocation = () => {}
+  }
+
+  return { installLocationInNextTest, getCallerLocation }
+}
+
+// Easy on Node.js >= 22.3.0, but we polyfill for the rest
+function getTestNamePath(t) {
+  // No implementation in Node.js yet, will have to PR
+  if (t.fullName) return t.fullName.split(' > ')
+
+  // We are on Node.js < 22.3.0 where even t.fullName doesn't exist yet, polyfill
+  const namePath = Symbol('namePath')
+  const getNamePath = Symbol('getNamePath')
+  try {
+    if (t[namePath]) return t[namePath]
+
+    // Sigh, ok, whatever
+    const { Test } = require('node:internal/test_runner/test')
+
+    const usePathName = Symbol('usePathName')
+    const restoreName = Symbol('restoreName')
+    Test.prototype[getNamePath] = function () {
+      if (this === this.root) return []
+      return [...(this.parent?.[getNamePath]() || []), this.name]
+    }
+
+    const diagnostic = Test.prototype.diagnostic
+    Test.prototype.diagnostic = function (...args) {
+      if (args[0] === usePathName) {
+        this[restoreName] = this.name
+        this.name = this[getNamePath]()
+        return
       }
-    },
-  })
 
-  // We can replicate getCallerLocation() with public V8 Error CallSite API, but we won't
-  // need it anyway if we don't have a path for hook into internal Test implementation
+      if (args[0] === restoreName) {
+        this.name = this[restoreName]
+        delete this[restoreName]
+        return
+      }
 
-  const { internalBinding } = require('node:internal/test/binding')
-  getCallerLocation = internalBinding('util').getCallerLocation
-} catch {}
+      return diagnostic.apply(this, args)
+    }
 
-module.exports = { installLocationInNextTest, getCallerLocation }
+    const TestContextProto = Object.getPrototypeOf(t)
+    Object.defineProperty(TestContextProto, namePath, {
+      get() {
+        this.diagnostic(usePathName)
+        const result = this.name
+        this.diagnostic(restoreName)
+        return result
+      },
+    })
+
+    return t[namePath]
+  } catch {}
+
+  return [t.name] // last resort
+}
+
+module.exports = { createCallerLocationHook, getTestNamePath }

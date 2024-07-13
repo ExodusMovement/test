@@ -6,9 +6,11 @@ import { jestfn, allMocks } from './jest.fn.js'
 import { jestmock, requireActual, requireMock, resetModules } from './jest.mock.js'
 import * as jestTimers from './jest.timers.js'
 import './jest.snapshot.js'
-import { getCallerLocation, installLocationInNextTest } from './dark.cjs'
+import { createCallerLocationHook } from './dark.cjs'
 import { expect } from 'expect'
 import matchers from 'jest-extended'
+
+const { getCallerLocation, installLocationInNextTest } = createCallerLocationHook()
 
 expect.extend(matchers)
 

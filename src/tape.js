@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import assertLoose from 'node:assert'
 import { test } from 'node:test'
-import { getCallerLocation, installLocationInNextTest } from './dark.cjs'
+import { createCallerLocationHook } from './dark.cjs'
 
 const knownOptions = new Set(['skip', 'todo', 'concurrency', 'timeout'])
 
@@ -133,6 +133,8 @@ function tapeWrapAssert(t, callback) {
 }
 
 const AsyncFunction = (async () => {}).constructor
+
+const { getCallerLocation, installLocationInNextTest } = createCallerLocationHook()
 
 function tapeWrap(test) {
   const tap = (...args) => {
