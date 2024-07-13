@@ -225,6 +225,23 @@ if (process.env.EXODUS_TEST_SELECT) {
 
 const files = subfiles ?? allfiles
 
+files.sort((a, b) => {
+  const [al, bl] = [a.split('/'), b.split('/')]
+  while (al[0] === bl[0]) {
+    al.shift()
+    bl.shift()
+  }
+
+  // First process each file in dir, then subdirs
+  if (al.length < 2) return -1
+  if (bl.length < 2) return 1
+  // Prefer example/ over example-something/
+  const [an, bn] = [al, bl].map((list) => list.join(String.fromCodePoint(0)))
+  if (an < bn) return -1
+  if (an > bn) return 1
+  throw new Error('Unreachable')
+})
+
 if (options.debug.files) {
   console.log(files.join('\n'))
   process.exit(1) // do not succeed!
