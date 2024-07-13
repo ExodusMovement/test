@@ -91,22 +91,21 @@ const snapInline = (obj, inline) => {
   getAssert().strictEqual(serialize(obj).trim(), inline.trim())
 }
 
-const snapOnDisk = (obj) =>
-  wrapContextName(() => {
-    maybeSetupJestSnapshots()
+const snapOnDisk = (obj) => {
+  maybeSetupJestSnapshots()
 
-    if (!serialize(obj).includes('\n')) {
-      // Node.js always wraps with newlines, while jest wraps only those that are already multiline
-      try {
-        getAssert().snapshot(obj)
-      } catch (e) {
-        if (`\n${e.expected}\n` === e.actual) return
-        throw e
-      }
+  if (!serialize(obj).includes('\n')) {
+    // Node.js always wraps with newlines, while jest wraps only those that are already multiline
+    try {
+      wrapContextName(() => getAssert().snapshot(obj))
+    } catch (e) {
+      if (`\n${e.expected}\n` === e.actual) return
+      throw e
     }
+  }
 
-    return getAssert().snapshot(obj)
-  })
+  return wrapContextName(() => getAssert().snapshot(obj))
+}
 
 expect.extend({
   toMatchInlineSnapshot: (obj, i) => wrap(() => snapInline(obj, i)),
