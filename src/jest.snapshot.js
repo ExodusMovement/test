@@ -3,16 +3,25 @@ import { createRequire } from 'node:module'
 import { expect } from 'expect'
 import { format } from 'pretty-format'
 import assert from 'node:assert/strict'
-import { basename, dirname, join } from 'node:path'
+import { basename, dirname, join, normalize } from 'node:path'
+import { readFileSync } from 'node:fs'
 import { jestConfig } from './jest.config.js'
 import { relativeRequire } from './jest.mock.js'
+import { getTestNamePath } from './dark.cjs'
 
 const { snapshotFormat, snapshotSerializers } = jestConfig()
 const plugins = []
 const serialize = (val) => format(val, { ...snapshotFormat, plugins }).replaceAll(/\r\n|\r/gu, '\n')
+const resolveSnapshot = (f) => join(dirname(f), '__snapshots__', `${basename(f)}.snap`)
 
 let serializersAreSetup = false
-let snapshotsAreJest = false
+let snapshotsAreJest
+
+// For manually loading the snapshot
+const files = process.argv.slice(1)
+const snapshotLocation = files.length === 1 ? resolveSnapshot(normalize(files[0])) : undefined
+const nameCounts = new Map()
+let snapshotText
 
 function maybeSetupSerializers() {
   if (serializersAreSetup) return
@@ -23,14 +32,20 @@ function maybeSetupSerializers() {
 
 // We want to setup snapshots to behave like jest only when first used from jest API
 function maybeSetupJestSnapshots() {
-  if (snapshotsAreJest) return
-  maybeSetupSerializers()
-  const require = createRequire(import.meta.url)
-  const { snapshot } = require('node:test') // attempt to load them, and we need to do that synchronously
-  assert(snapshot, 'snapshots require Node.js >=22.3.0')
-  snapshot.setDefaultSnapshotSerializers([serialize])
-  snapshot.setResolveSnapshotPath((f) => join(dirname(f), '__snapshots__', `${basename(f)}.snap`))
-  snapshotsAreJest = true
+  if (snapshotsAreJest !== undefined) return snapshotsAreJest
+  try {
+    maybeSetupSerializers()
+    const require = createRequire(import.meta.url)
+    const { snapshot } = require('node:test') // attempt to load them, and we need to do that synchronously
+    assert(snapshot, 'snapshots require Node.js >=22.3.0')
+    snapshot.setDefaultSnapshotSerializers([serialize])
+    snapshot.setResolveSnapshotPath(resolveSnapshot)
+    snapshotsAreJest = true
+  } catch {
+    snapshotsAreJest = false
+  }
+
+  return snapshotsAreJest
 }
 
 const wrap = (check) => {
@@ -92,13 +107,42 @@ const snapInline = (obj, inline) => {
 }
 
 const snapOnDisk = (obj) => {
-  maybeSetupJestSnapshots()
+  const escape = (str) => str.replaceAll(/([\\`])/gu, '\\$1')
+
+  if (!maybeSetupJestSnapshots()) {
+    // We don't have native snapshots, polyfill reading
+    if (snapshotLocation && snapshotText !== null) {
+      try {
+        snapshotText = `\n${readFileSync(snapshotLocation, 'utf8')}\n` // we'll search wrapped in \n
+      } catch {
+        snapshotText = null
+      }
+    }
+
+    const addFail = `Adding new snapshots requires Node.js >=22.3.0`
+
+    // We don't support polyfilled snapshot generation here, only parsing
+    // Also be careful with assertion plan counters
+    if (!snapshotText) getAssert().fail(`Could not find snapshot file. ${addFail}`)
+
+    const name = getTestNamePath(context).join(' ')
+    const count = (nameCounts.get(name) || 0) + 1
+    nameCounts.set(name, count)
+    const escaped = escape(serialize(obj))
+    const key = `${name} ${count}`
+    const makeEntry = (x) => `\nexports[\`${escape(key)}\`] = \`${x}\`;\n`
+    const final = escaped.includes('\n') ? `\n${escaped}\n` : escaped
+    if (snapshotText.includes(makeEntry(final))) return
+    // Perhaps wrapped with newlines from Node.js snapshots?
+    if (!final.includes('\n') && snapshotText.includes(makeEntry(`\n${final}\n`))) return
+    return getAssert().fail(`Could not match "${key}" in snapshot. ${addFail}`)
+  }
 
   // Node.js always wraps with newlines, while jest wraps only those that are already multiline
   try {
     wrapContextName(() => getAssert().snapshot(obj))
   } catch (e) {
-    const escaped = e.expected.replaceAll(/([\\`])/gu, '\\$1')
+    const escaped = escape(e.expected)
     const final = escaped.includes('\n') ? escaped : `\n${escaped}\n`
     if (final === e.actual) return
     throw e
