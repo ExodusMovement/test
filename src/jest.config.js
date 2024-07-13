@@ -48,6 +48,7 @@ async function getJestConfig(dir) {
 const normalizeJestConfig = (config) => ({
   testEnvironment: 'node',
   testTimeout: 5000,
+  testMatch: ['**/__tests__/**/*.?([cm])[jt]s?(x)', '**/?(*.)+(spec|test).?([cm])[jt]s?(x)'],
   testPathIgnorePatterns: [],
   snapshotSerializers: [],
   injectGlobals: true,
@@ -108,12 +109,8 @@ function verifyJestConfig(c) {
 
   assert(!c.preset, 'Jest config.preset is not supported')
 
-  // Main process TODO
-  // assert(!c.testMatch, 'Jest config.testMatch is not supported yet')
-  // assert(!c.testRegex, 'Jest config.testRegex is not supported yet')
-
   // TODO
-  const TODO = ['globalSetup', 'globalTeardown', 'randomize', 'projects', 'roots']
+  const TODO = ['globalSetup', 'globalTeardown', 'randomize', 'projects', 'roots', 'testRegex']
   TODO.push('resolver', 'unmockedModulePathPatterns', 'watchPathIgnorePatterns', 'snapshotResolver')
   for (const key of TODO) assert.equal(c[key], undefined, `Jest config.${key} is not supported yet`)
 }

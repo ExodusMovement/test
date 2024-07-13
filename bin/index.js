@@ -9,7 +9,7 @@ import glob from 'fast-glob'
 
 const bindir = dirname(fileURLToPath(import.meta.url))
 
-const DEFAULT_PATTERNS = ['**/*.{test,spec}.{js,cjs,mjs,ts}', '**/{test,spec}.{js,cjs,mjs,ts}']
+const DEFAULT_PATTERNS = ['**/?(*.)+(spec|test).?([cm])[jt]s?(x)']
 
 function versionCheck() {
   const [major, minor, patch] = process.versions.node.split('.').map(Number)
@@ -89,7 +89,6 @@ function parseOptions() {
   )
 
   const patterns = [...args]
-  if (patterns.length === 0) patterns.push(...DEFAULT_PATTERNS) // defaults
 
   return { options, patterns }
 }
@@ -185,8 +184,12 @@ if (options.jest) {
       if (code !== 0) process.exitCode = config.testFailureExitCode
     })
   }
+
+  const jestPatterns = Array.isArray(config.testMatch) ? config.testMatch : [config.testMatch]
+  if (patterns.length === 0) patterns.push(...jestPatterns) // no patterns specified via argv
 }
 
+if (patterns.length === 0) patterns.push(...DEFAULT_PATTERNS) // defaults
 const allfiles = await glob(patterns, { ignore })
 
 if (allfiles.length === 0) {
@@ -218,7 +221,7 @@ if (process.env.EXODUS_TEST_SELECT) {
 
 const files = subfiles ?? allfiles
 
-const tsTests = files.filter((file) => file.endsWith('.ts'))
+const tsTests = files.filter((file) => /\.[mc]?tsx?$/u.test(file))
 if (tsTests.length > 0 && !options.typescript) {
   console.error(`Some tests require --typescript flag:\n  ${tsTests.join('\n  ')}`)
   process.exit(1)
