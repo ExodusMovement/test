@@ -243,7 +243,7 @@ files.sort((a, b) => {
 })
 
 if (options.debug.files) {
-  console.log(files.join('\n'))
+  for (const f of files) console.log(f) // joining with \n can get truncated, too big
   process.exit(1) // do not succeed!
 }
 
