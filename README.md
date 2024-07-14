@@ -58,9 +58,7 @@ Just use `"test": "exodus-test"`
 
 - `--jest` -- register jest test helpers as global variables, also load `jest.config.*` configuration options
 
-- `--typescript` -- use typescript loader (which also compiles esm to cjs where needed)
-
-- `--esbuild` -- use esbuild loader (currently an alias for `--typescript`)
+- `--esbuild` -- use esbuild loader, also enables Typescript support
 
 - `--babel` -- use babel loader (slower than `--esbuild`, makes sense if you have a special config)
 

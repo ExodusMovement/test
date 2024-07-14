@@ -52,7 +52,9 @@ function parseOptions() {
         options.jest = true
         break
       case '--typescript':
+        console.warn('Option --typescript is going to be gone or changed. Use --esbuild instead')
         options.typescript = true
+        options.esbuild = true
         break
       case '--esbuild':
         options.esbuild = true
@@ -148,7 +150,7 @@ if (options.coverage) {
   }
 }
 
-if (options.typescript || options.esbuild) {
+if (options.esbuild) {
   if (major >= 22 || (major === 20 && minor >= 6) || (major === 18 && minor >= 18)) {
     assert(resolveImport)
     args.push('--import', resolveImport('tsx'))
@@ -158,7 +160,7 @@ if (options.typescript || options.esbuild) {
 }
 
 if (options.babel) {
-  assert(!options.typescript, 'Options --babel and --typescript are mutually exclusive')
+  assert(!options.esbuild, 'Options --babel and --esbuild are mutually exclusive')
   args.push('-r', resolveRequire('./babel.cjs'))
 }
 
@@ -267,8 +269,8 @@ if (options.debug.files) {
 }
 
 const tsTests = files.filter((file) => /\.[mc]?tsx?$/u.test(file))
-if (tsTests.length > 0 && !options.typescript) {
-  console.error(`Some tests require --typescript flag:\n  ${tsTests.join('\n  ')}`)
+if (tsTests.length > 0 && !options.esbuild) {
+  console.error(`Some tests require --esbuild flag:\n  ${tsTests.join('\n  ')}`)
   process.exit(1)
 } else if (!allfiles.some((file) => file.endsWith('.ts')) && options.typescript) {
   console.warn(`Flag --typescript has been used, but there were no TypeScript tests found!`)
