@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { createRequire } from 'node:module'
 import { specialEnvironments } from './jest.environment.js'
@@ -10,36 +11,39 @@ const baseDir = files.length === 1 ? path.dirname(path.resolve(files[0])) : unde
 async function getJestConfig(dir) {
   if (!dir) return
 
+  const configPath = (ext) => path.resolve(dir, `jest.config.${ext}`)
+
+  assert(!existsSync(configPath('ts')), 'jest.config.ts is not supported yet with .ts extension')
+
+  const configs = []
+  for (const type of ['js', 'ts', 'mjs', 'cjs', 'json']) {
+    try {
+      if (type === 'json') {
+        configs.push(JSON.parse(await readFile(configPath('json'), 'utf8')))
+      } else {
+        const { default: config } = await import(configPath(type))
+        configs.push(config)
+      }
+    } catch (e) {
+      if (!['ERR_MODULE_NOT_FOUND', 'ENOENT'].includes(e.code)) throw e
+    }
+  }
+
   try {
     const pkg = JSON.parse(await readFile(path.resolve(dir, 'package.json'), 'utf8'))
+    assert(typeof pkg.jest !== 'string', 'String package.json["jest"] values are not supported yet')
+    if (pkg.jest) configs.push(pkg.jest)
+  } catch (e) {
+    if (e.code !== 'ENOENT') throw e
+  }
 
-    // Only if package.json is found
-    let dynamic
-    for (const type of ['mjs', 'cjs', 'js']) {
-      try {
-        const { default: config } = await import(path.resolve(dir, `jest.config.${type}`))
-        dynamic = config
-        break
-      } catch (e) {
-        if (e.code !== 'ERR_MODULE_NOT_FOUND') throw e
-      }
-    }
+  assert(configs.length < 2, `Multiple jest configs found in ${dir} dir, use only a single one`)
 
-    if (dynamic === undefined) {
-      try {
-        dynamic = JSON.parse(await readFile(path.resolve(dir, 'jest.config.json'), 'utf8'))
-      } catch (e) {
-        if (e.code !== 'ENOENT') throw e
-      }
-    }
-
-    // We don't deep merge (yet?)
-    const conf = { ...pkg.jest, ...dynamic }
+  if (configs.length > 0) {
+    const conf = { ...configs[0] }
     assert(!conf.rootDir, 'Jest config.rootDir is not supported yet')
     conf.rootDir = dir
     return conf
-  } catch (e) {
-    if (e.code !== 'ENOENT') throw e
   }
 
   const parent = path.dirname(dir)
@@ -124,7 +128,9 @@ export async function installJestEnvironment(jestGlobals) {
   if (c.restoreMocks) beforeEach(() => jest.restoreAllMocks())
   if (c.resetModules) beforeEach(() => jest.resetModules())
 
-  const require = createRequire(config.rootDir)
+  const require = config.rootDir
+    ? createRequire(path.resolve(config.rootDir, 'package.json'))
+    : () => assert.fail('Unreachable: requiring plugins without a rootDir')
 
   if (Object.hasOwn(specialEnvironments, c.testEnvironment)) {
     specialEnvironments[c.testEnvironment](require, jestGlobals, c.testEnvironmentOptions)
