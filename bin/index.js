@@ -9,7 +9,8 @@ import glob from 'fast-glob'
 
 const bindir = dirname(fileURLToPath(import.meta.url))
 
-const DEFAULT_PATTERNS = ['**/?(*.)+(spec|test).?([cm])[jt]s?(x)']
+const EXTS = `.?([cm])[jt]s?(x)` // we differt from jest, allowing [cm] before everything
+const DEFAULT_PATTERNS = [`**/__tests__/**/*${EXTS}`, `**/?(*.)+(spec|test)${EXTS}`]
 
 function versionCheck() {
   const [major, minor, patch] = process.versions.node.split('.').map(Number)
@@ -162,6 +163,7 @@ if (options.babel) {
 }
 
 const ignore = ['**/node_modules']
+let filter
 if (process.env.EXODUS_TEST_IGNORE) {
   // fast-glob treats negative ignore patterns exactly the same as positive, let's not cause a confusion
   assert(!process.env.EXODUS_TEST_IGNORE.startsWith('!'), 'Ignore pattern should not be negative')
@@ -172,7 +174,6 @@ if (process.env.EXODUS_TEST_IGNORE) {
 if (options.jest) {
   const { loadJestConfig } = await import('../src/jest.config.js')
   const config = await loadJestConfig(process.cwd())
-  ignore.push(...config.testPathIgnorePatterns)
   if (major >= 20 || (major === 18 && minor >= 18)) {
     args.push('--import', resolve(bindir, 'jest.js'))
   } else {
@@ -189,12 +190,30 @@ if (options.jest) {
     })
   }
 
-  const jestPatterns = Array.isArray(config.testMatch) ? config.testMatch : [config.testMatch]
-  if (patterns.length === 0) patterns.push(...jestPatterns) // no patterns specified via argv
+  if (patterns.length > 0) {
+    // skip, we already have patterns via argv
+  } else if (config.testRegex) {
+    assert(typeof config.testRegex === 'string', `config.testRegex should be a string`)
+    assert(!config.testMatch, 'config.testRegex can not be used together with config.testMatch')
+    patterns.push('**/*')
+  } else if (config.testMatch) {
+    patterns.push(...(Array.isArray(config.testMatch) ? config.testMatch : [config.testMatch]))
+  }
+
+  const testRegex = config.testRegex ? new RegExp(config.testRegex, 'u') : null
+  const ignoreRegexes = config.testPathIgnorePatterns.map((x) => new RegExp(x, 'u'))
+  if (testRegex || ignoreRegexes.length > 0) {
+    filter = (x) => {
+      const resolved = `<rootDir>/${x}` // don't actually include cwd, that should be irrelevant
+      if (testRegex && !testRegex.test(resolved)) return false
+      return !ignoreRegexes.some((r) => r.test(resolved))
+    }
+  }
 }
 
 if (patterns.length === 0) patterns.push(...DEFAULT_PATTERNS) // defaults
-const allfiles = await glob(patterns, { ignore })
+const globbed = await glob(patterns, { ignore })
+const allfiles = filter ? globbed.filter(filter) : globbed
 
 if (allfiles.length === 0) {
   if (options.passWithNoTests) {
