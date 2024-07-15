@@ -91,13 +91,14 @@ const describe = (...args) => {
 
     // We do only block-level concurrency, not file-level
     if (concurrent.length === 1) {
-      test(...concurrent[0])
+      const [args, callerLocation] = concurrent[0]
+      testRaw(callerLocation, ...args)
       concurrent.length = 0
     } else if (concurrent.length > 0) {
       const queue = [...concurrent]
       concurrent.length = 0
       describe('concurrent', { concurrency: defaultConcurrency }, () => {
-        for (const args of queue) test(...args)
+        for (const [args, callerLocation] of queue) testRaw(callerLocation, ...args)
       })
     }
 
@@ -107,9 +108,9 @@ const describe = (...args) => {
   return result
 }
 
-const test = (name, fn, testTimeout) => {
+const testRaw = (callerLocation, name, fn, testTimeout) => {
   const timeout = testTimeout ?? defaultTimeout
-  installLocationInNextTest(getCallerLocation())
+  installLocationInNextTest(callerLocation)
   if (fn.length > 0) return nodeTest(name, (t, c) => fn(c))
   if (!forceExit) return nodeTest(name, fn)
   return nodeTest(name, { timeout }, async (t) => {
@@ -124,9 +125,12 @@ Also, using expect.assertions() to ensure the planned number of assertions is be
   })
 }
 
+const test = (...args) => testRaw(getCallerLocation(), ...args)
+
 describe.each = makeEach(describe)
 test.each = makeEach(test)
-test.concurrent = (...args) => (inConcurrent.length > 0 ? test(...args) : concurrent.push(args))
+test.concurrent = (...args) =>
+  inConcurrent.length > 0 ? test(...args) : concurrent.push([args, getCallerLocation()])
 test.concurrent.each = makeEach(test.concurrent)
 describe.skip = (...args) => nodeDescribe.skip(...args)
 test.skip = (...args) => nodeTest.skip(...args)
