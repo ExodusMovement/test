@@ -16,6 +16,8 @@ export const relativeRequire = require
 
 export function resolveModule(name) {
   assert(baseUrl || /^[@a-zA-Z]/u.test(name), 'Mocking relative paths is not possible')
+  const unprefixed = name.replace(/^node:/, '')
+  if (builtinModules.includes(unprefixed)) return unprefixed
   return require.resolve(name)
 }
 
@@ -125,7 +127,7 @@ export function jestmock(name, mocker) {
     // If we did't have this prior but have now, it means we just loaded it and there are no leaked instances
     if (havePrior) override(resolved)
     require.cache[resolved].exports = value
-  } else if (builtinModules.includes(resolved.replace(/^node:/, ''))) {
+  } else if (builtinModules.includes(resolved)) {
     override(resolved, true) // Override builtin modules
     syncBuiltinESMExports()
   }
