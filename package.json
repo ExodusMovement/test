@@ -42,6 +42,7 @@
     "src/jest.snapshot.js",
     "src/jest.timers.js",
     "src/tape.js",
+    "src/version.js",
     "!__tests__",
     "CHANGELOG.md"
   ],

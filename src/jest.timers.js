@@ -1,18 +1,16 @@
 import assert from 'node:assert/strict'
 import { mock } from 'node:test'
 import { jestConfig } from './jest.config.js'
-
-const [major, minor] = process.versions.node.split('.').map(Number)
+import { haveValidTimers, haveNoTimerInfiniteLoopBug } from './version.js'
 
 const assertHaveTimers = () =>
   assert(mock.timers, 'Timer mocking requires Node.js >=20.4.0 || 18 >=18.19.0')
 
 let timersWarned = false
 const warnOldTimers = () => {
-  if (timersWarned) return
+  if (haveValidTimers || timersWarned) return
   timersWarned = true
-  const ok = major >= 22 || (major === 20 && minor >= 11)
-  if (!ok) console.warn('Warning: timer mocks are known to be glitchy before Node.js >=20.11.0')
+  console.warn('Warning: timer mocks are known to be glitchy before Node.js >=20.11.0')
 }
 
 export function useRealTimers() {
@@ -47,8 +45,7 @@ export function runAllTimers() {
 }
 
 export function runOnlyPendingTimers() {
-  const noInfiniteLoopBug = major >= 22 || (major === 20 && minor >= 11)
-  assert(noInfiniteLoopBug, 'runOnlyPendingTimers requires Node.js >=20.11.0')
+  assert(haveNoTimerInfiniteLoopBug, 'runOnlyPendingTimers requires Node.js >=20.11.0')
   mock.timers.runAll()
   return this
 }

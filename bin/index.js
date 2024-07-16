@@ -6,19 +6,12 @@ import { basename, dirname, resolve } from 'node:path'
 import { createRequire } from 'node:module'
 import assert from 'node:assert/strict'
 import glob from 'fast-glob'
+import { haveModuleMocks, haveSnapshots, haveForceExit, haveWatch } from '../src/version.js'
 
 const bindir = dirname(fileURLToPath(import.meta.url))
 
 const EXTS = `.?([cm])[jt]s?(x)` // we differt from jest, allowing [cm] before everything
 const DEFAULT_PATTERNS = [`**/__tests__/**/*${EXTS}`, `**/?(*.)+(spec|test)${EXTS}`]
-
-function versionCheck() {
-  const [major, minor, patch] = process.versions.node.split('.').map(Number)
-  assert((major === 18 && minor >= 13) || major >= 20, 'Node.js version too old!')
-  assert(major !== 21, 'Node.js version deprecated!')
-
-  return { major, minor, patch }
-}
 
 function parseOptions() {
   const options = {
@@ -100,7 +93,6 @@ function parseOptions() {
   return { options, patterns }
 }
 
-const { major, minor } = versionCheck()
 const { options, patterns } = parseOptions()
 
 let program = 'node'
@@ -114,10 +106,7 @@ if (resolveImport) assert.equal(c8, resolveImport('c8/bin/c8.js'))
 
 const args = ['--test', '--no-warnings=ExperimentalWarning']
 
-const haveModuleMocks = major > 22 || (major === 22 && minor >= 3)
 if (haveModuleMocks) args.push('--experimental-test-module-mocks')
-
-const haveSnapshots = major > 22 || (major === 22 && minor >= 3)
 if (haveSnapshots) args.push('--experimental-test-snapshots')
 
 if (options.writeSnapshots) {
@@ -126,12 +115,12 @@ if (options.writeSnapshots) {
 }
 
 if (options.forceExit) {
-  assert((major === 20 && minor > 13) || major >= 22, 'For forceExit, use Node.js >= 20.14.0')
+  assert(haveForceExit, 'For forceExit, use Node.js >= 20.14.0')
   args.push('--test-force-exit')
 }
 
 if (options.watch) {
-  assert((major === 18 && minor > 13) || major >= 20, 'For watch mode, use Node.js >= 18.13.0')
+  assert(haveWatch, 'For watch mode, use Node.js >= 18.13.0')
   args.push('--watch')
 }
 
@@ -151,12 +140,8 @@ if (options.coverage) {
 }
 
 if (options.esbuild) {
-  if (major >= 22 || (major === 20 && minor >= 6) || (major === 18 && minor >= 18)) {
-    assert(resolveImport)
-    args.push('--import', resolveImport('tsx'))
-  } else {
-    args.push('-r', resolveRequire('tsx/cjs'))
-  }
+  assert(resolveImport)
+  args.push('--import', resolveImport('tsx'))
 }
 
 if (options.babel) {
@@ -176,11 +161,7 @@ if (process.env.EXODUS_TEST_IGNORE) {
 if (options.jest) {
   const { loadJestConfig } = await import('../src/jest.config.js')
   const config = await loadJestConfig(process.cwd())
-  if (major >= 20 || (major === 18 && minor >= 18)) {
-    args.push('--import', resolve(bindir, 'jest.js'))
-  } else {
-    throw new Error('Option --jest requires Node.js >= v18.18.0')
-  }
+  args.push('--import', resolve(bindir, 'jest.js'))
 
   if (config.testFailureExitCode !== undefined) {
     if (Number(config.testFailureExitCode) === 0) {

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import assertLoose from 'node:assert'
 import { test } from 'node:test'
 import { createCallerLocationHook } from './dark.cjs'
+import './version.js'
 
 const knownOptions = new Set(['skip', 'todo', 'concurrency', 'timeout'])
 

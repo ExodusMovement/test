@@ -7,6 +7,7 @@ import { jestmock, requireActual, requireMock, resetModules } from './jest.mock.
 import * as jestTimers from './jest.timers.js'
 import './jest.snapshot.js'
 import { createCallerLocationHook } from './dark.cjs'
+import './version.js'
 import { expect } from 'expect'
 import matchers from 'jest-extended'
 
