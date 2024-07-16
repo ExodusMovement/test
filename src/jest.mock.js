@@ -98,8 +98,6 @@ function mockClone(root) {
 }
 
 export function jestmock(name, mocker) {
-  assert(mock.module, 'ESM module mocks are available only on Node.js >=22.3')
-
   // Loaded ESM: isn't mocked
   // Loaded CJS: mocked via object overriding
   // Loaded built-ins: mocked via object overriding where possible
@@ -121,7 +119,6 @@ export function jestmock(name, mocker) {
   const value = mocker ? { ...mocker() } : mockClone(mapActual.get(resolved))
   mapMocks.set(resolved, value)
 
-  // fall through when e.g. this module doesn't exist or is ESM
   if (Object.hasOwn(require.cache, resolved)) {
     assert.equal(mapActual.get(resolved), require.cache[resolved].exports)
     // If we did't have this prior but have now, it means we just loaded it and there are no leaked instances
@@ -130,9 +127,12 @@ export function jestmock(name, mocker) {
   } else if (builtinModules.includes(resolved)) {
     override(resolved, true) // Override builtin modules
     syncBuiltinESMExports()
+  } else {
+    // The module doesn't exist or is ESM
+    assert(mock.module, 'ESM module mocks are available only on Node.js >=22.3')
   }
 
-  mock.module(name, { defaultExport: value.default ?? value, namedExports: value })
+  mock.module?.(name, { defaultExport: value.default ?? value, namedExports: value })
 
   return this
 }
