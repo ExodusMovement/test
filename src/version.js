@@ -5,6 +5,7 @@ assert(major !== 21, 'Node.js 21.x is deprecated!') // reached EOL, no reason to
 // older versions are glitchy with before/after on top-level, which is a deal-breaker
 const ok = (major === 18 && minor >= 19) || (major === 20 && minor >= 7) || major >= 22
 assert(ok, 'Node.js version too old or glitchy with node:test, use ^18.19.0 || ^20.7.0 || >=22.0.0')
+assert(major !== 22 || minor !== 3, 'Refusing to run on Node.js 22.3.0 specifically, do not use it') // safe-guard
 
 export { major, minor, patch }
 
