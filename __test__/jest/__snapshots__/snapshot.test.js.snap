@@ -148,6 +148,21 @@ exports[`nested test test A 2`] = `
 ]
 `;
 
+exports[`property matchers will check the matchers and pass 1`] = `
+{
+  "createdAt": Any<Date>,
+  "id": Any<Number>,
+  "name": "LeBron James",
+}
+`;
+
+exports[`property matchers will check the values and pass 1`] = `
+{
+  "createdAt": Any<Date>,
+  "name": "Bond... James Bond",
+}
+`;
+
 exports[`simple 1`] = `10`;
 
 exports[`simple 2`] = `null`;

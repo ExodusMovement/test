@@ -106,7 +106,16 @@ const snapInline = (obj, inline) => {
   getAssert().strictEqual(serialize(obj).trim(), inline.trim())
 }
 
-const snapOnDisk = (obj) => {
+const snapOnDisk = (orig, matcher) => {
+  if (matcher) {
+    expect(orig).toMatchObject(matcher)
+    // If we passed, make appear that the above call never happened
+    const state = expect.getState()
+    state.assertionCalls--
+    state.numPassingAsserts--
+  }
+
+  const obj = matcher ? { ...orig, ...matcher } : orig
   const escape = (str) => str.replaceAll(/([\\`])/gu, '\\$1')
 
   if (!maybeSetupJestSnapshots()) {
@@ -154,7 +163,7 @@ const snapOnDisk = (obj) => {
 
 expect.extend({
   toMatchInlineSnapshot: (obj, i) => wrap(() => snapInline(obj, i)),
-  toMatchSnapshot: (obj) => wrap(() => snapOnDisk(obj)),
+  toMatchSnapshot: (obj, matcher) => wrap(() => snapOnDisk(obj, matcher)),
   toThrowErrorMatchingInlineSnapshot: (...a) => wrap(() => throws(a, (m) => snapInline(m, a[1]))),
   toThrowErrorMatchingSnapshot: (...a) => wrap(() => throws(a, (m) => snapOnDisk(m))),
 })

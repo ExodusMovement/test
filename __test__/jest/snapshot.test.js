@@ -158,3 +158,36 @@ describe('weird  names', () => {
     expect(42).toMatchSnapshot()
   })
 })
+
+// https://jestjs.io/docs/snapshot-testing#property-matchers
+
+describe('property matchers', () => {
+  it('will check the matchers and pass', () => {
+    expect.assertions(1) // ensure we don't over-consume
+
+    const user = {
+      createdAt: new Date(),
+      id: Math.floor(Math.random() * 20),
+      name: 'LeBron James',
+    }
+
+    expect(user).toMatchSnapshot({
+      createdAt: expect.any(Date),
+      id: expect.any(Number),
+    })
+  })
+
+  it('will check the values and pass', () => {
+    expect.assertions(1) // ensure we don't over-consume
+
+    const user = {
+      createdAt: new Date(),
+      name: 'Bond... James Bond',
+    }
+
+    expect(user).toMatchSnapshot({
+      createdAt: expect.any(Date),
+      name: 'Bond... James Bond',
+    })
+  })
+})
