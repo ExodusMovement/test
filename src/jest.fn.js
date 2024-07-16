@@ -61,7 +61,6 @@ export const jestfn = (baseimpl, parent, property) => {
 
   const queuedMock = (impl) => {
     mockimpl = impl || noop
-    onceStack.length = 0
   }
 
   // getMockImplementation() is undocumented and is changed only in real mockImplementation() call

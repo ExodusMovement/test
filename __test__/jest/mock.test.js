@@ -14,6 +14,21 @@ test('methods are overridable', () => {
   expect(f()).toBe(1)
 })
 
+test('mockImplementationOnce stacks and takes precedence even when is called before', () => {
+  const f = jest.fn(() => 2)
+  expect(f()).toBe(2)
+  expect(f()).toBe(2)
+  f.mockImplementationOnce(() => 4)
+  f.mockImplementationOnce(() => 5)
+  expect(f()).toBe(4)
+  f.mockImplementationOnce(() => 6)
+  f.mockImplementation(() => 3)
+  expect(f()).toBe(5)
+  expect(f()).toBe(6)
+  expect(f()).toBe(3)
+  expect(f()).toBe(3)
+})
+
 test('mockReset resets to undefined', () => {
   const f = jest.fn(() => 1)
   expect(f()).toBe(1)
