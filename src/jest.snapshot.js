@@ -1,7 +1,7 @@
 import { beforeEach } from 'node:test'
 import { createRequire } from 'node:module'
 import { expect } from 'expect'
-import { format } from 'pretty-format'
+import { format, plugins as builtinPlugins } from 'pretty-format'
 import assert from 'node:assert/strict'
 import { basename, dirname, join, normalize } from 'node:path'
 import { readFileSync } from 'node:fs'
@@ -10,7 +10,7 @@ import { relativeRequire } from './jest.mock.js'
 import { getTestNamePath } from './dark.cjs'
 
 const { snapshotFormat, snapshotSerializers } = jestConfig()
-const plugins = []
+const plugins = Object.values(builtinPlugins)
 const serialize = (val) => format(val, { ...snapshotFormat, plugins }).replaceAll(/\r\n|\r/gu, '\n')
 const resolveSnapshot = (f) => join(dirname(f), '__snapshots__', `${basename(f)}.snap`)
 

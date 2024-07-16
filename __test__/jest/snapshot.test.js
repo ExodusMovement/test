@@ -132,6 +132,11 @@ it('async errors', async () => {
   await expect(Promise.resolve(new Error('ok'))).resolves.toThrowErrorMatchingInlineSnapshot('"ok"')
 })
 
+it('formateted objects', () => {
+  expect(expect.any(Number)).toMatchSnapshot()
+  expect({ a: expect.any(Number), b: expect.any(String) }).toMatchSnapshot()
+})
+
 describe('weird  names', () => {
   const ascii = Array.from({ length: 128 })
     .fill()
