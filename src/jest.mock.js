@@ -130,7 +130,7 @@ export function jestmock(name, mocker) {
     syncBuiltinESMExports()
   }
 
-  mock.module(name, { defaultExport: value.default, namedExports: value })
+  mock.module(name, { defaultExport: value.default ?? value, namedExports: value })
 
   return this
 }
