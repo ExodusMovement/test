@@ -1,4 +1,5 @@
 coverage
+playground
 pnpm-lock.yaml
 __test__/tape/
 __test__/jest/jest-repo/
