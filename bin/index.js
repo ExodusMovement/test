@@ -6,7 +6,7 @@ import { basename, dirname, resolve } from 'node:path'
 import { createRequire } from 'node:module'
 import assert from 'node:assert/strict'
 import glob from 'fast-glob'
-import { haveModuleMocks, haveSnapshots, haveForceExit, haveWatch } from '../src/version.js'
+import { haveModuleMocks, haveSnapshots, haveForceExit } from '../src/version.js'
 
 const bindir = dirname(fileURLToPath(import.meta.url))
 
@@ -119,10 +119,7 @@ if (options.forceExit) {
   args.push('--test-force-exit')
 }
 
-if (options.watch) {
-  assert(haveWatch, 'For watch mode, use Node.js >= 18.13.0')
-  args.push('--watch')
-}
+if (options.watch) args.push('--watch')
 
 args.push('--expose-internals') // this is unoptimal and hopefully temporary, see rationale in src/dark.cjs
 

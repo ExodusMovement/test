@@ -11,6 +11,5 @@ export { major, minor, patch }
 export const haveModuleMocks = (major === 22 && minor >= 3) || major > 22
 export const haveSnapshots = (major === 22 && minor >= 3) || major > 22
 export const haveForceExit = (major === 20 && minor > 13) || major >= 22
-export const haveWatch = (major === 18 && minor > 13) || major >= 20
 export const haveValidTimers = (major === 20 && minor >= 11) || major >= 22 // older glitch in various ways / stop executing
 export const haveNoTimerInfiniteLoopBug = (major === 20 && minor >= 11) || major >= 22 // mock.timers.runAll() can get into infinite recursion
