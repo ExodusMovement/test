@@ -70,7 +70,7 @@ function mockClone(root) {
     if (obj instanceof RegExp) return [new RegExp(), false] // this is what jest does apparently
     if (seen.has(obj)) return [seen.get(obj), !simple.has(obj)]
     if (obj instanceof Function) {
-      seen.set(obj, jestfn(obj))
+      seen.set(obj, jestfn())
       return [seen.get(obj), true]
     }
 
