@@ -81,9 +81,11 @@ const makeEach =
 const forceExit = process.execArgv.map((x) => x.replaceAll('_', '-')).includes('--test-force-exit')
 
 const inConcurrent = []
+const inDescribe = []
 const concurrent = []
 const describe = (...args) => {
   const fn = args.pop()
+  inDescribe.push(fn)
   const optionsConcurrent = args?.at(-1)?.concurrency > 1
   if (optionsConcurrent) inConcurrent.push(fn)
   const result = nodeDescribe(...args, async () => {
@@ -105,6 +107,7 @@ const describe = (...args) => {
     return res
   })
   if (optionsConcurrent) inConcurrent.pop()
+  inDescribe.pop()
   return result
 }
 
@@ -129,8 +132,12 @@ const test = (...args) => testRaw(getCallerLocation(), ...args)
 
 describe.each = makeEach(describe)
 test.each = makeEach(test)
-test.concurrent = (...args) =>
-  inConcurrent.length > 0 ? test(...args) : concurrent.push([args, getCallerLocation()])
+test.concurrent = (...args) => {
+  assert(inDescribe.length > 0, 'test.concurrent is supported only within a describe block')
+  if (inConcurrent.length > 0) return test(...args)
+  concurrent.push([args, getCallerLocation()])
+}
+
 test.concurrent.each = makeEach(test.concurrent)
 describe.skip = (...args) => nodeDescribe.skip(...args)
 test.skip = (...args) => nodeTest.skip(...args)
