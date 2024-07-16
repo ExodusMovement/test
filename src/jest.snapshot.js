@@ -142,9 +142,12 @@ const snapOnDisk = (obj) => {
   try {
     wrapContextName(() => getAssert().snapshot(obj))
   } catch (e) {
-    const escaped = escape(e.expected)
-    const final = escaped.includes('\n') ? escaped : `\n${escaped}\n`
-    if (final === e.actual) return
+    if (typeof e.expected === 'string') {
+      const escaped = escape(e.expected)
+      const final = escaped.includes('\n') ? escaped : `\n${escaped}\n`
+      if (final === e.actual) return
+    }
+
     throw e
   }
 }
