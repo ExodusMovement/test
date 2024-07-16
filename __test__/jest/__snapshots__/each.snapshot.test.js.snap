@@ -40,6 +40,17 @@ exports[`2 + 1 args are correct 1`] = `
 ]
 `;
 
+exports[`bad objects {"a": 10, "x": [Circular]} 1`] = `
+[
+  {
+    "a": {
+      "a": 10,
+      "x": [Circular],
+    },
+  },
+]
+`;
+
 exports[`describe name 1`] = `
 {
   "args": [

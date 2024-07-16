@@ -10,6 +10,7 @@ import { createCallerLocationHook } from './dark.cjs'
 import './version.js'
 import { expect } from 'expect'
 import matchers from 'jest-extended'
+import { format as prettyFormat } from 'pretty-format'
 
 const { getCallerLocation, installLocationInNextTest } = createCallerLocationHook()
 
@@ -47,8 +48,10 @@ const makeEach =
     // Hack for common testing with simple arrow functions, until we can disable esbuild minification
     const formatArg = (x) => (x && x instanceof Function && `${x}` === '()=>{}' ? '() => {}' : x)
     // better than nothing
-    const protos = new Set([null, Array.prototype, Object.prototype])
-    const printed = (x) => (x && protos.has(Object.getPrototypeOf(x)) ? JSON.stringify(x) : `${x}`)
+    const printed = (x) =>
+      x && [null, Array.prototype, Object.prototype].includes(Object.getPrototypeOf(x))
+        ? prettyFormat(x, { min: true })
+        : `${x}`
 
     const args = parseArgs(list, rest)
     const wrapped = args.every((x) => Array.isArray(x))

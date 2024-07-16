@@ -74,3 +74,11 @@ describe.each([
     expect({ args, brgs }).toMatchSnapshot()
   })
 })
+
+describe('bad objects', () => {
+  const x = { a: 10 }
+  x.x = x
+  test.each([{ a: x }])('$a', (...args) => {
+    expect(args).toMatchSnapshot()
+  })
+})
