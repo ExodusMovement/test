@@ -10,7 +10,7 @@ import { haveModuleMocks, haveSnapshots, haveForceExit } from '../src/version.js
 
 const bindir = dirname(fileURLToPath(import.meta.url))
 
-const EXTS = `.?([cm])[jt]s?(x)` // we differt from jest, allowing [cm] before everything
+const EXTS = `.?([cm])[jt]s?(x)` // we differ from jest, allowing [cm] before everything
 const DEFAULT_PATTERNS = [`**/__tests__/**/*${EXTS}`, `**/?(*.)+(spec|test)${EXTS}`]
 
 function parseOptions() {

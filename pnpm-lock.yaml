@@ -48,6 +48,9 @@ importers:
       eslint:
         specifier: ^8.44.0
         version: 8.57.0
+      jest:
+        specifier: ^29.7.0
+        version: 29.7.0(@types/node@20.14.10)
       jest-matcher-utils:
         specifier: ^29.7.0
         version: 29.7.0
