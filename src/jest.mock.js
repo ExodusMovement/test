@@ -73,7 +73,9 @@ function override(resolved, lax = false) {
   const proto = Object.getPrototypeOf(value)
   if (Object.getPrototypeOf(current) !== proto) Object.setPrototypeOf(current, proto)
   const checked = { ...current }
-  if (current.__esModule === true) checked.__esModule = current.__esModule
+  // allow value.__esModule to be absent, allow value.__esModule to be non-enumerable
+  // if we try to override an existing __esModule module with a manually passed obj, it means we are using named exports
+  if (value.__esModule && current.__esModule === true) checked.__esModule = current.__esModule
   if (!lax) assert.deepEqual(checked, value)
 }
 
