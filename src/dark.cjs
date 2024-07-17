@@ -107,4 +107,29 @@ function getTestNamePath(t) {
   return [t.name] // last resort
 }
 
-module.exports = { createCallerLocationHook, getTestNamePath }
+function makeEsbuildMockable() {
+  const usingTsx = process.execArgv.some((x) => x.endsWith('node_modules/tsx/dist/loader.mjs'))
+  if (!usingTsx) return
+  // Hook into tsx/esbuild transpiled module conversion magic to make loaded modules mockable in runtime
+  // We want all modules to be .configurable = true, so we can override them
+  const defineProperty = Object.defineProperty
+  const obj = Object.create(null)
+  Object.defineProperty = (target, name, options) => {
+    if (options.get) {
+      const stackTraceLimit = Error.stackTraceLimit
+      Error.stackTraceLimit = 2
+      Error.captureStackTrace(obj, Object.defineProperty)
+      Error.stackTraceLimit = stackTraceLimit
+      // This is for speed, we don't want to work with text
+      const prepareStackTrace = Error.prepareStackTrace
+      Error.prepareStackTrace = (err, callsites) => callsites.map((site) => site.getFunctionName())
+      const stack = obj.stack
+      Error.prepareStackTrace = prepareStackTrace
+      if (stack[0] === '__copyProps' && stack[1] === '__toCommonJS') options.configurable = true
+    }
+
+    return defineProperty(target, name, options)
+  }
+}
+
+module.exports = { createCallerLocationHook, getTestNamePath, makeEsbuildMockable }

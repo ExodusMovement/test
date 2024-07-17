@@ -4,6 +4,7 @@ import { existsSync } from 'node:fs'
 import { normalize } from 'node:path'
 import { mock } from 'node:test'
 import { jestfn } from './jest.fn.js'
+import { makeEsbuildMockable } from './dark.cjs'
 
 const files = process.argv.slice(1)
 const baseUrl = files.length === 1 && existsSync(files[0]) ? normalize(files[0]) : undefined
@@ -183,3 +184,5 @@ export function jestmock(name, mocker) {
 
   return this
 }
+
+makeEsbuildMockable()
