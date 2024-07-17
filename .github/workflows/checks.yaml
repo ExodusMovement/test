@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         node-version: ['22.4', '20.11']
-        command: ['pnpm lint', 'pnpm test', 'pnpm run test:tape']
+        command: ['lint', 'test', 'test:tape']
     steps:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - uses: pnpm/action-setup@18ac635edf3d6cd3e88d281bceecc25c4dbc1e73
@@ -32,4 +32,4 @@ jobs:
       - run: pnpm i --frozen-lockfile
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - run: ${{ matrix.command }}
+      - run: pnpm ${{ matrix.command }}
