@@ -11,11 +11,20 @@ const applyAllWrap = (method) =>
     return this
   }
 
-export const allMocks = {
+export const jestFunctionMocks = {
+  fn: (impl) => jestfn(impl), // hide extra arguments
+  isMockFunction: (fn) => fn?._isMockFunction === true,
+  spyOn: (obj, name, accessType) => {
+    assert(!accessType, `accessType "${accessType}" is not supported`)
+    assert(obj && name && name in obj && !(name in {}) && !(name in Object.prototype))
+    const fn = jestfn(obj[name], obj, name)
+    // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
+    obj[name] = fn
+    return fn
+  },
   clearAllMocks: applyAllWrap('mockClear'),
   resetAllMocks: applyAllWrap('mockReset'),
   restoreAllMocks: applyAllWrap('mockRestore'),
-  isMockFunction: (fn) => fn?._isMockFunction === true,
 }
 
 // We need parent and property for jest.spyOn and mockfn.mockRestore()

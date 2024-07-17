@@ -2,8 +2,8 @@ import assert from 'node:assert/strict'
 import { describe as nodeDescribe, test as nodeTest, afterEach } from 'node:test'
 import { format, types } from 'node:util'
 import { jestConfig } from './jest.config.js'
-import { jestfn, allMocks } from './jest.fn.js'
-import { jestmock, requireActual, requireMock, resetModules } from './jest.mock.js'
+import { jestFunctionMocks } from './jest.fn.js'
+import { jestModuleMocks } from './jest.mock.js'
 import * as jestTimers from './jest.timers.js'
 import './jest.snapshot.js'
 import { createCallerLocationHook } from './dark.cjs'
@@ -152,25 +152,13 @@ afterEach(() => {
 
 const jest = {
   exodus: Object.create(null), // declare ourselves
-  fn: (impl) => jestfn(impl), // hide extra arguments
-  ...allMocks,
-  spyOn: (obj, name, accessType) => {
-    assert(!accessType, `accessType "${accessType}" is not supported`)
-    assert(obj && name && name in obj && !(name in {}) && !(name in Object.prototype))
-    const fn = jestfn(obj[name], obj, name)
-    // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
-    obj[name] = fn
-    return fn
-  },
   setTimeout: (x) => {
     assert.equal(typeof x, 'number')
     defaultTimeout = x
     return this
   },
-  mock: jestmock,
-  requireMock,
-  requireActual,
-  resetModules,
+  ...jestFunctionMocks,
+  ...jestModuleMocks,
   ...jestTimers,
 }
 

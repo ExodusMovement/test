@@ -14,6 +14,14 @@ const mapActual = new Map()
 const require = createRequire(baseUrl || import.meta.url)
 const isTopLevelESM = () => !baseUrl || !Object.hasOwn(require.cache, baseUrl) // assume ESM otherwise
 
+export const jestModuleMocks = {
+  mock: jestmock,
+  createMockFromModule: (name) => mockClone(requireActual(name)),
+  requireMock,
+  requireActual,
+  resetModules,
+}
+
 export const relativeRequire = require
 
 export function resolveModule(name) {
