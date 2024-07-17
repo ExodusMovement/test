@@ -21,6 +21,9 @@
   "publishConfig": {
     "access": "restricted"
   },
+  "engines": {
+    "node": "^18.19.0 || ^20.8.0 || >=22.0.0"
+  },
   "type": "module",
   "bin": {
     "exodus-test": "bin/index.js"
