@@ -70,6 +70,8 @@ Just use `"test": "exodus-test"`
 
 - `--watch` -- operate in watch mode and re-run tests on file changes
 
+- `--only` -- only run the tests marked with `test.only`
+
 - `--passWithNoTests` -- do not error when no test files were found
 
 - `--write-snapshots` -- write snapshots instead of verifying them (has `--test-update-snapshots` alias)

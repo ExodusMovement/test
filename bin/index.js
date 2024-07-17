@@ -22,6 +22,7 @@ function parseOptions() {
     coverage: false,
     coverageEngine: 'c8', // c8 or node
     watch: false,
+    only: false,
     passWithNoTests: false,
     writeSnapshots: false,
     debug: { files: false },
@@ -63,6 +64,9 @@ function parseOptions() {
         break
       case '--watch':
         options.watch = true
+        break
+      case '--only':
+        options.only = true
         break
       case '--passWithNoTests':
         options.passWithNoTests = true
@@ -120,6 +124,7 @@ if (options.forceExit) {
 }
 
 if (options.watch) args.push('--watch')
+if (options.only) args.push('--test-only')
 
 args.push('--expose-internals') // this is unoptimal and hopefully temporary, see rationale in src/dark.cjs
 
