@@ -11,6 +11,7 @@ const mapMocks = new Map()
 const mapActual = new Map()
 
 const require = createRequire(baseUrl || import.meta.url)
+const isTopLevelESM = () => !baseUrl || !Object.hasOwn(require.cache, baseUrl) // assume ESM otherwise
 
 export const relativeRequire = require
 
@@ -151,18 +152,25 @@ export function jestmock(name, mocker) {
   mapMocks.set(resolved, value)
 
   let likelyESM = false
+  const isBuiltIn = builtinModules.includes(resolved)
   if (Object.hasOwn(require.cache, resolved)) {
     assert.equal(mapActual.get(resolved), require.cache[resolved].exports)
     // If we did't have this prior but have now, it means we just loaded it and there are no leaked instances
     if (havePrior) override(resolved)
     require.cache[resolved].exports = value
-  } else if (builtinModules.includes(resolved)) {
+  } else if (isBuiltIn) {
     override(resolved, true) // Override builtin modules
     syncBuiltinESMExports()
   } else {
     // The module doesn't exist or is ESM
-    assert(mock.module, 'ESM module mocks are available only on Node.js >=22.3')
     likelyESM = true
+  }
+
+  if (!mock.module && !isBuiltIn) {
+    // Native module mocks is required if loading ESM or __from__ ESM
+    // No good way to check the locations that import the module, but we can check top-level file
+    // Built-in modules are fine though
+    assert(!likelyESM && !isTopLevelESM(), 'ESM module mocks are available only on Node.js >=22.3')
   }
 
   if (likelyESM && isObject(value) && value.__esModule === true) {
