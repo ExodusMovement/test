@@ -15,6 +15,7 @@ export const allMocks = {
   clearAllMocks: applyAllWrap('mockClear'),
   resetAllMocks: applyAllWrap('mockReset'),
   restoreAllMocks: applyAllWrap('mockRestore'),
+  isMockFunction: (fn) => fn?._isMockFunction === true,
 }
 
 // We need parent and property for jest.spyOn and mockfn.mockRestore()

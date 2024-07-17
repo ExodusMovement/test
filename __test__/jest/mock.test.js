@@ -29,6 +29,19 @@ test('mockImplementationOnce stacks and takes precedence even when is called bef
   expect(f()).toBe(3)
 })
 
+test('isMockFunction', () => {
+  const base = () => 2
+  const obj = { name: () => 3 }
+  for (const fn of [base, obj, obj.name, jest.fn().mock]) {
+    expect(Boolean(fn)).toBe(true)
+    expect(jest.isMockFunction(fn)).toBe(false)
+  }
+
+  for (const fn of [jest.fn(), jest.spyOn(obj, 'name'), obj.name]) {
+    expect(jest.isMockFunction(fn)).toBe(true)
+  }
+})
+
 test('mockReset resets to undefined', () => {
   const f = jest.fn(() => 1)
   expect(f()).toBe(1)
