@@ -12,19 +12,13 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
-    name: ${{ matrix.name }}
+    name: "${{ matrix.command }} on node ${{ matrix.node-version }}"
     timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
         node-version: ['22.4', '20.7']
-        include:
-          - name: Lint
-            cmd: pnpm lint
-          - name: Test
-            cmd: pnpm test
-          - name: Test (just tape, no --jest)
-            cmd: pnpm run test:tape
+        command: ['pnpm lint', 'pnpm test', 'pnpm run test:tape']
     steps:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - uses: pnpm/action-setup@18ac635edf3d6cd3e88d281bceecc25c4dbc1e73
