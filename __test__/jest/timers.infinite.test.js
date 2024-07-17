@@ -17,8 +17,12 @@ function infiniteTimerGame(callback) {
 jest.useFakeTimers()
 jest.spyOn(global, 'setTimeout')
 
+const [major, minor] = process.versions.node.split('.').map(Number)
+const haveValidTimers = (major === 20 && minor >= 11) || major >= 22
+const testValidTimers = haveValidTimers ? test : test.skip
+
 describe('infiniteTimerGame', () => {
-  test('schedules a 10-second timer after 1 second', () => {
+  testValidTimers('schedules a 10-second timer after 1 second', () => {
     const callback = jest.fn()
 
     infiniteTimerGame(callback)
