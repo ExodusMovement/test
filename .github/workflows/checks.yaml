@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['22.4', '20.11']
+        node-version: ['22.4', '20.11', '20.8.0', '18.19.0']
         command: ['lint', 'test', 'test:tape']
     steps:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
