@@ -61,40 +61,56 @@ function override(resolved, lax = false) {
   if (!lax) assert.deepEqual({ ...current }, value)
 }
 
-function mockClone(root) {
-  assert(isObject(root), 'Can not do a full mock on a non-object module')
-  const seen = new Map()
-  const simple = new Set()
+function mockClone(obj, cache = new Map()) {
+  if (!cache.has(obj)) cache.set(obj, mockCloneItem(obj, cache))
+  return cache.get(obj)
+}
+
+function mockCloneItem(obj, cache) {
+  if ([Object.prototype, null].includes(obj)) return obj
+  if (!obj || ['number', 'boolean', 'string', 'bigint'].includes(typeof obj)) return obj
   const TypedArray = Object.getPrototypeOf(Int8Array)
-  const walk = (obj) => {
-    if (!obj || ['number', 'boolean', 'string', 'bigint'].includes(typeof obj)) return [obj, false]
-    if (Array.isArray(obj) || obj instanceof TypedArray) return [[], false] // this is what jest does apparently
-    if (obj instanceof RegExp) return [new RegExp(), false] // this is what jest does apparently
-    if (seen.has(obj)) return [seen.get(obj), !simple.has(obj)]
-    if (obj instanceof Function) {
-      seen.set(obj, jestfn())
-      return [seen.get(obj), true]
-    }
-
-    if (isObject(obj)) {
-      const clone = Object.create(Object.getPrototypeOf(obj))
-      seen.set(obj, clone)
-      let modified = false
-      for (const [k, v] of Object.entries(obj)) {
-        const res = walk(v)
-        if (!res && !(k in clone)) continue
-        clone[k] = res[0]
-        modified ||= res[1]
-      }
-
-      if (modified) simple.add(obj)
-      return [modified ? clone : obj, modified]
-    }
-
-    return null
+  if (Array.isArray(obj) || obj instanceof TypedArray) return [] // this is what jest does apparently
+  if (obj instanceof RegExp) return new RegExp() // this is what jest does apparently
+  // eslint-disable-next-line no-new-wrappers, unicorn/new-for-builtins
+  if (obj instanceof String) return new String(obj)
+  if (obj instanceof Function) {
+    const res = jestfn()
+    cache.set(obj, res)
+    if (obj.prototype) res.prototype = mockClone(obj.prototype, cache)
+    return res
   }
 
-  return walk(root)[0]
+  if (typeof obj === 'object') {
+    const prototype = Object.getPrototypeOf(obj)
+    const clone = Object.create(prototype === null ? null : Object.prototype)
+    cache.set(obj, clone)
+
+    const definitions = []
+
+    // Collect all property descriptors from the prototype chain, top-level last for correct overriding in fromEntries
+    const stack = []
+    for (let c = obj; c && c !== Object.prototype; c = Object.getPrototypeOf(c)) stack.unshift(c)
+    let modified = stack.length > 1
+    for (const level of stack) {
+      for (const [name, desc] of Object.entries(Object.getOwnPropertyDescriptors(level))) {
+        for (const key of ['get', 'set', 'value']) {
+          if (!desc[key]) continue
+          const orig = desc[key]
+          desc[key] = mockClone(desc[key], cache)
+          if (orig !== desc[key]) modified = true
+        }
+
+        if (desc.value !== undefined || desc.get || desc.set) definitions.push([name, desc])
+      }
+    }
+
+    Object.defineProperties(clone, Object.fromEntries(definitions))
+
+    return modified ? clone : obj
+  }
+
+  return null
 }
 
 export function jestmock(name, mocker) {
@@ -132,7 +148,10 @@ export function jestmock(name, mocker) {
     assert(mock.module, 'ESM module mocks are available only on Node.js >=22.3')
   }
 
-  mock.module?.(resolved, { defaultExport: value.default ?? value, namedExports: value })
+  mock.module?.(resolved, {
+    defaultExport: value.default ?? value,
+    namedExports: isObject(value) ? value : {},
+  })
 
   return this
 }
