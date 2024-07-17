@@ -12,7 +12,7 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
-    name: "${{ matrix.command }} on node ${{ matrix.node-version }}"
+    name: '${{ matrix.command }} on node ${{ matrix.node-version }}'
     timeout-minutes: 10
     strategy:
       fail-fast: false
