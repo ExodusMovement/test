@@ -132,7 +132,7 @@ export function jestmock(name, mocker) {
     assert(mock.module, 'ESM module mocks are available only on Node.js >=22.3')
   }
 
-  mock.module?.(name, { defaultExport: value.default ?? value, namedExports: value })
+  mock.module?.(resolved, { defaultExport: value.default ?? value, namedExports: value })
 
   return this
 }
