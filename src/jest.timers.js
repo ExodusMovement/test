@@ -24,11 +24,12 @@ export function useFakeTimers({ doNotFake = doNotFakeDefault, ...rest } = {}) {
   assertHaveTimers()
   warnOldTimers()
   assert.deepEqual(rest, {}, 'Unsupported options')
-  const allApis = ['setInterval', 'setTimeout', 'setImmediate', 'Date']
+  const allApis = ['setInterval', 'setTimeout', 'setImmediate']
+  if (haveValidTimers) allApis.push('Date') // vas not supported in older versions
   for (const name of doNotFake) assert(allApis.includes(name), `Unknown API: ${name}`)
   const apis = allApis.filter((name) => !doNotFake.includes(name))
   try {
-    mock.timers.enable({ apis })
+    mock.timers.enable(haveValidTimers ? { apis } : apis) // in older (aka glitchy) versions it's an array
   } catch (e) {
     // We allow calling this multiple times and swallow the "MockTimers is already enabled!" error
     if (e.code !== 'ERR_INVALID_STATE') throw e
