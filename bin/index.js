@@ -141,16 +141,6 @@ if (options.coverage) {
   }
 }
 
-if (options.esbuild) {
-  assert(resolveImport)
-  args.push('--import', resolveImport('tsx'))
-}
-
-if (options.babel) {
-  assert(!options.esbuild, 'Options --babel and --esbuild are mutually exclusive')
-  args.push('-r', resolveRequire('./babel.cjs'))
-}
-
 const ignore = ['**/node_modules']
 let filter
 if (process.env.EXODUS_TEST_IGNORE) {
@@ -159,7 +149,8 @@ if (process.env.EXODUS_TEST_IGNORE) {
   ignore.push(process.env.EXODUS_TEST_IGNORE)
 }
 
-// Our loader should be last, as enabling module mocks confuses other loaders
+// The comment below is disabled, we don't auto-mock @jest/globals anymore, and having our loader first is faster
+// [Disabled] Our loader should be last, as enabling module mocks confuses other loaders
 if (options.jest) {
   const { loadJestConfig } = await import('../src/jest.config.js')
   const config = await loadJestConfig(process.cwd())
@@ -194,6 +185,16 @@ if (options.jest) {
       return !ignoreRegexes.some((r) => r.test(resolved))
     }
   }
+}
+
+if (options.esbuild) {
+  assert(resolveImport)
+  args.push('--import', resolveImport('tsx'))
+}
+
+if (options.babel) {
+  assert(!options.esbuild, 'Options --babel and --esbuild are mutually exclusive')
+  args.push('-r', resolveRequire('./babel.cjs'))
 }
 
 if (patterns.length === 0) patterns.push(...DEFAULT_PATTERNS) // defaults
