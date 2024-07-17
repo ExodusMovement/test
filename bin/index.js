@@ -212,7 +212,7 @@ if (allfiles.length === 0) {
 
 let subfiles // must be a strict subset of allfiles
 if (process.env.EXODUS_TEST_SELECT) {
-  const subfiles = await glob(process.env.EXODUS_TEST_SELECT, { ignore })
+  subfiles = await glob(process.env.EXODUS_TEST_SELECT, { ignore })
 
   const allSet = new Set(allfiles)
   const stray = subfiles.filter((file) => !allSet.has(file))
