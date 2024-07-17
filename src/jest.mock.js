@@ -62,7 +62,9 @@ function override(resolved, lax = false) {
   Object.defineProperties(current, definitions)
   const proto = Object.getPrototypeOf(value)
   if (Object.getPrototypeOf(current) !== proto) Object.setPrototypeOf(current, proto)
-  if (!lax) assert.deepEqual({ ...current }, value)
+  const checked = { ...current }
+  if (current.__esModule === true) checked.__esModule = current.__esModule
+  if (!lax) assert.deepEqual(checked, value)
 }
 
 function mockClone(obj, cache = new Map()) {
@@ -86,6 +88,12 @@ function mockCloneItem(obj, cache) {
   }
 
   if (typeof obj === 'object') {
+    // Special path, as .default might be a getter and we want to unwrap it
+    if (obj.__esModule === true) {
+      const { __esModule, default: def, ...rest } = obj
+      return { __esModule, ...mockClone({ default: def, ...rest }, cache) }
+    }
+
     const prototype = Object.getPrototypeOf(obj)
     const clone = Object.create(prototype === null ? null : Object.prototype)
     cache.set(obj, clone)
@@ -142,6 +150,7 @@ export function jestmock(name, mocker) {
   const value = mocker ? { ...mocker() } : mockClone(mapActual.get(resolved))
   mapMocks.set(resolved, value)
 
+  let likelyESM = false
   if (Object.hasOwn(require.cache, resolved)) {
     assert.equal(mapActual.get(resolved), require.cache[resolved].exports)
     // If we did't have this prior but have now, it means we just loaded it and there are no leaked instances
@@ -153,12 +162,16 @@ export function jestmock(name, mocker) {
   } else {
     // The module doesn't exist or is ESM
     assert(mock.module, 'ESM module mocks are available only on Node.js >=22.3')
+    likelyESM = true
   }
 
-  mock.module?.(resolved, {
-    defaultExport: value.default ?? value,
-    namedExports: isObject(value) ? value : {},
-  })
+  if (likelyESM && isObject(value) && value.__esModule === true) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { default: defaultExport, __esModule, ...namedExports } = value
+    mock.module?.(resolved, { defaultExport, namedExports })
+  } else {
+    mock.module?.(resolved, { defaultExport: value })
+  }
 
   return this
 }
