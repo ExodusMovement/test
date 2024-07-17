@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['22.4', '20.7']
+        node-version: ['22.4', '20.11']
         command: ['pnpm lint', 'pnpm test', 'pnpm run test:tape']
     steps:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
