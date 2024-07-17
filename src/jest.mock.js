@@ -44,9 +44,11 @@ const isObject = (obj) => [Object.prototype, null].includes(Object.getPrototypeO
 function override(resolved, lax = false) {
   const value = mapMocks.get(resolved)
   const current = mapActual.get(resolved)
-  assert(isObject(current), 'Modules that export a default non-object can not be mocked')
+  if (current === value) return
   assert(isObject(value), 'Overriding loaded or internal modules is possible with objects only')
-  mapActual.set(resolved, { ...current })
+  const clone = { ...current }
+  Object.setPrototypeOf(clone, Object.getPrototypeOf(current))
+  mapActual.set(resolved, clone)
   for (const key of Object.keys(current)) {
     try {
       delete current[key]
@@ -58,6 +60,8 @@ function override(resolved, lax = false) {
   const access = { configurable: true, enumerable: true, writable: true }
   const definitions = Object.fromEntries(filtered.map(([k, value]) => [k, { value, ...access }]))
   Object.defineProperties(current, definitions)
+  const proto = Object.getPrototypeOf(value)
+  if (Object.getPrototypeOf(current) !== proto) Object.setPrototypeOf(current, proto)
   if (!lax) assert.deepEqual({ ...current }, value)
 }
 
@@ -94,6 +98,8 @@ function mockCloneItem(obj, cache) {
     let modified = stack.length > 1
     for (const level of stack) {
       for (const [name, desc] of Object.entries(Object.getOwnPropertyDescriptors(level))) {
+        if (name === 'constructor') continue
+
         for (const key of ['get', 'set', 'value']) {
           if (!desc[key]) continue
           const orig = desc[key]
@@ -101,6 +107,7 @@ function mockCloneItem(obj, cache) {
           if (orig !== desc[key]) modified = true
         }
 
+        desc.enumerable = desc.configurable = true
         if (desc.value !== undefined || desc.get || desc.set) definitions.push([name, desc])
       }
     }
