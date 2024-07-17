@@ -4,6 +4,7 @@ class One {
   why() {
     return 'ok'
   }
+
   overridden() {
     return 'no'
   }
@@ -15,6 +16,7 @@ class Two extends One {
   hi() {
     return 'hello'
   }
+
   overridden() {
     return 'yes'
   }

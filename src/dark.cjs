@@ -4,7 +4,7 @@ const mayBeUrlToPath = (str) => (str.startsWith('file://') ? fileURLToPath(str) 
 
 let locForNextTest
 
-let installLocationInNextTest = function (loc) {
+const installLocationInNextTest = function (loc) {
   locForNextTest = loc
 }
 
@@ -122,9 +122,11 @@ function makeEsbuildMockable() {
       Error.stackTraceLimit = stackTraceLimit
       // This is for speed, we don't want to work with text
       const prepareStackTrace = Error.prepareStackTrace
+      // eslint-disable-next-line handle-callback-err
       Error.prepareStackTrace = (err, callsites) => callsites.map((site) => site.getFunctionName())
       const stack = obj.stack
       Error.prepareStackTrace = prepareStackTrace
+      // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
       if (stack[0] === '__copyProps' && stack[1] === '__toCommonJS') options.configurable = true
     }
 

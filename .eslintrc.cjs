@@ -6,9 +6,16 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['**/__tests__/**/*.{ts,js}', '*.{spec,test}.{ts,js}'],
+      files: ['**/__test__/**/*.?([cm])[jt]s?(x)', '*.{spec,test}.?([cm])[jt]s?(x)'],
       rules: {
         'unicorn/no-empty-file': 'off',
+      },
+    },
+    {
+      files: ['**/*.?([cm])[jt]s?(x)'],
+      rules: {
+        'unicorn/no-empty-file': 'off',
+        '@typescript-eslint/no-var-requires': 'off',
       },
     },
   ],

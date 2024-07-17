@@ -4,5 +4,6 @@
     "moduleResolution": "node",
     "strict": true
   },
+  "include": ["**/*", ".*"],
   "exclude": ["node_modules"]
 }
