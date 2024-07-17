@@ -108,7 +108,7 @@ const resolveImport = import.meta.resolve && ((query) => fileURLToPath(import.me
 const c8 = resolveRequire('c8/bin/c8.js')
 if (resolveImport) assert.equal(c8, resolveImport('c8/bin/c8.js'))
 
-const args = ['--test', '--no-warnings=ExperimentalWarning']
+const args = ['--test', '--no-warnings=ExperimentalWarning', '--test-reporter=spec']
 
 if (haveModuleMocks) args.push('--experimental-test-module-mocks')
 if (haveSnapshots) args.push('--experimental-test-snapshots')
