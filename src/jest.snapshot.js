@@ -1,25 +1,24 @@
-import { beforeEach } from 'node:test'
-import { createRequire } from 'node:module'
+import {
+  beforeEach,
+  assert,
+  setSnapshotResolver,
+  setSnapshotSerializers,
+  readSnapshot,
+  relativeRequire,
+} from './node.js'
 import { expect } from 'expect'
 import { format, plugins as builtinPlugins } from 'pretty-format'
-import assert from 'node:assert/strict'
-import { basename, dirname, join, normalize } from 'node:path'
-import { readFileSync } from 'node:fs'
 import { jestConfig } from './jest.config.js'
-import { relativeRequire } from './jest.mock.js'
 import { getTestNamePath } from './dark.cjs'
 
 const { snapshotFormat, snapshotSerializers } = jestConfig()
 const plugins = Object.values(builtinPlugins)
 const serialize = (val) => format(val, { ...snapshotFormat, plugins }).replaceAll(/\r\n|\r/gu, '\n')
-const resolveSnapshot = (f) => join(dirname(f), '__snapshots__', `${basename(f)}.snap`)
 
 let serializersAreSetup = false
-let snapshotsAreJest
+let snapshotsAreJest = false
 
 // For manually loading the snapshot
-const files = process.argv.slice(1)
-const snapshotLocation = files.length === 1 ? resolveSnapshot(normalize(files[0])) : undefined
 const nameCounts = new Map()
 let snapshotText
 
@@ -32,20 +31,11 @@ function maybeSetupSerializers() {
 
 // We want to setup snapshots to behave like jest only when first used from jest API
 function maybeSetupJestSnapshots() {
-  if (snapshotsAreJest !== undefined) return snapshotsAreJest
-  try {
-    maybeSetupSerializers()
-    const require = createRequire(import.meta.url)
-    const { snapshot } = require('node:test') // attempt to load them, and we need to do that synchronously
-    assert(snapshot, 'snapshots require Node.js >=22.3.0')
-    snapshot.setDefaultSnapshotSerializers([serialize])
-    snapshot.setResolveSnapshotPath(resolveSnapshot)
-    snapshotsAreJest = true
-  } catch {
-    snapshotsAreJest = false
-  }
-
-  return snapshotsAreJest
+  if (snapshotsAreJest) return
+  setSnapshotResolver((dir, name) => [dir, '__snapshots__', `${name}.snap`])
+  setSnapshotSerializers([serialize])
+  maybeSetupSerializers()
+  snapshotsAreJest = true
 }
 
 const wrap = (check) => {
@@ -118,11 +108,14 @@ const snapOnDisk = (orig, matcher) => {
   const obj = matcher ? { ...orig, ...matcher } : orig
   const escape = (str) => str.replaceAll(/([\\`])/gu, '\\$1')
 
-  if (!maybeSetupJestSnapshots()) {
+  maybeSetupJestSnapshots()
+
+  if (!context?.assert?.snapshot) {
     // We don't have native snapshots, polyfill reading
-    if (snapshotLocation && snapshotText !== null) {
+    if (snapshotText !== null) {
       try {
-        snapshotText = `\n${readFileSync(snapshotLocation, 'utf8')}\n` // we'll search wrapped in \n
+        const snapshotRaw = readSnapshot()
+        snapshotText = snapshotRaw ? `\n${snapshotRaw}\n` : null // we'll search wrapped in \n
       } catch {
         snapshotText = null
       }

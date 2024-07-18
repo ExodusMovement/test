@@ -1,6 +1,4 @@
-import assert from 'node:assert/strict'
-import assertLoose from 'node:assert'
-import { test } from 'node:test'
+import { assert, assertLoose, test } from './node.js'
 import { createCallerLocationHook } from './dark.cjs'
 import './version.js'
 

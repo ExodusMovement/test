@@ -1,5 +1,4 @@
-import { mock } from 'node:test'
-import assert from 'node:assert/strict'
+import { mock, assert } from './node.js'
 
 const registry = new Set()
 let callId = 0

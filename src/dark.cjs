@@ -1,7 +1,3 @@
-const { fileURLToPath } = require('node:url')
-
-const mayBeUrlToPath = (str) => (str.startsWith('file://') ? fileURLToPath(str) : str)
-
 let locForNextTest
 
 const installLocationInNextTest = function (loc) {
@@ -26,6 +22,8 @@ function createCallerLocationHook() {
 
   try {
     const { Test } = require('node:internal/test_runner/test')
+    const { fileURLToPath } = require('node:url')
+    const mayBeUrlToPath = (str) => (str.startsWith('file://') ? fileURLToPath(str) : str)
     const locStorage = new Map()
     Object.defineProperty(Test.prototype, 'loc', {
       get() {

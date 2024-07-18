@@ -1,6 +1,12 @@
-import assert from 'node:assert/strict'
-import { describe as nodeDescribe, test as nodeTest, afterEach, after } from 'node:test'
-import { format, types } from 'node:util'
+import {
+  describe as nodeDescribe,
+  test as nodeTest,
+  afterEach,
+  after,
+  assert,
+  utilFormat,
+  isPromise,
+} from './node.js'
 import { jestConfig } from './jest.config.js'
 import { jestFunctionMocks } from './jest.fn.js'
 import { jestModuleMocks } from './jest.mock.js'
@@ -75,7 +81,7 @@ const makeEach =
 
       if (Array.isArray(args)) {
         const length = [...name.replaceAll('%%', '').matchAll(/%[psdifjo]/gu)].length
-        if (length > 0) name = format(name, ...args.slice(0, length).map(formatArg))
+        if (length > 0) name = utilFormat(name, ...args.slice(0, length).map(formatArg))
       }
 
       impl(name, () => (Array.isArray(args) ? fn(...args) : fn(args)))
@@ -122,7 +128,7 @@ const testRaw = (callerLocation, testBase, name, fn, testTimeout) => {
   return testBase(name, { timeout }, async (t) => {
     const res = fn()
     assert(
-      types.isPromise(res),
+      isPromise(res),
       `Test "${t.fullName}" did not return a Promise or supply a callback, which is required in force-exit mode.
 For tests to not end abruptly, use either async functions (recommended), Promises, or specify callbacks to test() / it().
 Also, using expect.assertions() to ensure the planned number of assertions is being called is advised for async code.`
@@ -184,4 +190,4 @@ const jest = {
 
 export { jest, describe, test, test as it }
 export { expect } from 'expect'
-export { beforeEach, afterEach, before as beforeAll, after as afterAll } from 'node:test'
+export { beforeEach, afterEach, before as beforeAll, after as afterAll } from './node.js'

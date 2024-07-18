@@ -1,18 +1,17 @@
-import assert from 'node:assert/strict'
-import { createRequire, builtinModules, syncBuiltinESMExports } from 'node:module'
-import { existsSync } from 'node:fs'
-import { normalize } from 'node:path'
-import { mock } from 'node:test'
+import {
+  mock,
+  assert,
+  baseFile,
+  relativeRequire as require,
+  isTopLevelESM,
+  builtinModules,
+  syncBuiltinESMExports,
+} from './node.js'
 import { jestfn } from './jest.fn.js'
 import { makeEsbuildMockable } from './dark.cjs'
 
-const files = process.argv.slice(1)
-const baseUrl = files.length === 1 && existsSync(files[0]) ? normalize(files[0]) : undefined
 const mapMocks = new Map()
 const mapActual = new Map()
-
-const require = createRequire(baseUrl || import.meta.url)
-const isTopLevelESM = () => !baseUrl || !Object.hasOwn(require.cache, baseUrl) // assume ESM otherwise
 
 export const jestModuleMocks = {
   mock: jestmock,
@@ -22,10 +21,8 @@ export const jestModuleMocks = {
   resetModules,
 }
 
-export const relativeRequire = require
-
 export function resolveModule(name) {
-  assert(baseUrl || /^[@a-zA-Z]/u.test(name), 'Mocking relative paths is not possible')
+  assert(baseFile || /^[@a-zA-Z]/u.test(name), 'Mocking relative paths is not possible')
   const unprefixed = name.replace(/^node:/, '')
   if (builtinModules.includes(unprefixed)) return unprefixed
   return require.resolve(name)
