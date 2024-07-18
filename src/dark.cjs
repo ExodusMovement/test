@@ -115,23 +115,25 @@ function makeEsbuildMockable() {
   const defineProperty = Object.defineProperty
   const obj = Object.create(null)
   Object.defineProperty = (target, name, options) => {
-    if (options.get && !options.configurable) {
-      const stackTraceLimit = Error.stackTraceLimit
-      Error.stackTraceLimit = 2
-      Error.captureStackTrace(obj, Object.defineProperty)
-      Error.stackTraceLimit = stackTraceLimit
-      // This is for speed, we don't want to work with text
-      const prepareStackTrace = Error.prepareStackTrace
-      // eslint-disable-next-line handle-callback-err
-      Error.prepareStackTrace = (err, callsites) => callsites.map((site) => site.getFunctionName())
-      const st = obj.stack
-      Error.prepareStackTrace = prepareStackTrace
-      if (
-        (st[0] === '__copyProps' && (st[1] === '__toCommonJS' || st[1] === '__reExport')) ||
-        (st[1] === null && st[0] === '__export')
-      ) {
+    if (options.get && !options.configurable && name !== '__esModule') {
+      if (target.__esModule) {
         // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
         options.configurable = true
+      } else {
+        const stackTraceLimit = Error.stackTraceLimit
+        Error.stackTraceLimit = 2
+        Error.captureStackTrace(obj, Object.defineProperty)
+        Error.stackTraceLimit = stackTraceLimit
+        // This is for speed, we don't want to work with text
+        const prepareStackTrace = Error.prepareStackTrace
+        // eslint-disable-next-line handle-callback-err
+        Error.prepareStackTrace = (e, callsites) => callsites.map((site) => site.getFunctionName())
+        const st = obj.stack
+        Error.prepareStackTrace = prepareStackTrace
+        if (st[0] === '__export' && st[1] === null) {
+          // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
+          options.configurable = true
+        }
       }
     }
 
