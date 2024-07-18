@@ -117,8 +117,8 @@ const describe = (...args) => {
 const testRaw = (callerLocation, testBase, name, fn, testTimeout) => {
   const timeout = testTimeout ?? defaultTimeout
   installLocationInNextTest(callerLocation)
-  if (fn.length > 0) return testBase(name, (t, c) => fn(c))
-  if (!forceExit) return testBase(name, fn)
+  if (fn.length > 0) return testBase(name, { timeout }, (t, c) => fn(c))
+  if (!forceExit) return testBase(name, { timeout }, fn)
   return testBase(name, { timeout }, async (t) => {
     const res = fn()
     assert(
