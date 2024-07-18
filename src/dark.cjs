@@ -124,10 +124,12 @@ function makeEsbuildMockable() {
       const prepareStackTrace = Error.prepareStackTrace
       // eslint-disable-next-line handle-callback-err
       Error.prepareStackTrace = (err, callsites) => callsites.map((site) => site.getFunctionName())
-      const stack = obj.stack
+      const st = obj.stack
       Error.prepareStackTrace = prepareStackTrace
-      // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
-      if (stack[0] === '__copyProps' && stack[1] === '__toCommonJS') options.configurable = true
+      if (st[0] === '__copyProps' && (st[1] === '__toCommonJS' || st[1] === '__reExport')) {
+        // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
+        options.configurable = true
+      }
     }
 
     return defineProperty(target, name, options)
