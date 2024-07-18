@@ -35,8 +35,11 @@ export function useFakeTimers({ doNotFake = doNotFakeDefault, ...rest } = {}) {
     if (e.code !== 'ERR_INVALID_STATE') throw e
   }
 
-  const clearTimeout = globalThis.clearTimeout
-  globalThis.clearTimeout = (id) => id && clearTimeout(id) // work-around a bug
+  // Work-around a bug
+  for (const name of ['clearTimeout', 'clearInterval', 'clearImmediate']) {
+    const fn = globalThis[name]
+    globalThis[name] = (id) => id && fn(id)
+  }
 
   return this
 }
