@@ -14,7 +14,7 @@ const warnOldTimers = () => {
 }
 
 export function useRealTimers() {
-  mock.timers.reset()
+  mock.timers?.reset()
   return this
 }
 

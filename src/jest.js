@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { describe as nodeDescribe, test as nodeTest, afterEach } from 'node:test'
+import { describe as nodeDescribe, test as nodeTest, afterEach, after } from 'node:test'
 import { format, types } from 'node:util'
 import { jestConfig } from './jest.config.js'
 import { jestFunctionMocks } from './jest.fn.js'
@@ -148,6 +148,19 @@ test.skip = (...args) => nodeTest.skip(...args)
 
 afterEach(() => {
   for (const { error } of expect.extractExpectedAssertionsErrors()) throw error
+})
+
+after(() => {
+  const timeout = defaultTimeout // give everything additional (configurable) defaultTimeout time to finish, otherwide fail
+  jestTimers.useRealTimers()
+  const timer = setTimeout(() => {
+    console.error(
+      `Tests completed, but still have asynchronous activity after additional ${timeout}ms.\nTerminating with a failure...`
+    )
+    // eslint-disable-next-line unicorn/no-process-exit
+    process.exit(1)
+  }, timeout)
+  timer.unref()
 })
 
 const jest = {
