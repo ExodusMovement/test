@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn } from 'node:child_process'
+import { once } from 'node:events'
 import { fileURLToPath } from 'node:url'
 import { basename, dirname, resolve } from 'node:path'
 import { createRequire } from 'node:module'
@@ -25,6 +26,7 @@ function parseOptions() {
     only: false,
     passWithNoTests: false,
     writeSnapshots: false,
+    pure: false,
     debug: { files: false },
   }
 
@@ -79,6 +81,9 @@ function parseOptions() {
       case '--forceExit':
         options.forceExit = true
         break
+      case '--pure':
+        options.pure = true
+        break
       case '--debug-files':
         options.debug.files = true
         break
@@ -108,25 +113,35 @@ const resolveImport = import.meta.resolve && ((query) => fileURLToPath(import.me
 const c8 = resolveRequire('c8/bin/c8.js')
 if (resolveImport) assert.equal(c8, resolveImport('c8/bin/c8.js'))
 
-const args = ['--test', '--no-warnings=ExperimentalWarning', '--test-reporter=spec']
+const args = []
+if (options.pure) {
+  const requiresNodeCoverage = options.coverage && options.coverageEngine === 'node'
+  assert(!requiresNodeCoverage, 'Can not use "node" coverage engine with --pure')
+  assert(!options.writeSnapshots, 'Can not use write snapshots with --pure')
+  assert(!options.forceExit, 'Can not use --force-exit with --pure') // TODO
+  assert(!options.watch, 'Can not use --watch with --pure')
+  assert(!options.only, 'Can not use --only with --pure') // TODO
+} else {
+  args.push('--test', '--no-warnings=ExperimentalWarning', '--test-reporter=spec')
 
-if (haveModuleMocks) args.push('--experimental-test-module-mocks')
-if (haveSnapshots) args.push('--experimental-test-snapshots')
+  if (haveModuleMocks) args.push('--experimental-test-module-mocks')
+  if (haveSnapshots) args.push('--experimental-test-snapshots')
 
-if (options.writeSnapshots) {
-  assert(haveSnapshots, 'For snapshots, use Node.js >=22.3.0')
-  args.push('--test-update-snapshots')
+  if (options.writeSnapshots) {
+    assert(haveSnapshots, 'For snapshots, use Node.js >=22.3.0')
+    args.push('--test-update-snapshots')
+  }
+
+  if (options.forceExit) {
+    assert(haveForceExit, 'For forceExit, use Node.js >= 20.14.0')
+    args.push('--test-force-exit')
+  }
+
+  if (options.watch) args.push('--watch')
+  if (options.only) args.push('--test-only')
+
+  args.push('--expose-internals') // this is unoptimal and hopefully temporary, see rationale in src/dark.cjs
 }
-
-if (options.forceExit) {
-  assert(haveForceExit, 'For forceExit, use Node.js >= 20.14.0')
-  args.push('--test-force-exit')
-}
-
-if (options.watch) args.push('--watch')
-if (options.only) args.push('--test-only')
-
-args.push('--expose-internals') // this is unoptimal and hopefully temporary, see rationale in src/dark.cjs
 
 if (options.coverage) {
   if (options.coverageEngine === 'node') {
@@ -261,14 +276,36 @@ if (tsTests.length > 0 && !options.esbuild) {
   console.warn(`Flag --typescript has been used, but there were no TypeScript tests found!`)
 }
 
-assert(files.length > 0) // otherwise we can run recursively
-args.push(...files)
-
 if (!Object.hasOwn(process.env, 'NODE_ENV')) process.env.NODE_ENV = 'test'
 
+assert(files.length > 0) // otherwise we can run recursively
 assert(program && ['node', c8].includes(program))
-const node = spawn(program, args, { stdio: 'inherit' })
 
-node.on('close', (code) => {
+if (options.pure) {
+  process.env.EXODUS_TEST_CONTEXT = 'pure'
+  console.warn(
+    '--pure mode is experimental and may not work an expected / might be removed at any time'
+  )
+  const failures = []
+  for (const file of files) {
+    const node = spawn(program, [...args, file], { stdio: 'inherit' })
+    const [code] = await once(node, 'close')
+    if (code !== 0) failures.push(file)
+  }
+
+  if (failures.length > 0) process.exitCode = 1
+  console.log(
+    failures === 0
+      ? `All ${files.length} test suites passed`
+      : `Test suites failed: ${failures.length} / ${files.length}`
+  )
+  if (failures.length > 0) {
+    console.log('Failed test suites:')
+    for (const file of failures) console.log(`  ${file}`) // joining with \n can get truncated, too big
+  }
+} else {
+  process.env.EXODUS_TEST_CONTEXT = 'node --test'
+  const node = spawn(program, [...args, ...files], { stdio: 'inherit' })
+  const [code] = await once(node, 'close')
   process.exitCode = code
-})
+}
