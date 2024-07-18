@@ -15,6 +15,7 @@ module.exports = {
       files: ['**/*.?([cm])[jt]s?(x)'],
       rules: {
         'unicorn/no-empty-file': 'off',
+        'unicorn/no-process-exit': 'off',
         '@typescript-eslint/no-var-requires': 'off',
       },
     },

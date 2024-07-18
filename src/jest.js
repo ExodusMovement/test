@@ -151,16 +151,23 @@ afterEach(() => {
 })
 
 after(() => {
-  const timeout = defaultTimeout // give everything additional (configurable) defaultTimeout time to finish, otherwide fail
   jestTimers.useRealTimers()
-  const timer = setTimeout(() => {
-    console.error(
-      `Tests completed, but still have asynchronous activity after additional ${timeout}ms.\nTerminating with a failure...`
-    )
-    // eslint-disable-next-line unicorn/no-process-exit
+  const prefix = `Tests completed, but still have asynchronous activity after`
+
+  // give everything additional (configurable) defaultTimeout time to finish, otherwide fail
+  const timeout = defaultTimeout
+  setTimeout(() => {
+    console.error(`${prefix} additional ${timeout}ms. Terminating with a failure...`)
     process.exit(1)
-  }, timeout)
-  timer.unref()
+  }, timeout).unref()
+
+  // Warn after 5s that something is going on
+  const warnTimeout = 5000
+  if (warnTimeout < timeout + 1000) {
+    setTimeout(() => {
+      console.warn(`${prefix} ${warnTimeout}ms. Waiting for ${timeout}ms to pass to finish...`)
+    }, warnTimeout).unref()
+  }
 })
 
 const jest = {
