@@ -126,7 +126,6 @@ function makeEsbuildMockable() {
         Error.stackTraceLimit = stackTraceLimit
         // This is for speed, we don't want to work with text
         const prepareStackTrace = Error.prepareStackTrace
-        // eslint-disable-next-line handle-callback-err
         Error.prepareStackTrace = (e, callsites) => callsites.map((site) => site.getFunctionName())
         const st = obj.stack
         Error.prepareStackTrace = prepareStackTrace
