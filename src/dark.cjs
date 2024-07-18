@@ -115,7 +115,7 @@ function makeEsbuildMockable() {
   const defineProperty = Object.defineProperty
   const obj = Object.create(null)
   Object.defineProperty = (target, name, options) => {
-    if (options.get) {
+    if (options.get && !options.configurable) {
       const stackTraceLimit = Error.stackTraceLimit
       Error.stackTraceLimit = 2
       Error.captureStackTrace(obj, Object.defineProperty)
@@ -126,7 +126,10 @@ function makeEsbuildMockable() {
       Error.prepareStackTrace = (err, callsites) => callsites.map((site) => site.getFunctionName())
       const st = obj.stack
       Error.prepareStackTrace = prepareStackTrace
-      if (st[0] === '__copyProps' && (st[1] === '__toCommonJS' || st[1] === '__reExport')) {
+      if (
+        (st[0] === '__copyProps' && (st[1] === '__toCommonJS' || st[1] === '__reExport')) ||
+        (st[1] === null && st[0] === '__export')
+      ) {
         // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
         options.configurable = true
       }
