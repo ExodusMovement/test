@@ -1,4 +1,4 @@
-import { mock, assert } from './node.js'
+import { mock, assert } from './engine.js'
 import { jestConfig } from './jest.config.js'
 import { haveValidTimers, haveNoTimerInfiniteLoopBug } from './version.js'
 

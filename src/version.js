@@ -1,4 +1,4 @@
-import { assert, nodeVersion } from './node.js'
+import { assert, nodeVersion } from './engine.js'
 
 const [major, minor, patch] = nodeVersion.split('.').map(Number)
 assert(major !== 21, 'Node.js 21.x is deprecated!') // reached EOL, no reason to even test

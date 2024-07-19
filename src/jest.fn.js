@@ -1,4 +1,4 @@
-import { mock, assert } from './node.js'
+import { mock, assert } from './engine.js'
 
 const registry = new Set()
 let callId = 0

@@ -6,7 +6,7 @@ import {
   assert,
   utilFormat,
   isPromise,
-} from './node.js'
+} from './engine.js'
 import { jestConfig } from './jest.config.js'
 import { jestFunctionMocks } from './jest.fn.js'
 import { jestModuleMocks } from './jest.mock.js'
@@ -190,4 +190,4 @@ const jest = {
 
 export { jest, describe, test, test as it }
 export { expect } from 'expect'
-export { beforeEach, afterEach, before as beforeAll, after as afterAll } from './node.js'
+export { beforeEach, afterEach, before as beforeAll, after as afterAll } from './engine.js'

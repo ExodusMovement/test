@@ -6,7 +6,7 @@ import {
   isTopLevelESM,
   builtinModules,
   syncBuiltinESMExports,
-} from './node.js'
+} from './engine.js'
 import { jestfn } from './jest.fn.js'
 import { makeEsbuildMockable } from './dark.cjs'
 

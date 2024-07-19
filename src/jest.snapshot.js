@@ -5,7 +5,7 @@ import {
   setSnapshotSerializers,
   readSnapshot,
   relativeRequire,
-} from './node.js'
+} from './engine.js'
 import { expect } from 'expect'
 import { format, plugins as builtinPlugins } from 'pretty-format'
 import { jestConfig } from './jest.config.js'

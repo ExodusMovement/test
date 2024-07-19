@@ -1,4 +1,4 @@
-import { assert, assertLoose, test } from './node.js'
+import { assert, assertLoose, test } from './engine.js'
 import { createCallerLocationHook } from './dark.cjs'
 import './version.js'
 

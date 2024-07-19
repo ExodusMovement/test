@@ -1,4 +1,4 @@
-// Not using ./node.js yet
+// Not using ./engine.js yet, might pass / embed already loaded config instead
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
