@@ -138,8 +138,9 @@ export async function installJestEnvironment(jestGlobals) {
     specialEnvironments[c.testEnvironment](require, jestGlobals, c.testEnvironmentOptions)
   }
 
-  for (const file of c.setupFiles || []) require(file)
-  for (const file of c.setupFilesAfterEnv || []) require(file)
+  // require is already relative to rootDir
+  for (const file of c.setupFiles || []) require(file.replace(/^<rootDir>\//g, './'))
+  for (const file of c.setupFilesAfterEnv || []) require(file.replace(/^<rootDir>\//g, './'))
 
   // @jest/globals import auto-mocking is disabled until https://github.com/nodejs/node/issues/53807 is resolved
   /*
