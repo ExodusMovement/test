@@ -1,6 +1,4 @@
-const [major, minor] = process.versions.node.split('.').map(Number)
-const haveModuleMocks = (major === 22 && minor >= 3) || major > 22
-const describeModuleMocks = haveModuleMocks ? describe : describe.skip
+const describeModuleMocks = !jest.exodus || jest.exodus.features.esmMocks ? describe : describe.skip
 
 describeModuleMocks('esm2cjs from esm', () => {
   test('object', async () => {

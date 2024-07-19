@@ -6,6 +6,7 @@ import {
   assert,
   utilFormat,
   isPromise,
+  mock,
 } from './engine.js'
 import { jestConfig } from './jest.config.js'
 import { jestFunctionMocks } from './jest.fn.js'
@@ -13,7 +14,7 @@ import { jestModuleMocks } from './jest.mock.js'
 import * as jestTimers from './jest.timers.js'
 import './jest.snapshot.js'
 import { createCallerLocationHook } from './dark.cjs'
-import './version.js'
+import { haveValidTimers, haveModuleMocks } from './version.js'
 import { expect } from 'expect'
 import matchers from 'jest-extended'
 import { format as prettyFormat } from 'pretty-format'
@@ -177,7 +178,14 @@ after(() => {
 })
 
 const jest = {
-  exodus: Object.create(null), // declare ourselves
+  exodus: {
+    __proto__: null,
+    features: {
+      __proto__: null,
+      timers: Boolean(mock.timers && haveValidTimers),
+      esmMocks: Boolean(mock.module && haveModuleMocks),
+    },
+  },
   setTimeout: (x) => {
     assert.equal(typeof x, 'number')
     defaultTimeout = x

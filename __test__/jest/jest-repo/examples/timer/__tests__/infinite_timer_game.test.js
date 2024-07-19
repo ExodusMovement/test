@@ -4,11 +4,9 @@
 
 jest.useFakeTimers();
 
-const [major, minor] = process.versions.node.split('.').map(Number)
-const haveValidTimers = (major === 20 && minor >= 11) || major >= 22
-const testValidTimers = haveValidTimers ? test : test.skip
+const testTimers = !jest.exodus || jest.exodus.features.timers ? test : test.skip
 
-testValidTimers('schedules a 10-second timer after 1 second', () => {
+testTimers('schedules a 10-second timer after 1 second', () => {
   jest.spyOn(globalThis, 'setTimeout');
   const infiniteTimerGame = require('../infiniteTimerGame');
   const callback = jest.fn();
