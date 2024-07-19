@@ -176,6 +176,7 @@ if (options.jest) {
     patterns.push(...(Array.isArray(config.testMatch) ? config.testMatch : [config.testMatch]))
   }
 
+  if (config.passWithNoTests) options.passWithNoTests = true
   const testRegex = config.testRegex ? new RegExp(config.testRegex, 'u') : null
   const ignoreRegexes = config.testPathIgnorePatterns.map((x) => new RegExp(x, 'u'))
   if (testRegex || ignoreRegexes.length > 0) {

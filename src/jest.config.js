@@ -54,6 +54,7 @@ const normalizeJestConfig = (config) => ({
   testEnvironment: 'node',
   testTimeout: 5000,
   testPathIgnorePatterns: [],
+  passWithNoTests: false,
   snapshotSerializers: [],
   injectGlobals: true,
   maxConcurrency: 5,
