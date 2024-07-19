@@ -295,7 +295,7 @@ if (options.pure) {
 
   if (failures.length > 0) process.exitCode = 1
   console.log(
-    failures === 0
+    failures.length === 0
       ? `All ${files.length} test suites passed`
       : `Test suites failed: ${failures.length} / ${files.length}`
   )
