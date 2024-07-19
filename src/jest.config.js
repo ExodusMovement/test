@@ -78,7 +78,8 @@ const normalizeJestConfig = (config) => ({
 function verifyJestConfig(c) {
   assert(!configUsed, 'Can not apply new config as the current one was already used')
 
-  if (!Object.hasOwn(specialEnvironments, c.testEnvironment)) {
+  const nodeEnvs = new Set(['ts-jest', 'ts-jest/presets/js-with-ts'])
+  if (!Object.hasOwn(specialEnvironments, c.testEnvironment) && !nodeEnvs.has(c.testEnvironment)) {
     assert.equal(c.testEnvironment, 'node', 'Only "node" testEnvironment is supported')
   }
 
