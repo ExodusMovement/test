@@ -293,15 +293,14 @@ if (options.pure) {
     if (code !== 0) failures.push(file)
   }
 
-  if (failures.length > 0) process.exitCode = 1
-  console.log(
-    failures.length === 0
-      ? `All ${files.length} test suites passed`
-      : `Test suites failed: ${failures.length} / ${files.length}`
-  )
   if (failures.length > 0) {
+    process.exitCode = 1
+    const [total, passed, failed] = [files.length, files.length - failures.length, failures.length]
+    console.log(`Test suites failed: ${failed} / ${total} (passed: ${passed} / ${total})`)
     console.log('Failed test suites:')
     for (const file of failures) console.log(`  ${file}`) // joining with \n can get truncated, too big
+  } else {
+    console.log(`All ${files.length} test suites passed`)
   }
 } else {
   process.env.EXODUS_TEST_CONTEXT = 'node --test'
