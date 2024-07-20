@@ -25,6 +25,8 @@ function wrap(impl) {
 export const jestModuleMocks = {
   mock: wrap((name, mock) => jestmock(name, mock, { override: true })),
   doMock: wrap((name, mock) => jestmock(name, mock)),
+  unmock: wrap(unmock),
+  dontMock: wrap(unmock),
   createMockFromModule: (name) => mockClone(requireActual(name)),
   requireMock,
   requireActual,
@@ -60,6 +62,20 @@ export function resetModules() {
     delete require.cache[resolved]
     mapMocks.delete(resolved)
   }
+}
+
+function unmock(name) {
+  const resolved = resolveModule(name)
+  assert(mapMocks.has(resolved), 'Module is not mocked')
+  if (mock.module) nodeMocks.get(resolved).restore()
+  delete require.cache[resolved]
+  delete require.cache[`node:${resolved}`]
+  mapMocks.delete(resolved)
+  nodeMocks.delete(resolved)
+  assert(
+    !overridenBuiltins.has(resolved),
+    'Built-in modules mocked with jest.mock can not be unmocked, use jest.doMock'
+  )
 }
 
 const isObject = (obj) => [Object.prototype, null].includes(Object.getPrototypeOf(obj))
