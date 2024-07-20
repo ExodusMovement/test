@@ -42,7 +42,10 @@ async function getJestConfig(dir) {
 
   if (configs.length > 0) {
     const conf = { ...configs[0] }
-    assert(!conf.rootDir, 'Jest config.rootDir is not supported yet')
+    if (conf.rootDir && ['.', './'].includes(conf.rootDir)) {
+      assert.equal(path.resolve(dir, conf.rootDir), dir, 'Jest config.rootDir is not supported yet')
+    }
+
     conf.rootDir = dir
     return conf
   }
