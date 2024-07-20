@@ -51,11 +51,6 @@ function exitContext() {
   if (context === context.root) immediate = setImmediate(run)
 }
 
-function collectHooks(context, type) {
-  if (context === context.root) return context.hooks[type]
-  return [...collectHooks(context.parent, type), ...context.hooks[type]]
-}
-
 async function runFunction(fn, context) {
   if (fn.length < 2) return fn(context)
   return new Promise((resolve, reject) => fn(context, (err) => (err ? reject(err) : resolve())))
@@ -70,15 +65,20 @@ async function runContext(context) {
   if (options.skip) return console.log('⏭ SKIP', context.fullName)
   if (context.fn) {
     let error
+    const stack = [context]
+    while (stack[0].parent) stack.unshift(stack[0].parent)
+
     // TODO: try/catch for hooks?
-    for (const hook of collectHooks(context, 'beforeEach')) await runFunction(hook, context)
+    for (const c of stack) for (const hook of c.hooks.beforeEach) await runFunction(hook, context)
     try {
       await runFunction(fn, context)
     } catch (e) {
       error = e ?? 'Unknown error'
     }
 
-    for (const hook of collectHooks(context, 'afterEach')) await runFunction(hook, context)
+    stack.reverse()
+    for (const c of stack) for (const hook of c.hooks.afterEach) await runFunction(hook, context)
+
     console.log(error === undefined ? '✔ PASS' : '✖ FAIL', context.fullName)
     if (error) {
       console.log(' ', error)
