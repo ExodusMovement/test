@@ -86,6 +86,7 @@ function verifyJestConfig(c) {
   assert.deepEqual(environmentOptions, {}, 'Jest config.testEnvironmentOptions is not supported')
 
   assert(!c.automock, 'Automocking all modules is not currently supported (config.automock)')
+  assert(!c.moduleNameMapper, 'Jest config.moduleNameMapper is not supported')
   if (c.moduleDirectories) {
     const valid = ['node_modules']
     assert.deepEqual(c.moduleDirectories, valid, 'Jest config.moduleDirectories is not supported')
