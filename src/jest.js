@@ -1,13 +1,5 @@
-import {
-  describe as nodeDescribe,
-  test as nodeTest,
-  afterEach,
-  after,
-  assert,
-  utilFormat,
-  isPromise,
-  mock,
-} from './engine.js'
+import { assert, utilFormat, isPromise, mock } from './engine.js'
+import * as node from './engine.js'
 import { jestConfig } from './jest.config.js'
 import { jestFunctionMocks } from './jest.fn.js'
 import { jestModuleMocks } from './jest.mock.js'
@@ -99,7 +91,7 @@ const describe = (...args) => {
   inDescribe.push(fn)
   const optionsConcurrent = args?.at(-1)?.concurrency > 1
   if (optionsConcurrent) inConcurrent.push(fn)
-  const result = nodeDescribe(...args, async () => {
+  const result = node.describe(...args, async () => {
     const res = fn()
 
     // We do only block-level concurrency, not file-level
@@ -138,26 +130,26 @@ Also, using expect.assertions() to ensure the planned number of assertions is be
   })
 }
 
-const test = (...args) => testRaw(getCallerLocation(), nodeTest, ...args)
-test.only = (...args) => testRaw(getCallerLocation(), nodeTest.only, ...args)
+const test = (...args) => testRaw(getCallerLocation(), node.test, ...args)
+test.only = (...args) => testRaw(getCallerLocation(), node.test.only, ...args)
 
 describe.each = makeEach(describe)
 test.each = makeEach(test) // TODO: pass caller location
 test.concurrent = (...args) => {
   assert(inDescribe.length > 0, 'test.concurrent is supported only within a describe block')
   if (inConcurrent.length > 0) return test(...args)
-  concurrent.push([getCallerLocation(), nodeTest, ...args])
+  concurrent.push([getCallerLocation(), node.test, ...args])
 }
 
 test.concurrent.each = makeEach(test.concurrent)
-describe.skip = (...args) => nodeDescribe.skip(...args)
-test.skip = (...args) => nodeTest.skip(...args)
+describe.skip = (...args) => node.describe.skip(...args)
+test.skip = (...args) => node.test.skip(...args)
 
-afterEach(() => {
+node.afterEach(() => {
   for (const { error } of expect.extractExpectedAssertionsErrors()) throw error
 })
 
-after(() => {
+node.after(() => {
   jestTimers.useRealTimers()
   const prefix = `Tests completed, but still have asynchronous activity after`
 
@@ -177,7 +169,7 @@ after(() => {
   }
 })
 
-const jest = {
+export const jest = {
   exodus: {
     __proto__: null,
     features: {
@@ -196,6 +188,12 @@ const jest = {
   ...jestTimers,
 }
 
-export { jest, describe, test, test as it }
+const wrapCallback = (fn) => (fn.length > 0 ? (t, c) => fn(c) : () => fn())
+
+export const beforeEach = (fn) => node.beforeEach(wrapCallback(fn))
+export const afterEach = (fn) => node.afterEach(wrapCallback(fn))
+export const beforeAll = (fn) => node.before(wrapCallback(fn))
+export const afterAll = (fn) => node.after(wrapCallback(fn))
+
+export { describe, test, test as it }
 export { expect } from 'expect'
-export { beforeEach, afterEach, before as beforeAll, after as afterAll } from './engine.js'
