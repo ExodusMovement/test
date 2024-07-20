@@ -13,9 +13,11 @@ import { makeEsbuildMockable } from './dark.cjs'
 const mapMocks = new Map()
 const mapActual = new Map()
 const nodeMocks = new Map()
+const overridenBuiltins = new Set()
 
 export const jestModuleMocks = {
-  mock: jestmock,
+  mock: (name, mock) => jestmock(name, mock, { override: true }),
+  doMock: (name, mock) => jestmock(name, mock),
   createMockFromModule: (name) => mockClone(requireActual(name)),
   requireMock,
   requireActual,
@@ -55,7 +57,7 @@ export function resetModules() {
 
 const isObject = (obj) => [Object.prototype, null].includes(Object.getPrototypeOf(obj))
 
-function override(resolved, lax = false) {
+function overrideModule(resolved, lax = false) {
   const value = mapMocks.get(resolved)
   const current = mapActual.get(resolved)
   if (current === value) return
@@ -144,7 +146,7 @@ function mockCloneItem(obj, cache) {
   return null
 }
 
-export function jestmock(name, mocker) {
+export function jestmock(name, mocker, { override = false } = {}) {
   // Loaded ESM: isn't mocked
   // Loaded CJS: mocked via object overriding
   // Loaded built-ins: mocked via object overriding where possible
@@ -154,6 +156,10 @@ export function jestmock(name, mocker) {
 
   const resolved = resolveModule(name)
   assert(!mapMocks.has(resolved), 'Re-mocking the same module is not supported')
+  assert(
+    !overridenBuiltins.has(resolved),
+    'Built-in modules mocked with jest.mock can not be remocked, use jest.doMock'
+  )
 
   // Attempt to load it
   // Jest also loads modules on mock
@@ -171,11 +177,16 @@ export function jestmock(name, mocker) {
   if (Object.hasOwn(require.cache, resolved)) {
     assert.equal(mapActual.get(resolved), require.cache[resolved].exports)
     // If we did't have this prior but have now, it means we just loaded it and there are no leaked instances
-    if (havePrior) override(resolved)
+    if (havePrior && override) overrideModule(resolved)
     require.cache[resolved].exports = value
   } else if (isBuiltIn) {
-    override(resolved, true) // Override builtin modules
-    syncBuiltinESMExports()
+    if (override) {
+      overridenBuiltins.add(resolved)
+      overrideModule(resolved, true) // Override builtin modules
+      syncBuiltinESMExports()
+    }
+
+    require.cache[resolved] = require.cache[`node:${resolved}`] = { exports: value }
   } else {
     // The module doesn't exist or is ESM
     likelyESM = true
