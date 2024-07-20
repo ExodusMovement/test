@@ -222,6 +222,7 @@ enterContext('<root>')
 
 /* eslint-disable unicorn/no-useless-spread */
 module.exports = {
+  engine: 'pure',
   ...{ assert, assertLoose },
   ...{ mock, describe, test, beforeEach, afterEach, before, after },
   ...{ builtinModules, syncBuiltinESMExports },

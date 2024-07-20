@@ -28,6 +28,7 @@ const setSnapshotResolver = (fn) => {
 
 /* eslint-disable unicorn/no-useless-spread */
 module.exports = {
+  engine: 'node:test',
   ...{ assert, assertLoose },
   ...{ mock, describe, test, beforeEach, afterEach, before, after },
   ...{ builtinModules, syncBuiltinESMExports },

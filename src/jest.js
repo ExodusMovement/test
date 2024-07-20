@@ -174,6 +174,7 @@ export const jest = {
     __proto__: null,
     features: {
       __proto__: null,
+      engine: String(node.engine),
       timers: Boolean(mock.timers && haveValidTimers),
       esmMocks: Boolean(mock.module && haveModuleMocks),
     },
