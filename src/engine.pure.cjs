@@ -5,7 +5,8 @@ const { normalize, basename, dirname, join: pathJoin } = require('node:path')
 const { format: utilFormat } = require('node:util')
 const { createRequire, builtinModules, syncBuiltinESMExports } = require('node:module')
 
-const { setImmediate } = globalThis
+const { setTimeout, setInterval, setImmediate, Date } = globalThis
+const { clearTimeout, clearInterval, clearImmediate } = globalThis
 
 Error.stackTraceLimit = 100
 
@@ -131,6 +132,102 @@ test.skip = (...args) => {
   return test(name, { ...options, skip: true }, fn)
 }
 
+class MockTimers {
+  #enabled = false
+  #base = 0
+  #elapsed = 0
+  #queue = []
+  enable({ now = 0, apis = ['setInterval', 'setTimeout', 'setImmediate', 'Date'] } = {}) {
+    assert(!this.#enabled, 'MockTimers is already enabled!')
+    this.#base = +now
+    this.#elapsed = 0
+    if (apis.includes('setInterval')) {
+      globalThis.setInterval = this.#setInterval.bind(this)
+      globalThis.clearInterval = this.#clearInterval.bind(this)
+    }
+
+    if (apis.includes('setTimeout')) {
+      globalThis.setTimeout = this.#setTimeout.bind(this)
+      globalThis.clearTimeout = this.#clearTimeout.bind(this)
+    }
+
+    if (apis.includes('setImmediate')) {
+      globalThis.setImmediate = this.#setImmediate.bind(this)
+      globalThis.clearImmediate = this.#clearImmediate.bind(this)
+    }
+
+    const OrigDate = Date
+    if (apis.includes('Date')) {
+      const now = () => this.#base + this.#elapsed
+      globalThis.Date = class Date extends OrigDate {
+        static now = () => now()
+        constructor(first = globalThis.Date.now(), ...rest) {
+          super(first, ...rest)
+        }
+      }
+    }
+  }
+
+  reset() {
+    this.#enabled = false
+    Object.assign(globalThis, { setTimeout, setInterval, setImmediate, Date })
+    Object.assign(globalThis, { clearTimeout, clearInterval, clearImmediate })
+  }
+
+  [Symbol.dispose]() {
+    this.reset()
+  }
+
+  tick(milliseconds = 1) {
+    this.#elapsed += milliseconds
+    while (true) {
+      const next =
+        this.#queue.find((x) => x.type === 'immediate') ||
+        this.#queue.find((x) => x.at <= this.#elapsed)
+      if (!next) break
+      if (next.type === 'interval') {
+        next.at += next.interval
+      } else {
+        this.#queue = this.#queue.filter((x) => x !== next)
+      }
+
+      next.fn(...next.args)
+    }
+  }
+
+  runAll() {
+    this.tick(Math.max(0, ...this.#queue.map((x) => x.at)))
+  }
+
+  setTime(milliseconds) {
+    this.#base = milliseconds
+  }
+
+  #setTimeout(fn, delay, ...args) {
+    this.#queue.push({ type: 'timeout', fn, at: delay + this.#elapsed, args })
+  }
+
+  #setInterval(fn, delay, ...args) {
+    this.#queue.push({ type: 'interval', fn, at: delay + this.#elapsed, interval: delay, args })
+  }
+
+  #setImmediate(fn, ...args) {
+    this.#queue.push({ type: 'immediate', fn, args })
+  }
+
+  #clearTimeout(id) {
+    this.#queue = this.#queue.filter((x) => x !== id)
+  }
+
+  #clearInterval(id) {
+    this.#clearTimeout(id)
+  }
+
+  #clearImmediate(id) {
+    this.#clearTimeout(id)
+  }
+}
+
 class MockedFunction extends Function {
   get mock() {
     return this._mock
@@ -139,7 +236,7 @@ class MockedFunction extends Function {
 
 const mock = {
   module: undefined,
-  timers: undefined,
+  timers: new MockTimers(),
   fn: (original = () => {}, implementation = original) => {
     let impl = implementation
     const mocked = function (...args) {
