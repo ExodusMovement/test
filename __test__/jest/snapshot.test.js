@@ -191,3 +191,9 @@ describe('property matchers', () => {
     })
   })
 })
+
+describe('', () => {
+  it('', () => {
+    expect('empty names test').toMatchSnapshot()
+  })
+})

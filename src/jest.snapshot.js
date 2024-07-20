@@ -63,7 +63,7 @@ function wrapContextName(fn) {
     configurable: true,
     get() {
       assert.equal(this, context)
-      return value.replaceAll(' > ', ' ')
+      return value.replaceAll(' > ', ' ').replaceAll('<anonymous>', '')
     },
   })
   try {
@@ -127,7 +127,8 @@ const snapOnDisk = (orig, matcher) => {
     // Also be careful with assertion plan counters
     if (!snapshotText) getAssert().fail(`Could not find snapshot file. ${addFail}`)
 
-    const name = getTestNamePath(context).join(' ')
+    const namePath = getTestNamePath(context).map((x) => (x === '<anonymous>' ? '' : x))
+    const name = namePath.join(' ')
     const count = (nameCounts.get(name) || 0) + 1
     nameCounts.set(name, count)
     const escaped = escape(serialize(obj))
