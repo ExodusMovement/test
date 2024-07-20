@@ -56,6 +56,11 @@ function collectHooks(context, type) {
   return [...collectHooks(context.parent, type), ...context.hooks[type]]
 }
 
+async function runFunction(fn, context) {
+  if (fn.length < 2) return fn(context)
+  return new Promise((resolve, reject) => fn(context, (err) => (err ? reject(err) : resolve())))
+}
+
 async function runContext(context) {
   const { options, children, hooks, fn } = context
   assert(!context.running, 'Can not run twice')
@@ -66,14 +71,14 @@ async function runContext(context) {
   if (context.fn) {
     let error
     // TODO: try/catch for hooks?
-    for (const hook of collectHooks(context, 'beforeEach')) await hook(context)
+    for (const hook of collectHooks(context, 'beforeEach')) await runFunction(hook, context)
     try {
-      await fn(context) // todo: callback
+      await runFunction(fn, context)
     } catch (e) {
       error = e ?? 'Unknown error'
     }
 
-    for (const hook of collectHooks(context, 'afterEach')) await hook(context)
+    for (const hook of collectHooks(context, 'afterEach')) await runFunction(hook, context)
     console.log(error === undefined ? '✔ PASS' : '✖ FAIL', context.fullName)
     if (error) {
       console.log(' ', error)
@@ -83,9 +88,9 @@ async function runContext(context) {
     // if (context !== context.root) console.log(`▶ ${context.fullName}`)
     // TODO: try/catch for hooks?
     // TODO: flatten recursion before running?
-    for (const hook of hooks.before) await hook(context)
+    for (const hook of hooks.before) await runFunction(hook, context)
     for (const child of children) await runContext(child)
-    for (const hook of hooks.after) await hook(context)
+    for (const hook of hooks.after) await runFunction(hook, context)
     // if (context !== context.root) console.log(`▶ ${context.fullName}`)
   }
 }
