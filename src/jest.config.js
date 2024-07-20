@@ -78,8 +78,7 @@ const normalizeJestConfig = (config) => ({
 function verifyJestConfig(c) {
   assert(!configUsed, 'Can not apply new config as the current one was already used')
 
-  const nodeEnvs = new Set(['ts-jest', 'ts-jest/presets/js-with-ts'])
-  if (!Object.hasOwn(specialEnvironments, c.testEnvironment) && !nodeEnvs.has(c.testEnvironment)) {
+  if (!Object.hasOwn(specialEnvironments, c.testEnvironment)) {
     assert.equal(c.testEnvironment, 'node', 'Only "node" testEnvironment is supported')
   }
 
@@ -92,7 +91,8 @@ function verifyJestConfig(c) {
     assert.deepEqual(c.moduleDirectories, valid, 'Jest config.moduleDirectories is not supported')
   }
 
-  assert(!c.preset, 'Jest config.preset is not supported')
+  const pre = new Set(['ts-jest'])
+  assert(!c.preset || pre.has(c.preset.split('/')[0]), 'Jest config.preset is not supported')
 
   // TODO
   const TODO = ['globalSetup', 'globalTeardown', 'randomize', 'projects', 'roots']
