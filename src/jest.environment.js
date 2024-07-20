@@ -3,6 +3,29 @@ import { getTestNamePath } from './dark.cjs'
 export const specialEnvironments = {
   __proto__: null,
 
+  jsdom: (require) => {
+    const { JSDOM, VirtualConsole } = require('jsdom')
+    const virtualConsole = new VirtualConsole()
+    const { window } = new JSDOM('<!DOCTYPE html>', {
+      url: 'http://localhost/',
+      pretendToBeVisual: true,
+      runScripts: 'dangerously',
+      virtualConsole,
+    })
+    virtualConsole.sendTo(console, { omitJSDOMErrors: true })
+    virtualConsole.on('jsdomError', (error) => {
+      throw error
+    })
+    const assignMissing = (target, source) => {
+      const entries = Object.entries(source).filter(([key]) => !Object.hasOwn(target, key))
+      Object.assign(target, Object.fromEntries(entries))
+    }
+
+    assignMissing(globalThis, window)
+    assignMissing(console, window.console)
+    Object.setPrototypeOf(global, Object.getPrototypeOf(window))
+  },
+
   // Reproduces setup-polly-jest/jest-environment-node ad hacks into 'setup-polly-jest'.pollyJest
   'setup-polly-jest/jest-environment-node': (require, jestGlobals) => {
     const { Polly } = require('@pollyjs/core')

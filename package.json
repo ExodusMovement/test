@@ -71,6 +71,7 @@
     "expect": "^29.7.0",
     "fast-glob": "^3.2.11",
     "jest-extended": "^4.0.2",
+    "jsdom": "^24.1.0",
     "pretty-format": "^29.7.0",
     "tsx": "^4.16.2"
   },
