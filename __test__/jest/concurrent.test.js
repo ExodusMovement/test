@@ -2,11 +2,17 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 let total = 0
 
+const shouldHaveConcurrency = !jest.exodus || jest.exodus.features.concurrency
+
 afterAll(() => {
-  expect(total).toBe(4)
+  if (shouldHaveConcurrency) {
+    expect(total).toBe(4)
+  }
 })
 
-describe('concurrent', () => {
+const describeMaybe = shouldHaveConcurrency ? describe : describe.skip
+
+describeMaybe('concurrent', () => {
   let i = 0
   test.concurrent('one (default concurrency)', async () => {
     total++

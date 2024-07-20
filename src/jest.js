@@ -177,6 +177,7 @@ export const jest = {
       engine: String(node.engine),
       timers: Boolean(mock.timers && haveValidTimers),
       esmMocks: Boolean(mock.module && haveModuleMocks),
+      concurrency: node.engine !== 'pure', // pure engine doesn't support concurrency
     },
   },
   setTimeout: (x) => {
