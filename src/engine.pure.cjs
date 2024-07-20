@@ -214,7 +214,6 @@ const baseFile = files.length === 1 && existsSync(files[0]) ? normalize(files[0]
 const relativeRequire = baseFile ? createRequire(baseFile) : require
 const isTopLevelESM = () => !baseFile || !Object.hasOwn(relativeRequire.cache, baseFile) // assume ESM otherwise
 
-const snapshot = undefined
 let snapshotResolver = (dir, name) => [dir, `${name}.snapshot`] // default per Node.js docs
 const resolveSnapshot = (f) => pathJoin(...snapshotResolver(dirname(f), basename(f)))
 const readSnapshot = (f = baseFile) => (f ? readFileSync(resolveSnapshot(f), 'utf8') : null)
@@ -233,6 +232,6 @@ module.exports = {
   ...{ builtinModules, syncBuiltinESMExports },
   ...{ utilFormat, isPromise, nodeVersion },
   ...{ baseFile, relativeRequire, isTopLevelESM },
-  ...{ snapshot, readSnapshot, setSnapshotSerializers, setSnapshotResolver },
+  ...{ readSnapshot, setSnapshotSerializers, setSnapshotResolver },
 }
 /* eslint-enable unicorn/no-useless-spread */

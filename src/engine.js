@@ -18,5 +18,5 @@ export { utilFormat, isPromise, nodeVersion }
 const { baseFile, relativeRequire, isTopLevelESM } = engine
 export { baseFile, relativeRequire, isTopLevelESM }
 
-const { snapshot, readSnapshot, setSnapshotSerializers, setSnapshotResolver } = engine
-export { snapshot, readSnapshot, setSnapshotSerializers, setSnapshotResolver }
+const { readSnapshot, setSnapshotSerializers, setSnapshotResolver } = engine
+export { readSnapshot, setSnapshotSerializers, setSnapshotResolver }

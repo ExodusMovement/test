@@ -34,6 +34,6 @@ module.exports = {
   ...{ builtinModules, syncBuiltinESMExports },
   ...{ utilFormat, isPromise, nodeVersion },
   ...{ baseFile, relativeRequire, isTopLevelESM },
-  ...{ snapshot, readSnapshot, setSnapshotSerializers, setSnapshotResolver },
+  ...{ readSnapshot, setSnapshotSerializers, setSnapshotResolver },
 }
 /* eslint-enable unicorn/no-useless-spread */
