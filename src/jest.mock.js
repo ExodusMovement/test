@@ -15,9 +15,16 @@ const mapActual = new Map()
 const nodeMocks = new Map()
 const overridenBuiltins = new Set()
 
+function wrap(impl) {
+  return function (...args) {
+    impl(...args)
+    return this
+  }
+}
+
 export const jestModuleMocks = {
-  mock: (name, mock) => jestmock(name, mock, { override: true }),
-  doMock: (name, mock) => jestmock(name, mock),
+  mock: wrap((name, mock) => jestmock(name, mock, { override: true })),
+  doMock: wrap((name, mock) => jestmock(name, mock)),
   createMockFromModule: (name) => mockClone(requireActual(name)),
   requireMock,
   requireActual,
