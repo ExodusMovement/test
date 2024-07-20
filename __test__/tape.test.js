@@ -1,4 +1,4 @@
-import test from '../src/tape.js'
+import test from '@exodus/test/tape'
 
 const myThing = 5
 

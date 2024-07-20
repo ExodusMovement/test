@@ -8,6 +8,8 @@ module.exports = {
     {
       files: ['**/__test__/**/*.?([cm])[jt]s?(x)', '*.{spec,test}.?([cm])[jt]s?(x)'],
       rules: {
+        // Subpath exports support is missing: https://github.com/import-js/eslint-plugin-import/issues/1810
+        '@exodus/import/no-unresolved': [2, { ignore: ['@exodus/test/\\w+'] }],
         'unicorn/no-empty-file': 'off',
       },
     },

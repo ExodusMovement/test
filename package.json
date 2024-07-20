@@ -30,6 +30,7 @@
   },
   "exports": {
     "./jest": "./src/jest.js",
+    "./node": "./src/node.js",
     "./tape": "./src/tape.js"
   },
   "prettier": "@exodus/prettier",
@@ -48,6 +49,7 @@
     "src/jest.mock.js",
     "src/jest.snapshot.js",
     "src/jest.timers.js",
+    "src/node.js",
     "src/tape.js",
     "src/version.js",
     "!__tests__",
