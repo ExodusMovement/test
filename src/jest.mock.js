@@ -12,6 +12,7 @@ import { makeEsbuildMockable } from './dark.cjs'
 
 const mapMocks = new Map()
 const mapActual = new Map()
+const nodeMocks = new Map()
 
 export const jestModuleMocks = {
   mock: jestmock,
@@ -42,8 +43,14 @@ export function requireMock(name) {
 }
 
 export function resetModules() {
-  // Caveat: only resets CJS modules, not ESM
-  for (const key of Object.keys(require.cache)) delete require.cache[key]
+  for (const [, ctx] of nodeMocks) {
+    if (mock.module) ctx.restore()
+  }
+
+  for (const resolved of Object.keys(require.cache)) {
+    delete require.cache[resolved]
+    mapMocks.delete(resolved)
+  }
 }
 
 const isObject = (obj) => [Object.prototype, null].includes(Object.getPrototypeOf(obj))
@@ -181,13 +188,14 @@ export function jestmock(name, mocker) {
     assert(!likelyESM && !isTopLevelESM(), 'ESM module mocks are available only on Node.js >=22.3')
   }
 
+  const obj = { defaultExport: value }
   if (likelyESM && isObject(value) && value.__esModule === true) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { default: defaultExport, __esModule, ...namedExports } = value
-    mock.module?.(resolved, { defaultExport, namedExports })
-  } else {
-    mock.module?.(resolved, { defaultExport: value })
+    Object.assign(obj, { defaultExport, namedExports })
   }
+
+  nodeMocks.set(resolved, mock.module?.(resolved, obj))
 
   return this
 }
