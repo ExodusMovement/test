@@ -303,7 +303,7 @@ const afterEach = (fn) => context.hooks.afterEach.push(fn)
 const before = (fn) => context.hooks.before.push(fn)
 const after = (fn) => context.hooks.after.push(fn)
 
-const isPromise = (x) => Boolean(x.then && x.catch && x.finally)
+const isPromise = (x) => Boolean(x && x.then && x.catch && x.finally)
 const nodeVersion = '9999.99.99'
 
 const files = process.argv.slice(1)
