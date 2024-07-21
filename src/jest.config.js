@@ -3,7 +3,6 @@ import assert from 'node:assert/strict'
 import path from 'node:path'
 import { createRequire } from 'node:module'
 import { specialEnvironments } from './jest.environment.js'
-import { readJestConfig } from './jest.config.fs.js'
 
 const normalizeJestConfig = (config) => ({
   testEnvironment: 'node',
@@ -66,7 +65,15 @@ export const jestConfig = () => {
 // Methods loadJestConfig() and installJestEnvironment() below are for --jest flag
 
 export async function loadJestConfig(...args) {
-  config = normalizeJestConfig(await readJestConfig(...args))
+  let rawConfig
+  if (process.env.EXODUS_TEST_JEST_CONFIG) {
+    rawConfig = JSON.parse(process.env.EXODUS_TEST_JEST_CONFIG)
+  } else {
+    const { readJestConfig } = await import('./jest.config.fs.js')
+    rawConfig = await readJestConfig(...args)
+  }
+
+  config = normalizeJestConfig(rawConfig)
   verifyJestConfig(config)
   return config
 }
