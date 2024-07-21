@@ -12,7 +12,7 @@ Error.stackTraceLimit = 100
 
 let context
 let running
-let immediate
+let willstart
 
 function parseArgs(args) {
   assert(args.length <= 3)
@@ -24,7 +24,7 @@ function parseArgs(args) {
 
 function enterContext(name, options = {}) {
   assert(!running)
-  clearImmediate(immediate)
+  if (willstart) clearTimeout(willstart) // have to he accurate for engines like Hermes
   context = {
     root: context?.root,
     parent: context,
@@ -49,7 +49,7 @@ function enterContext(name, options = {}) {
 function exitContext() {
   assert(context !== context.root)
   context = context.parent
-  if (context === context.root) immediate = setImmediate(run)
+  if (context === context.root) willstart = setTimeout(run, 0)
 }
 
 async function runFunction(fn, context) {
