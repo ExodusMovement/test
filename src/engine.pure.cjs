@@ -309,7 +309,10 @@ const nodeVersion = '9999.99.99'
 const files = process.argv.slice(1)
 const baseFile = files.length === 1 && existsSync(files[0]) ? normalize(files[0]) : undefined
 const relativeRequire = baseFile ? createRequire(baseFile) : require
-const isTopLevelESM = () => !baseFile || !Object.hasOwn(relativeRequire.cache, baseFile) // assume ESM otherwise
+const isTopLevelESM = () =>
+  !baseFile || // assume ESM otherwise
+  !Object.hasOwn(relativeRequire.cache, baseFile) || // node esm
+  relativeRequire.cache[baseFile].exports[Symbol.toStringTag] === 'Module' // bun esm
 
 let snapshotResolver = (dir, name) => [dir, `${name}.snapshot`] // default per Node.js docs
 const resolveSnapshot = (f) => pathJoin(...snapshotResolver(dirname(f), basename(f)))

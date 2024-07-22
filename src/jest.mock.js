@@ -196,13 +196,17 @@ export function jestmock(name, mocker, { override = false } = {}) {
   mapMocks.set(resolved, value)
 
   let likelyESM = false
+  let okFromESM = false
   const isBuiltIn = builtinModules.includes(resolved)
   const isNodeCache = (x) => x && x.id && x.path && x.filename && x.children && x.paths && x.loaded
   if (isBuiltIn && !isNodeCache(require.cache[resolved])) {
     if (override) {
       overridenBuiltins.add(resolved)
       overrideModule(resolved, true) // Override builtin modules
-      if (syncBuiltinESMExports) syncBuiltinESMExports()
+      if (syncBuiltinESMExports) {
+        syncBuiltinESMExports()
+        okFromESM = true
+      }
     }
 
     require.cache[resolved] = require.cache[`node:${resolved}`] = { exports: value }
@@ -221,7 +225,7 @@ export function jestmock(name, mocker, { override = false } = {}) {
     likelyESM = true
   }
 
-  if (likelyESM || (!isBuiltIn && isTopLevelESM())) {
+  if (likelyESM || (!okFromESM && isTopLevelESM())) {
     // Native module mocks is required if loading ESM or __from__ ESM
     // No good way to check the locations that import the module, but we can check top-level file
     // Built-in modules are fine though
