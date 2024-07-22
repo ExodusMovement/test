@@ -51,6 +51,8 @@ function parseOptions() {
           continue
         case '--verbose':
         case '--runTestsByPath':
+        case '--runInBand':
+        case '--testTimeout=7200000':
           continue
       }
     }
