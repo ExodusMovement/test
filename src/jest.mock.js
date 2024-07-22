@@ -78,7 +78,7 @@ function unmock(name) {
   )
 }
 
-const isObject = (obj) => [Object.prototype, null].includes(Object.getPrototypeOf(obj))
+const isObject = (obj) => obj && [Object.prototype, null].includes(Object.getPrototypeOf(obj))
 
 function overrideModule(resolved, lax = false) {
   const value = mapMocks.get(resolved)
