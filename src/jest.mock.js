@@ -239,6 +239,8 @@ export function jestmock(name, mocker, { override = false } = {}) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { default: defaultExport, __esModule, ...namedExports } = value
     Object.assign(obj, { defaultExport, namedExports })
+  } else if (isBuiltIn && isObject(value)) {
+    obj.namedExports = value
   }
 
   nodeMocks.set(resolved, mock.module?.(resolved, obj))
