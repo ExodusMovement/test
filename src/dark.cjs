@@ -105,9 +105,10 @@ function getTestNamePath(t) {
   return [t.name] // last resort
 }
 
+const insideEsbuild = process.execArgv.some((x) => x.endsWith('node_modules/tsx/dist/loader.mjs'))
+
 function makeEsbuildMockable() {
-  const usingTsx = process.execArgv.some((x) => x.endsWith('node_modules/tsx/dist/loader.mjs'))
-  if (!usingTsx) return
+  if (!insideEsbuild) return
   // Hook into tsx/esbuild transpiled module conversion magic to make loaded modules mockable in runtime
   // We want all modules to be .configurable = true, so we can override them
   const defineProperty = Object.defineProperty
@@ -138,4 +139,4 @@ function makeEsbuildMockable() {
   }
 }
 
-module.exports = { createCallerLocationHook, getTestNamePath, makeEsbuildMockable }
+module.exports = { createCallerLocationHook, getTestNamePath, insideEsbuild, makeEsbuildMockable }

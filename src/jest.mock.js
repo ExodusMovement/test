@@ -8,7 +8,7 @@ import {
   syncBuiltinESMExports,
 } from './engine.js'
 import { jestfn } from './jest.fn.js'
-import { makeEsbuildMockable } from './dark.cjs'
+import { makeEsbuildMockable, insideEsbuild } from './dark.cjs'
 
 const mapMocks = new Map()
 const mapActual = new Map()
@@ -242,12 +242,14 @@ export function jestmock(name, mocker, { override = false } = {}) {
   }
 
   const obj = { defaultExport: value }
-  if (likelyESM && isObject(value) && value.__esModule === true) {
+  if (isBuiltIn && isObject(value)) obj.namedExports = value
+  if (insideEsbuild) {
+    // esbuild handles unwrapping just default exports for us
+    assert(!likelyESM) // should not be reachable
+  } else if (likelyESM && isObject(value) && value.__esModule === true) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { default: defaultExport, __esModule, ...namedExports } = value
     Object.assign(obj, { defaultExport, namedExports })
-  } else if (isBuiltIn && isObject(value)) {
-    obj.namedExports = value
   }
 
   nodeMocks.set(resolved, mock.module?.(resolved, obj))

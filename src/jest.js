@@ -5,7 +5,7 @@ import { jestFunctionMocks } from './jest.fn.js'
 import { jestModuleMocks } from './jest.mock.js'
 import * as jestTimers from './jest.timers.js'
 import './jest.snapshot.js'
-import { createCallerLocationHook } from './dark.cjs'
+import { createCallerLocationHook, insideEsbuild } from './dark.cjs'
 import { haveValidTimers } from './version.js'
 import { expect } from 'expect'
 import matchers from 'jest-extended'
@@ -168,8 +168,6 @@ node.after(() => {
     }, warnTimeout).unref()
   }
 })
-
-const insideEsbuild = process.execArgv.some((x) => x.endsWith('node_modules/tsx/dist/loader.mjs')) // TODO: move somewhere
 
 export const jest = {
   exodus: {
