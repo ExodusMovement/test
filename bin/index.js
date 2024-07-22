@@ -87,6 +87,14 @@ function parseOptions() {
       case '--debug-files':
         options.debug.files = true
         break
+      case '--colors':
+        process.env.FORCE_COLOR = '1'
+        break
+      case '--no-colors':
+        process.env.FORCE_COLOR = '0'
+        process.env.NO_COLOR = '1'
+        process.env.NODE_DISABLE_COLORS = '1'
+        break
       default:
         throw new Error(`Unknown option: ${option}`)
     }
