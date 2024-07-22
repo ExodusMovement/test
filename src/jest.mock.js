@@ -200,6 +200,11 @@ export function jestmock(name, mocker, { override = false } = {}) {
   const isBuiltIn = builtinModules.includes(resolved)
   const isNodeCache = (x) => x && x.id && x.path && x.filename && x.children && x.paths && x.loaded
   if (isBuiltIn && !isNodeCache(require.cache[resolved])) {
+    if (!value.default && !value.__esModule) {
+      value.__esModule = true // allows esbuild to unwrap it to named mocks
+      value.default = value
+    }
+
     if (override) {
       overridenBuiltins.add(resolved)
       overrideModule(resolved, true) // Override builtin modules

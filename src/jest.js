@@ -176,7 +176,7 @@ export const jest = {
       __proto__: null,
       engine: String(node.engine),
       timers: Boolean(mock.timers && haveValidTimers),
-      esmMocks: Boolean(mock.module && haveModuleMocks),
+      esmMocks: Boolean(mock.module && haveModuleMocks), // full support for ESM mocks
       concurrency: node.engine !== 'pure', // pure engine doesn't support concurrency
     },
   },
