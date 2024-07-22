@@ -28,6 +28,7 @@ function parseOptions() {
     writeSnapshots: false,
     pure: false,
     debug: { files: false },
+    ideaCompat: false,
   }
 
   const args = [...process.argv]
@@ -42,6 +43,18 @@ function parseOptions() {
 
   while (args[0]?.startsWith('--')) {
     const option = args.shift()
+    if (options.ideaCompat) {
+      // Ignore some options IntelliJ IDEA is passing
+      switch (option) {
+        case '--reporters':
+          args.shift()
+          continue
+        case '--verbose':
+        case '--runTestsByPath':
+          continue
+      }
+    }
+
     switch (option) {
       case '--global': // compat, will be removed in release
       case '--jest':
@@ -94,6 +107,9 @@ function parseOptions() {
         process.env.FORCE_COLOR = '0'
         process.env.NO_COLOR = '1'
         process.env.NODE_DISABLE_COLORS = '1'
+        break
+      case '--idea-compat':
+        options.ideaCompat = true
         break
       default:
         throw new Error(`Unknown option: ${option}`)
