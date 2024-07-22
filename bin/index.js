@@ -14,6 +14,14 @@ const bindir = dirname(fileURLToPath(import.meta.url))
 const EXTS = `.?([cm])[jt]s?(x)` // we differ from jest, allowing [cm] before everything
 const DEFAULT_PATTERNS = [`**/__tests__/**/*${EXTS}`, `**/?(*.)+(spec|test)${EXTS}`]
 
+const ENGINES = new Map(
+  Object.entries({
+    'node:test': { binary: 'node', pure: false, hasImportLoader: true },
+    'node:pure': { binary: 'node', pure: true, hasImportLoader: true },
+    'bun:pure': { binary: 'bun', pure: true, hasImportLoader: false },
+  })
+)
+
 function parseOptions() {
   const options = {
     jest: false,
@@ -26,9 +34,13 @@ function parseOptions() {
     only: false,
     passWithNoTests: false,
     writeSnapshots: false,
-    pure: false,
     debug: { files: false },
     ideaCompat: false,
+    engine: process.env.EXODUS_TEST_ENGINE ?? 'node:test',
+    // Engine options
+    binary: 'node',
+    pure: false,
+    hasImportLoader: false,
   }
 
   const args = [...process.argv]
@@ -96,8 +108,8 @@ function parseOptions() {
       case '--forceExit':
         options.forceExit = true
         break
-      case '--pure':
-        options.pure = true
+      case '--engine':
+        options.engine = args.shift()
         break
       case '--debug-files':
         options.debug.files = true
@@ -130,7 +142,9 @@ function parseOptions() {
 
 const { options, patterns } = parseOptions()
 
-let program = 'node'
+const engineOptions = ENGINES.get(options.engine)
+assert(engineOptions, `Unknown engine: ${options.engine}`)
+Object.assign(options, engineOptions)
 
 const require = createRequire(import.meta.url)
 const resolveRequire = (query) => require.resolve(query)
@@ -139,12 +153,12 @@ const resolveImport = import.meta.resolve && ((query) => fileURLToPath(import.me
 const args = []
 if (options.pure) {
   const requiresNodeCoverage = options.coverage && options.coverageEngine === 'node'
-  assert(!requiresNodeCoverage, 'Can not use "node" coverage engine with --pure')
-  assert(!options.writeSnapshots, 'Can not use write snapshots with --pure')
-  assert(!options.forceExit, 'Can not use --force-exit with --pure') // TODO
-  assert(!options.watch, 'Can not use --watch with --pure')
-  assert(!options.only, 'Can not use --only with --pure') // TODO
-} else {
+  assert(!requiresNodeCoverage, '"--coverage-engine node" requires "--engine node:test" (default)')
+  assert(!options.writeSnapshots, `Can not use write snapshots with ${options.engine} engine`)
+  assert(!options.forceExit, `Can not use --force-exit with ${options.engine} engine yet`) // TODO
+  assert(!options.watch, `Can not use --watch with with ${options.engine} engine`)
+  assert(!options.only, `Can not use --only with with ${options.engine} engine yet`) // TODO
+} else if (options.engine === 'node:test') {
   args.push('--test', '--no-warnings=ExperimentalWarning', '--test-reporter=spec')
 
   if (haveModuleMocks) args.push('--experimental-test-module-mocks')
@@ -164,6 +178,8 @@ if (options.pure) {
   if (options.only) args.push('--test-only')
 
   args.push('--expose-internals') // this is unoptimal and hopefully temporary, see rationale in src/dark.cjs
+} else {
+  throw new Error('Unreachable')
 }
 
 const ignore = ['**/node_modules']
@@ -179,7 +195,7 @@ if (process.env.EXODUS_TEST_IGNORE) {
 if (options.jest) {
   const { loadJestConfig } = await import('../src/jest.config.js')
   const config = await loadJestConfig(process.cwd())
-  args.push('--import', resolve(bindir, 'jest.js'))
+  args.push(options.hasImportLoader ? '--import' : '-r', resolve(bindir, 'jest.js'))
 
   if (config.testFailureExitCode !== undefined) {
     if (Number(config.testFailureExitCode) === 0) {
@@ -215,7 +231,11 @@ if (options.jest) {
 
 if (options.esbuild) {
   assert(resolveImport)
-  args.push('--import', resolveImport('tsx'))
+  if (options.hasImportLoader) {
+    args.push('--import', resolveImport('tsx'))
+  } else {
+    args.push('-r', resolveImport('tsx/cjs'))
+  }
 }
 
 if (options.babel) {
@@ -287,16 +307,18 @@ if (tsTests.length > 0 && !options.esbuild) {
 }
 
 if (!Object.hasOwn(process.env, 'NODE_ENV')) process.env.NODE_ENV = 'test'
+process.env.EXODUS_TEST_PLATFORM = options.binary
 
 const c8 = resolveRequire('c8/bin/c8.js')
 if (resolveImport) assert.equal(c8, resolveImport('c8/bin/c8.js'))
 
 if (options.coverage) {
+  assert.equal(options.binary, 'node', 'Coverage is only supported with Node.js')
   if (options.coverageEngine === 'node') {
     args.push('--experimental-test-coverage')
   } else if (options.coverageEngine === 'c8') {
-    program = c8
-    args.unshift('node')
+    args.unshift(options.binary)
+    options.binary = c8
     // perhaps use text-summary ?
     args.unshift('-r', 'text', '-r', 'html')
   } else {
@@ -305,16 +327,15 @@ if (options.coverage) {
 }
 
 assert(files.length > 0) // otherwise we can run recursively
-assert(program && ['node', c8].includes(program))
+assert(options.binary && ['node', 'bun', c8].includes(options.binary))
+process.env.EXODUS_TEST_EXECARGV = JSON.stringify(args)
 
 if (options.pure) {
   process.env.EXODUS_TEST_CONTEXT = 'pure'
-  console.warn(
-    '--pure mode is experimental and may not work an expected / might be removed at any time'
-  )
+  console.warn(`\n${options.engine} engine is experimental and may not work an expected\n\n`)
   const failures = []
   for (const file of files) {
-    const node = spawn(program, [...args, file], { stdio: 'inherit' })
+    const node = spawn(options.binary, [...args, file], { stdio: 'inherit' })
     const [code] = await once(node, 'close')
     if (code !== 0) failures.push(file)
   }
@@ -329,8 +350,10 @@ if (options.pure) {
     console.log(`All ${files.length} test suites passed`)
   }
 } else {
-  process.env.EXODUS_TEST_CONTEXT = 'node --test'
-  const node = spawn(program, [...args, ...files], { stdio: 'inherit' })
+  assert(['node', c8].includes(options.binary), 'Native test engine is only supported with Node.js')
+  assert.equal(options.engine, 'node:test')
+  process.env.EXODUS_TEST_CONTEXT = 'node:test'
+  const node = spawn(options.binary, [...args, ...files], { stdio: 'inherit' })
   const [code] = await once(node, 'close')
   process.exitCode = code
 }

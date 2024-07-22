@@ -61,8 +61,9 @@
     "test:all": "npm run test:jest && npm run test:tape && npm run test:native",
     "test:native": "EXODUS_TEST_IGNORE='{**/typescript/**,**/jest-repo/**/user.test.js}' ./bin/index.js --jest '__test__/**/*.test.js'",
     "test:jest": "./bin/index.js --jest --esbuild",
-    "test:pure": "./bin/index.js --jest --esbuild --pure",
     "test:tape": "./bin/index.js --esbuild '__test__/tape/test/*.js' __test__/tape.test.js",
+    "test:pure": "EXODUS_TEST_ENGINE=node:pure npm run test",
+    "test:bun:pure": "EXODUS_TEST_ENGINE=bun:pure npm run test",
     "coverage": "./bin/index.js --jest --esbuild --coverage",
     "lint": "prettier --list-different . && eslint .",
     "lint:fix": "prettier --write . && eslint --fix ."

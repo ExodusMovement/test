@@ -1,5 +1,7 @@
 // From https://github.com/timkindberg/jest-when/blob/4476ba5741f69ec21c7cd5b7d767a52ca41e1258/src/when.test.js
 // Contains a filename change and single change in the expected error message test (see comment)
+// Error message format tests are disabled on non-Node.js platforms
+const itNode = !jest.exodus || jest.exodus.platform === 'node' ? it : it.skip
 
 const errMsg = ({ expect, actual }) =>
   new RegExp(`Expected.*${expect}.*\\nReceived.*${actual}`)
@@ -112,7 +114,7 @@ describe('When', () => {
       expect(caughtErr.message).toMatch(/Failed verifyAllWhenMocksCalled: 2 not called/)
     })
 
-    it('should print a full stacktrace if verification check fails', () => {
+    itNode('should print a full stacktrace if verification check fails', () => {
       const fn1 = jest.fn()
 
       function extractedWhenConfiguration () {
@@ -139,7 +141,7 @@ describe('When', () => {
       expect(caughtErr.message).toContain('at extractedWhenConfiguration')
     })
 
-    it('fails verification check if all mocks were not called with line numbers', () => {
+    itNode('fails verification check if all mocks were not called with line numbers', () => {
       const fn1 = jest.fn()
       const fn2 = jest.fn()
 

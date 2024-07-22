@@ -174,6 +174,7 @@ export const jest = {
     __proto__: null,
     features: {
       __proto__: null,
+      platform: String(process.env.EXODUS_TEST_PLATFORM),
       engine: String(node.engine),
       timers: Boolean(mock.timers && haveValidTimers),
       esmMocks: Boolean(mock.module), // full support for ESM mocks

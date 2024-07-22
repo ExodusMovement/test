@@ -105,7 +105,10 @@ function getTestNamePath(t) {
   return [t.name] // last resort
 }
 
-const insideEsbuild = process.execArgv.some((x) => x.endsWith('node_modules/tsx/dist/loader.mjs'))
+const execArgv = process.env.EXODUS_TEST_EXECARGV
+  ? JSON.parse(process.env.EXODUS_TEST_EXECARGV)
+  : process.execArgv
+const insideEsbuild = execArgv.some((x) => x.includes('node_modules/tsx/dist/'))
 
 function makeEsbuildMockable() {
   if (!insideEsbuild) return

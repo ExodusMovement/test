@@ -2,7 +2,12 @@
   "compilerOptions": {
     "target": "es2022",
     "moduleResolution": "node",
-    "strict": true
+    "strict": true,
+    "paths": {
+      "@exodus/test/jest": ["./src/jest.js"],
+      "@exodus/test/node": ["./src/node.js"],
+      "@exodus/test/tape": ["./src/tape.js"]
+    }
   },
   "include": ["**/*", ".*"],
   "exclude": ["node_modules"]
