@@ -110,9 +110,6 @@ const require = createRequire(import.meta.url)
 const resolveRequire = (query) => require.resolve(query)
 const resolveImport = import.meta.resolve && ((query) => fileURLToPath(import.meta.resolve(query)))
 
-const c8 = resolveRequire('c8/bin/c8.js')
-if (resolveImport) assert.equal(c8, resolveImport('c8/bin/c8.js'))
-
 const args = []
 if (options.pure) {
   const requiresNodeCoverage = options.coverage && options.coverageEngine === 'node'
@@ -141,19 +138,6 @@ if (options.pure) {
   if (options.only) args.push('--test-only')
 
   args.push('--expose-internals') // this is unoptimal and hopefully temporary, see rationale in src/dark.cjs
-}
-
-if (options.coverage) {
-  if (options.coverageEngine === 'node') {
-    args.push('--experimental-test-coverage')
-  } else if (options.coverageEngine === 'c8') {
-    program = c8
-    args.unshift('node')
-    // perhaps use text-summary ?
-    args.unshift('-r', 'text', '-r', 'html')
-  } else {
-    throw new Error(`Unknown coverage engine: ${JSON.stringify(options.coverageEngine)}`)
-  }
 }
 
 const ignore = ['**/node_modules']
@@ -277,6 +261,22 @@ if (tsTests.length > 0 && !options.esbuild) {
 }
 
 if (!Object.hasOwn(process.env, 'NODE_ENV')) process.env.NODE_ENV = 'test'
+
+const c8 = resolveRequire('c8/bin/c8.js')
+if (resolveImport) assert.equal(c8, resolveImport('c8/bin/c8.js'))
+
+if (options.coverage) {
+  if (options.coverageEngine === 'node') {
+    args.push('--experimental-test-coverage')
+  } else if (options.coverageEngine === 'c8') {
+    program = c8
+    args.unshift('node')
+    // perhaps use text-summary ?
+    args.unshift('-r', 'text', '-r', 'html')
+  } else {
+    throw new Error(`Unknown coverage engine: ${JSON.stringify(options.coverageEngine)}`)
+  }
+}
 
 assert(files.length > 0) // otherwise we can run recursively
 assert(program && ['node', c8].includes(program))
