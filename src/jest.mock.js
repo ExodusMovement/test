@@ -197,8 +197,16 @@ export function jestmock(name, mocker, { override = false } = {}) {
 
   let likelyESM = false
   const isBuiltIn = builtinModules.includes(resolved)
-  const isNodeCache = (x) => x.id && x.path && x.filename && x.children && x.paths && x.loaded
-  if (Object.hasOwn(require.cache, resolved)) {
+  const isNodeCache = (x) => x && x.id && x.path && x.filename && x.children && x.paths && x.loaded
+  if (isBuiltIn && !isNodeCache(require.cache[resolved])) {
+    if (override) {
+      overridenBuiltins.add(resolved)
+      overrideModule(resolved, true) // Override builtin modules
+      if (syncBuiltinESMExports) syncBuiltinESMExports()
+    }
+
+    require.cache[resolved] = require.cache[`node:${resolved}`] = { exports: value }
+  } else if (Object.hasOwn(require.cache, resolved)) {
     if (isNodeCache(require.cache[resolved]) || !require.cache[resolved].exports?.__esModule) {
       assert.equal(mapActual.get(resolved), require.cache[resolved].exports)
       // If we did't have this prior but have now, it means we just loaded it and there are no leaked instances
@@ -208,14 +216,6 @@ export function jestmock(name, mocker, { override = false } = {}) {
       // If it's non-Node.js and has __esModule tag, assume it's ESM
       likelyESM = true
     }
-  } else if (isBuiltIn) {
-    if (override) {
-      overridenBuiltins.add(resolved)
-      overrideModule(resolved, true) // Override builtin modules
-      syncBuiltinESMExports()
-    }
-
-    require.cache[resolved] = require.cache[`node:${resolved}`] = { exports: value }
   } else {
     // The module doesn't exist or is ESM
     likelyESM = true
