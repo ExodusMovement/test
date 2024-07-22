@@ -27,7 +27,7 @@ export const specialEnvironments = {
   },
 
   // Reproduces setup-polly-jest/jest-environment-node ad hacks into 'setup-polly-jest'.pollyJest
-  'setup-polly-jest/jest-environment-node': (require, jestGlobals) => {
+  'setup-polly-jest/jest-environment-node': (require, engine) => {
     const { Polly } = require('@pollyjs/core')
     const pollyJest = require('setup-polly-jest')
     const { JestPollyGlobals, createPollyContextAccessor } = require('setup-polly-jest/lib/common')
@@ -36,12 +36,12 @@ export const specialEnvironments = {
     pollyJest.setupPolly = (options) => {
       if (!pollyGlobals.isJestPollyEnvironment) return
 
-      jestGlobals.beforeAll(() => {
+      engine.before(() => {
         pollyGlobals.isPollyActive = true
         pollyGlobals.pollyContext.options = options
       })
 
-      jestGlobals.afterAll(() => {
+      engine.after(() => {
         pollyGlobals.isPollyActive = false
         pollyGlobals.pollyContext.options = null
       })
@@ -49,13 +49,13 @@ export const specialEnvironments = {
       return createPollyContextAccessor(pollyGlobals)
     }
 
-    jestGlobals.beforeEach((t) => {
+    engine.beforeEach((t) => {
       if (!pollyGlobals.isPollyActive) return
       const name = getTestNamePath(t).join('/')
       pollyGlobals.pollyContext.polly = new Polly(name, pollyGlobals.pollyContext.options)
     })
 
-    jestGlobals.afterEach(async () => {
+    engine.afterEach(async () => {
       if (!pollyGlobals.pollyContext.polly) return
       await pollyGlobals.pollyContext.polly.stop()
       pollyGlobals.pollyContext.polly = null

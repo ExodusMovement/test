@@ -79,7 +79,10 @@ export async function loadJestConfig(...args) {
 }
 
 export async function installJestEnvironment(jestGlobals) {
-  const { jest, beforeEach } = jestGlobals
+  const engine = await import('./engine.js')
+
+  const { beforeEach } = engine
+  const { jest } = jestGlobals
   const c = config
 
   Error.stackTraceLimit = 100
@@ -97,7 +100,7 @@ export async function installJestEnvironment(jestGlobals) {
     : () => assert.fail('Unreachable: requiring plugins without a rootDir')
 
   if (Object.hasOwn(specialEnvironments, c.testEnvironment)) {
-    specialEnvironments[c.testEnvironment](require, jestGlobals, c.testEnvironmentOptions)
+    specialEnvironments[c.testEnvironment](require, engine, jestGlobals, c.testEnvironmentOptions)
   }
 
   // require is already relative to rootDir
