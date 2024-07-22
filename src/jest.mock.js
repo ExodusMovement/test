@@ -190,7 +190,9 @@ export function jestmock(name, mocker, { override = false } = {}) {
   const havePrior = Object.hasOwn(require.cache, resolved)
   try {
     mapActual.set(resolved, require(resolved))
-  } catch {}
+  } catch {
+    assert(mocker, 'Can not auto-clone a native ESM module without --esbuild or newer Node.js')
+  }
 
   const value = mocker ? { ...mocker() } : mockClone(mapActual.get(resolved))
   mapMocks.set(resolved, value)

@@ -1,4 +1,7 @@
-describe('esm2cjs from cjs', () => {
+const have = !jest.exodus || jest.exodus.features.esmClone
+const describeMocks = have ? describe : describe.skip
+
+describeMocks('esm2cjs from cjs', () => {
   test('object', () => {
     jest.mock('./fixtures/esm2cjs/object.js')
     const { default: object } = require('./fixtures/esm2cjs/object.js')

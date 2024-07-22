@@ -7,7 +7,9 @@ jest.mock('node:fs', () => ({
   foo: 'mocked foo',
 }))
 
-test('should do a mock with import named', async () => {
+const testNamedBuiltin = !jest.exodus || jest.exodus.features.esmNamedBuiltinMocks ? it : it.skip
+
+testNamedBuiltin('should do a mock with import named', async () => {
   const fs = await import('node:fs')
   expect(fs.bar?.x).toBe(40)
   expect(fs.foo).toBe('mocked foo')

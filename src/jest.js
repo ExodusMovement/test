@@ -6,7 +6,7 @@ import { jestModuleMocks } from './jest.mock.js'
 import * as jestTimers from './jest.timers.js'
 import './jest.snapshot.js'
 import { createCallerLocationHook } from './dark.cjs'
-import { haveValidTimers, haveModuleMocks } from './version.js'
+import { haveValidTimers } from './version.js'
 import { expect } from 'expect'
 import matchers from 'jest-extended'
 import { format as prettyFormat } from 'pretty-format'
@@ -169,6 +169,8 @@ node.after(() => {
   }
 })
 
+const insideEsbuild = process.execArgv.some((x) => x.endsWith('node_modules/tsx/dist/loader.mjs')) // TODO: move somewhere
+
 export const jest = {
   exodus: {
     __proto__: null,
@@ -176,7 +178,9 @@ export const jest = {
       __proto__: null,
       engine: String(node.engine),
       timers: Boolean(mock.timers && haveValidTimers),
-      esmMocks: Boolean(mock.module && haveModuleMocks), // full support for ESM mocks
+      esmMocks: Boolean(mock.module), // full support for ESM mocks
+      esmClone: Boolean(insideEsbuild), // support for ESM mocks creation without a mocker function
+      esmNamedBuiltinMocks: Boolean(mock.module || insideEsbuild), // support for named ESM imports from builtin module mocks
       concurrency: node.engine !== 'pure', // pure engine doesn't support concurrency
     },
   },

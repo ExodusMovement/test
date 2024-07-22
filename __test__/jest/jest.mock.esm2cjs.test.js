@@ -1,6 +1,7 @@
-const describeModuleMocks = !jest.exodus || jest.exodus.features.esmMocks ? describe : describe.skip
+const have = !jest.exodus || (jest.exodus.features.esmClone && jest.exodus.features.esmMocks)
+const describeMocks = have ? describe : describe.skip
 
-describeModuleMocks('esm2cjs from esm', () => {
+describeMocks('esm2cjs from esm', () => {
   test('object', async () => {
     jest.mock('./fixtures/esm2cjs/object.js')
     const { default: object } = await import('./fixtures/esm2cjs/object.js')
