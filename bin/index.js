@@ -37,10 +37,6 @@ function parseOptions() {
     debug: { files: false },
     ideaCompat: false,
     engine: process.env.EXODUS_TEST_ENGINE ?? 'node:test',
-    // Engine options
-    binary: 'node',
-    pure: false,
-    hasImportLoader: false,
   }
 
   const args = [...process.argv]
