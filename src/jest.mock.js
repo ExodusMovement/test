@@ -132,7 +132,9 @@ function mockCloneItem(obj, cache) {
     // Special path, as .default might be a getter and we want to unwrap it
     if (obj.__esModule === true) {
       const { __esModule, default: def, ...rest } = obj
-      return { __esModule, ...mockClone({ default: def, ...rest }, cache) }
+      const proto = Object.getPrototypeOf(obj)
+      const toClone = proto?.[Symbol.toStringTag] === 'Module' ? proto : { default: def, ...rest } // unwrap bun modules for proper cloning
+      return { __esModule, ...mockClone(toClone, cache) }
     }
 
     const prototype = Object.getPrototypeOf(obj)
