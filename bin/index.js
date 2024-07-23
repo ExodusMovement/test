@@ -346,9 +346,9 @@ if (options.pure) {
     console.log(`All ${files.length} test suites passed`)
   }
 } else {
-  assert(['node', c8].includes(options.binary), 'Native test engine is only supported with Node.js')
-  assert.equal(options.engine, 'node:test')
-  process.env.EXODUS_TEST_CONTEXT = 'node:test'
+  assert(['node', c8].includes(options.binary), `Unexpected native engine: ${options.binary}`)
+  assert(['node:test'].includes(options.engine))
+  process.env.EXODUS_TEST_CONTEXT = options.engine
   const node = spawn(options.binary, [...args, ...files], { stdio: 'inherit' })
   const [code] = await once(node, 'close')
   process.exitCode = code
