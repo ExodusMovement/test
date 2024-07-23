@@ -229,8 +229,11 @@ if (options.esbuild) {
   assert(resolveImport)
   if (options.hasImportLoader) {
     args.push('--import', resolveImport('tsx'))
+  } else if (options.engine === process.env.EXODUS_TEST_ENGINE) {
+    console.warn(`Warning: ${options.engine} engine does not support --esbuild option`)
   } else {
-    args.push('-r', resolveImport('tsx/cjs'))
+    console.error(`Error: ${options.engine} engine does not support --esbuild option`)
+    process.exit(1)
   }
 }
 
