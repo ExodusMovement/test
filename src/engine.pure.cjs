@@ -3,7 +3,12 @@ const assertLoose = require('node:assert')
 const { existsSync, readFileSync } = require('node:fs')
 const { normalize, basename, dirname, join: pathJoin } = require('node:path')
 const { format: utilFormat } = require('node:util')
-const { createRequire, builtinModules, syncBuiltinESMExports } = require('node:module')
+const {
+  createRequire,
+  builtinModules,
+  syncBuiltinESMExports,
+  syncBuiltinExports, // bun has it under a different name (also a no-op and always synced atm)
+} = require('node:module')
 
 const { setTimeout, setInterval, setImmediate, Date } = globalThis
 const { clearTimeout, clearInterval, clearImmediate } = globalThis
@@ -329,7 +334,7 @@ module.exports = {
   engine: 'pure',
   ...{ assert, assertLoose },
   ...{ mock, describe, test, beforeEach, afterEach, before, after },
-  ...{ builtinModules, syncBuiltinESMExports },
+  ...{ builtinModules, syncBuiltinESMExports: syncBuiltinESMExports || syncBuiltinExports },
   ...{ utilFormat, isPromise, nodeVersion },
   ...{ baseFile, relativeRequire, isTopLevelESM },
   ...{ readSnapshot, setSnapshotSerializers, setSnapshotResolver },
