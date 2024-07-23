@@ -178,7 +178,7 @@ export const jest = {
       engine: String(node.engine),
       timers: Boolean(mock.timers && haveValidTimers),
       esmMocks: Boolean(mock.module), // full support for ESM mocks
-      esmClone: Boolean(insideEsbuild), // support for ESM mocks creation without a mocker function
+      esmInterop: Boolean(insideEsbuild), // loading/using ESM as CJS, ESM mocks creation without a mocker function
       esmNamedBuiltinMocks: Boolean(mock.module || insideEsbuild), // support for named ESM imports from builtin module mocks
       concurrency: node.engine !== 'pure', // pure engine doesn't support concurrency
     },

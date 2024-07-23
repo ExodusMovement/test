@@ -59,7 +59,7 @@
   "scripts": {
     "test": "npm run test:jest",
     "test:all": "npm run test:jest && npm run test:tape && npm run test:native",
-    "test:native": "EXODUS_TEST_IGNORE='{**/typescript/**,**/jest-repo/**/user.test.js}' ./bin/index.js --jest '__test__/**/*.test.js'",
+    "test:native": "EXODUS_TEST_IGNORE='{**/typescript/**,**/jest-repo/**/user.test.js}' ./bin/index.js --jest '__test__/**/*.test.{js,cjs,mjs}'",
     "test:jest": "./bin/index.js --jest --esbuild",
     "test:tape": "./bin/index.js --esbuild '__test__/tape/test/*.js' __test__/tape.test.js",
     "test:pure": "EXODUS_TEST_ENGINE=node:pure npm run test",

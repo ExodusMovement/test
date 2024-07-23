@@ -1,4 +1,4 @@
-const have = !jest.exodus || (jest.exodus.features.esmClone && jest.exodus.features.esmMocks)
+const have = !jest.exodus || (jest.exodus.features.esmInterop && jest.exodus.features.esmMocks)
 const describeMocks = have ? describe : describe.skip
 
 describeMocks('esm2cjs from esm', () => {
