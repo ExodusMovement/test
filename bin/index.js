@@ -404,9 +404,17 @@ if (options.bundle) {
         EXODUS_TEST_SNAPSHOTS: JSON.stringify(EXODUS_TEST_SNAPSHOTS),
       },
       alias: {
-        'node:assert': 'assert',
+        // Node browserify
+        'node:assert': resolveRequire('assert'),
         'node:assert/strict': resolveRequire('../src/bundle-apis/assert-strict.cjs'),
-        'node:util': 'util',
+        'node:util': resolveRequire('util'),
+        assert: resolveRequire('assert'),
+        buffer: resolveRequire('buffer'),
+        crypto: resolveRequire('crypto-browserify'),
+        events: resolveRequire('events'),
+        stream: resolveRequire('stream-browserify'),
+        util: resolveRequire('util'),
+        // expect-related deps
         'ansi-styles': resolveRequire('../src/bundle-apis/ansi-styles.cjs'),
         'jest-util': resolveRequire('../src/bundle-apis/jest-util.js'),
         'jest-message-util': resolveRequire('../src/bundle-apis/jest-message-util.js'),
