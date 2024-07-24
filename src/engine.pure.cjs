@@ -81,6 +81,7 @@ async function runContext(context) {
     if (error) {
       console.log(' ', error)
       if (globalThis.process) globalThis.process.exitCode = 1
+      if (globalThis.Deno) globalThis.Deno.exitCode = 1
     }
   } else {
     // if (context !== context.root) console.log(`▶ ${context.fullName}`)
@@ -101,6 +102,7 @@ async function run() {
     // Should not throw under regular circumstances
     console.log('Fatal: ', error)
     if (globalThis.process) globalThis.process.exitCode = 1
+    if (globalThis.Deno) globalThis.Deno.exitCode = 1
   })
 }
 
