@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { basename, dirname, resolve, join } from 'node:path'
 import { createRequire } from 'node:module'
 import { randomUUID } from 'node:crypto'
+import { existsSync } from 'node:fs'
 import assert from 'node:assert/strict'
 import glob from 'fast-glob'
 import { haveModuleMocks, haveSnapshots, haveForceExit } from '../src/version.js'
@@ -439,9 +440,19 @@ if (options.bundle) {
 }
 
 assert.equal(inputs.length, files.length)
-assert(options.binary && ['node', 'bun', 'deno', c8].includes(options.binary))
+assert(options.binary && ['node', 'bun', 'deno', 'jsc', c8].includes(options.binary))
 
 if (options.pure) {
+  if (options.binary === 'jsc') {
+    const prefix = '/System/Library/Frameworks/JavaScriptCore.framework/Versions/A'
+    for (const dir of [`${prefix}/Helpers`, `${prefix}/Resources`]) {
+      if (existsSync(join(dir, 'jsc'))) {
+        process.env.PATH = `${dir}:${process.env.PATH}`
+        break
+      }
+    }
+  }
+
   process.env.EXODUS_TEST_CONTEXT = 'pure'
   console.warn(`\n${options.engine} engine is experimental and may not work an expected\n\n`)
   const failures = []
