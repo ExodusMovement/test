@@ -405,9 +405,7 @@ if (options.bundle) {
     const importSource = async (file) => input.push(await readFile(resolveRequire(file), 'utf8'))
     const importFile = (...args) => input.push(`await import(${JSON.stringify(resolve(...args))});`)
 
-    if (process.env.EXODUS_TEST_PLATFORM !== 'node') {
-      await importSource('../src/bundle-apis/globals.cjs')
-    }
+    if (!['node', c8].includes(options.binary)) await importSource('../src/bundle-apis/globals.cjs')
 
     if (options.jest) {
       assert(jestConfig.rootDir)
