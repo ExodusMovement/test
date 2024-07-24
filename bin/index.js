@@ -405,6 +405,7 @@ if (options.bundle) {
       alias: {
         'node:assert': 'assert',
         'node:assert/strict': resolveRequire('../src/bundle-apis/assert-strict.cjs'),
+        'node:util': 'util',
         'ansi-styles': resolveRequire('../src/bundle-apis/ansi-styles.cjs'),
         'jest-util': resolveRequire('../src/bundle-apis/jest-util.js'),
         'jest-message-util': resolveRequire('../src/bundle-apis/jest-message-util.js'),

@@ -79,11 +79,11 @@
     "esbuild": "~0.21.5",
     "expect": "^29.7.0",
     "fast-glob": "^3.2.11",
-    "format-util": "^1.0.5",
     "jest-extended": "^4.0.2",
     "jsdom": "^24.1.0",
     "pretty-format": "^29.7.0",
-    "tsx": "^4.16.2"
+    "tsx": "^4.16.2",
+    "util": "^0.12.5"
   },
   "devDependencies": {
     "@exodus/eslint-config": "^5.24.0",
