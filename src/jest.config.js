@@ -1,7 +1,5 @@
 // Not using ./engine.js yet, might pass / embed already loaded config instead
 import assert from 'node:assert/strict'
-import path from 'node:path'
-import { createRequire } from 'node:module'
 import { specialEnvironments } from './jest.environment.js'
 
 const normalizeJestConfig = (config) => ({
@@ -95,9 +93,16 @@ export async function installJestEnvironment(jestGlobals) {
   if (c.restoreMocks) beforeEach(() => jest.restoreAllMocks())
   if (c.resetModules) beforeEach(() => jest.resetModules())
 
-  const require = config.rootDir
-    ? createRequire(path.resolve(config.rootDir, 'package.json'))
-    : () => assert.fail('Unreachable: requiring plugins without a rootDir')
+  let require
+  if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
+    require = () => assert.fail('Requiring non-bundled plugins from bundle is unsupported')
+  } else if (config.rootDir) {
+    const { resolve } = await import('node:path')
+    const { createRequire } = await import('node:module')
+    require = createRequire(resolve(config.rootDir, 'package.json'))
+  } else {
+    require = () => assert.fail('Unreachable: requiring plugins without a rootDir')
+  }
 
   if (Object.hasOwn(specialEnvironments, c.testEnvironment)) {
     specialEnvironments[c.testEnvironment](require, engine, jestGlobals, c.testEnvironmentOptions)
