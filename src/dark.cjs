@@ -51,7 +51,7 @@ function createCallerLocationHook() {
   return { installLocationInNextTest, getCallerLocation }
 }
 
-// Easy on Node.js >= 22.3.0, but we polyfill for the rest
+// Easy on Node.js >= 22.3.0 || ^20.16.0, but we polyfill for the rest
 function getTestNamePath(t) {
   // No implementation in Node.js yet, will have to PR
   if (t.fullName) return t.fullName.split(' > ')
