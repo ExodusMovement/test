@@ -400,6 +400,8 @@ if (options.bundle) {
         'process.env.EXODUS_TEST_JEST_CONFIG': JSON.stringify(JSON.stringify(jestConfig)),
         'process.env.EXODUS_TEST_EXECARGV': JSON.stringify(process.env.EXODUS_TEST_EXECARGV),
         'process.env.NODE_DEBUG': JSON.stringify(''),
+        'process.env.READABLE_STREAM': JSON.stringify(''),
+        'process.browser': JSON.stringify(true),
         EXODUS_TEST_FILES: JSON.stringify(ifiles.map((f) => [dirname(f), basename(f)])),
         EXODUS_TEST_SNAPSHOTS: JSON.stringify(EXODUS_TEST_SNAPSHOTS),
       },
