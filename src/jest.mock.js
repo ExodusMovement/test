@@ -58,6 +58,7 @@ export function resetModules() {
     if (mock.module) ctx.restore()
   }
 
+  assert(process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle', 'resetModules() unsupported from bundle')
   for (const resolved of Object.keys(require.cache)) {
     delete require.cache[resolved]
     mapMocks.delete(resolved)
@@ -235,6 +236,7 @@ export function jestmock(name, mocker, { override = false } = {}) {
   }
 
   if (likelyESM || (!okFromESM && isTopLevelESM())) {
+    assert(process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle', 'module mocks unsupported from bundle') // TODO: better detection of what we can't do
     // Native module mocks is required if loading ESM or __from__ ESM
     // No good way to check the locations that import the module, but we can check top-level file
     // Built-in modules are fine though

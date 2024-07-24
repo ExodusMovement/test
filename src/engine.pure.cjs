@@ -311,7 +311,10 @@ const after = (fn) => context.hooks.after.push(fn)
 const isPromise = (x) => Boolean(x && x.then && x.catch && x.finally)
 const nodeVersion = '9999.99.99'
 
-const files = process.argv.slice(1)
+const files =
+  process.env.EXODUS_TEST_FILES === undefined
+    ? process.argv.slice(1)
+    : JSON.parse(process.env.EXODUS_TEST_FILES)
 const baseFile = files.length === 1 && existsSync(files[0]) ? normalize(files[0]) : undefined
 const relativeRequire = baseFile ? createRequire(baseFile) : require
 const isTopLevelESM = () =>

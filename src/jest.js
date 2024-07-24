@@ -169,6 +169,7 @@ node.after(() => {
   }
 })
 
+const isBundle = process.env.EXODUS_TEST_ENVIRONMENT === 'bundle' // TODO: improve mocking from bundle
 export const jest = {
   exodus: {
     __proto__: null,
@@ -177,9 +178,9 @@ export const jest = {
       platform: String(process.env.EXODUS_TEST_PLATFORM),
       engine: String(node.engine),
       timers: Boolean(mock.timers && haveValidTimers),
-      esmMocks: Boolean(mock.module), // full support for ESM mocks
-      esmInterop: Boolean(insideEsbuild), // loading/using ESM as CJS, ESM mocks creation without a mocker function
-      esmNamedBuiltinMocks: Boolean(mock.module || insideEsbuild), // support for named ESM imports from builtin module mocks
+      esmMocks: Boolean(mock.module && !isBundle), // full support for ESM mocks
+      esmInterop: Boolean(insideEsbuild && !isBundle), // loading/using ESM as CJS, ESM mocks creation without a mocker function
+      esmNamedBuiltinMocks: Boolean(mock.module || (insideEsbuild && !isBundle)), // support for named ESM imports from builtin module mocks
       concurrency: node.engine !== 'pure', // pure engine doesn't support concurrency
     },
   },
