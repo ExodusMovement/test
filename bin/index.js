@@ -414,6 +414,8 @@ if (options.bundle) {
         buffer: resolveRequire('buffer'),
         crypto: resolveRequire('crypto-browserify'),
         events: resolveRequire('events'),
+        os: resolveRequire('os-browserify'),
+        path: resolveRequire('path-browserify'),
         stream: resolveRequire('stream-browserify'),
         util: resolveRequire('util'),
         // expect-related deps

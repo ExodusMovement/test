@@ -84,6 +84,8 @@
     "fast-glob": "^3.2.11",
     "jest-extended": "^4.0.2",
     "jsdom": "^24.1.0",
+    "os-browserify": "^0.3.0",
+    "path-browserify": "^1.0.1",
     "pretty-format": "^29.7.0",
     "stream-browserify": "^3.0.0",
     "tsx": "^4.16.2",
