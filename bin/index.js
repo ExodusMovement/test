@@ -24,6 +24,7 @@ const ENGINES = new Map(
     'bun:pure': { binary: 'bun', pure: true, hasImportLoader: false },
     'bun:bundle': { binary: 'bun', pure: true, bundle: true, esbuild: true },
     'deno:bundle': { binary: 'deno', binaryArgs: ['run'], pure: true, bundle: true, esbuild: true },
+    'jsc:bundle': { binary: 'jsc', pure: true, bundle: true, esbuild: true }, // mostly broken?
   })
 )
 
