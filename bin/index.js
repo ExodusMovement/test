@@ -394,7 +394,7 @@ if (options.bundle) {
         'process.env.EXODUS_TEST_ENVIRONMENT': JSON.stringify('bundle'),
         'process.env.EXODUS_TEST_JEST_CONFIG': JSON.stringify(JSON.stringify(jestConfig)),
         'process.env.EXODUS_TEST_EXECARGV': JSON.stringify(process.env.EXODUS_TEST_EXECARGV),
-        EXODUS_TEST_FILES: JSON.stringify(ifiles), // paths are relative here
+        EXODUS_TEST_FILES: JSON.stringify(ifiles.map((f) => [dirname(f), basename(f)])),
         EXODUS_TEST_SNAPSHOTS: JSON.stringify(EXODUS_TEST_SNAPSHOTS),
       },
       alias: {

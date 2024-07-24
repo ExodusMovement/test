@@ -1,6 +1,5 @@
 const assert = require('node:assert/strict')
 const assertLoose = require('node:assert')
-const { basename, dirname } = require('node:path')
 
 const { setTimeout, setInterval, setImmediate, Date } = globalThis
 const { clearTimeout, clearInterval, clearImmediate } = globalThis
@@ -305,30 +304,31 @@ const nodeVersion = '9999.99.99'
 
 let builtinModules = []
 let requireIsRelative = false
-let baseFile, relativeRequire, isTopLevelESM, readSnapshotFile, syncBuiltinESMExports
-let utilFormat
+let relativeRequire, isTopLevelESM, syncBuiltinESMExports, readSnapshot, utilFormat
 if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
   // eslint-disable-next-line no-undef
   const files = EXODUS_TEST_FILES
-  baseFile = files.length === 1 ? files[0] : undefined
+  const baseFile = files.length === 1 ? files[0] : undefined
   isTopLevelESM = () => false
   // eslint-disable-next-line no-undef
   const bundleSnaps = typeof EXODUS_TEST_SNAPSHOTS !== 'undefined' && new Map(EXODUS_TEST_SNAPSHOTS)
-  readSnapshotFile = (f) => bundleSnaps.get(f.join('/'))
+  const resolveSnapshot = (f) => snapshotResolver(f[0], f[1]).join('/')
+  readSnapshot = (f = baseFile) => (f ? bundleSnaps.get(resolveSnapshot(f)) : null)
   utilFormat = require('format-util')
 } else {
   const { existsSync, readFileSync } = require('node:fs')
-  const { normalize, join } = require('node:path')
+  const { dirname, basename, normalize, join } = require('node:path')
   const nodeModule = require('node:module')
   const files = process.argv.slice(1)
-  baseFile = files.length === 1 && existsSync(files[0]) ? normalize(files[0]) : undefined
+  const baseFile = files.length === 1 && existsSync(files[0]) ? normalize(files[0]) : undefined
   requireIsRelative = Boolean(baseFile)
   relativeRequire = baseFile ? nodeModule.createRequire(baseFile) : require
   isTopLevelESM = () =>
     !baseFile || // assume ESM otherwise
     !Object.hasOwn(relativeRequire.cache, baseFile) || // node esm
     relativeRequire.cache[baseFile].exports[Symbol.toStringTag] === 'Module' // bun esm
-  readSnapshotFile = (f) => readFileSync(join(...f), 'utf8')
+  const resolveSnapshot = (f) => join(...snapshotResolver(dirname(f), basename(f)))
+  readSnapshot = (f = baseFile) => (f ? readFileSync(resolveSnapshot(f), 'utf8') : null)
   builtinModules = nodeModule.builtinModules
   syncBuiltinESMExports = nodeModule.syncBuiltinESMExports || nodeModule.syncBuiltinExports // bun has it under a different name (also a no-op and always synced atm)
   utilFormat = require('node:util').format
@@ -336,8 +336,6 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
 
 // eslint-disable-next-line no-undef
 let snapshotResolver = (dir, name) => [dir, `${name}.snapshot`] // default per Node.js docs
-const resolveSnapshot = (f) => snapshotResolver(dirname(f), basename(f))
-const readSnapshot = (f = baseFile) => (f ? readSnapshotFile(resolveSnapshot(f)) : null)
 const setSnapshotSerializers = () => {}
 const setSnapshotResolver = (fn) => {
   snapshotResolver = fn
