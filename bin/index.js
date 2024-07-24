@@ -452,6 +452,7 @@ if (options.pure) {
     }
 
     const { binaryArgs = [] } = options
+    console.log(`# ${input.source}`)
     const node = spawn(options.binary, [...binaryArgs, ...args, input.file], { stdio: 'inherit' })
     const [code] = await once(node, 'close')
     if (code !== 0) failures.push(input.source)
