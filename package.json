@@ -37,6 +37,9 @@
   "files": [
     "bin/babel.cjs",
     "bin/jest.js",
+    "src/bundle-apis/ansi-styles.cjs",
+    "src/bundle-apis/jest-message-util.js",
+    "src/bundle-apis/jest-util.js",
     "src/dark.cjs",
     "src/engine.js",
     "src/engine.node.cjs",

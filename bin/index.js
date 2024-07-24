@@ -2,9 +2,10 @@
 
 import { spawn } from 'node:child_process'
 import { once } from 'node:events'
-import { fileURLToPath } from 'node:url'
-import { basename, dirname, resolve } from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+import { basename, dirname, resolve, join } from 'node:path'
 import { createRequire } from 'node:module'
+import { randomUUID } from 'node:crypto'
 import assert from 'node:assert/strict'
 import glob from 'fast-glob'
 import { haveModuleMocks, haveSnapshots, haveForceExit } from '../src/version.js'
@@ -18,7 +19,9 @@ const ENGINES = new Map(
   Object.entries({
     'node:test': { binary: 'node', pure: false, hasImportLoader: true },
     'node:pure': { binary: 'node', pure: true, hasImportLoader: true },
+    'node:bundle': { binary: 'node', pure: true, bundle: true, esbuild: true },
     'bun:pure': { binary: 'bun', pure: true, hasImportLoader: false },
+    'bun:bundle': { binary: 'bun', pure: true, bundle: true, esbuild: true },
   })
 )
 
@@ -148,6 +151,11 @@ const resolveImport = import.meta.resolve && ((query) => fileURLToPath(import.me
 
 const args = []
 if (options.pure) {
+  if (options.bundle) {
+    assert(!options.coverage, `Can not use --coverage with ${options.engine} engine`)
+    assert(!options.babel, `Can not use --babel with ${options.engine} engine`) // TODO?
+  }
+
   const requiresNodeCoverage = options.coverage && options.coverageEngine === 'node'
   assert(!requiresNodeCoverage, '"--coverage-engine node" requires "--engine node:test" (default)')
   assert(!options.writeSnapshots, `Can not use write snapshots with ${options.engine} engine`)
@@ -188,10 +196,14 @@ if (process.env.EXODUS_TEST_IGNORE) {
 
 // The comment below is disabled, we don't auto-mock @jest/globals anymore, and having our loader first is faster
 // [Disabled] Our loader should be last, as enabling module mocks confuses other loaders
+let jestConfig = null
 if (options.jest) {
   const { loadJestConfig } = await import('../src/jest.config.js')
   const config = await loadJestConfig(process.cwd())
-  args.push(options.hasImportLoader ? '--import' : '-r', resolve(bindir, 'jest.js'))
+  jestConfig = config
+  if (!options.bundle) {
+    args.push(options.hasImportLoader ? '--import' : '-r', resolve(bindir, 'jest.js'))
+  }
 
   if (config.testFailureExitCode !== undefined) {
     if (Number(config.testFailureExitCode) === 0) {
@@ -225,7 +237,7 @@ if (options.jest) {
   }
 }
 
-if (options.esbuild) {
+if (options.esbuild && !options.bundle) {
   assert(resolveImport)
   if (options.hasImportLoader) {
     args.push('--import', resolveImport('tsx'))
@@ -325,18 +337,115 @@ if (options.coverage) {
   }
 }
 
-assert(files.length > 0) // otherwise we can run recursively
-assert(options.binary && ['node', 'bun', c8].includes(options.binary))
 process.env.EXODUS_TEST_EXECARGV = JSON.stringify(args)
+const inputs = files.map((file) => ({ source: file, file }))
+
+if (options.bundle) {
+  const esbuild = await import('esbuild')
+  const { readFile } = await import('node:fs/promises')
+  const { rmSync } = await import('node:fs')
+  const os = await import('node:os')
+  const outdir = join(os.tmpdir(), `exodus-test-${randomUUID().slice(0, 8)}`)
+  process.on('beforeExit', async () => rmSync(outdir, { recursive: true, force: true }))
+  assert.deepEqual(args, [])
+  if (options.binary === 'node') args.unshift('--enable-source-maps') // FIXME
+
+  const readSnapshots = async (ifiles) => {
+    const snapshots = []
+    for (const file of ifiles) {
+      for (const resolver of [
+        (dir, name) => [dir, `${name}.snapshot`], // node:test
+        (dir, name) => [dir, '__snapshots__', `${name}.snap`], // jest
+      ]) {
+        const snapshotFile = join(...resolver(dirname(file), basename(file)))
+        try {
+          snapshots.push([snapshotFile, await readFile(snapshotFile, 'utf8')])
+        } catch (e) {
+          if (e.code !== 'ENOENT') throw e
+        }
+      }
+    }
+
+    return snapshots
+  }
+
+  const buildOne = async (...ifiles) => {
+    const input = []
+    if (options.jest) input.push(await readFile(resolveRequire('./jest.js'), 'utf8'))
+    for (const file of ifiles) input.push(`await import(${JSON.stringify(resolve(file))});`) // todo: can we use relative paths?
+    const filename =
+      ifiles.length === 1 ? `${ifiles[0]}-${randomUUID().slice(0, 8)}` : `bundle-${randomUUID()}`
+    const outfile = `${join(outdir, filename)}.js`
+    const EXODUS_TEST_SNAPSHOTS = await readSnapshots(ifiles)
+    const res = await esbuild.build({
+      stdin: {
+        contents: `(async () => {${input.join('\n')}})()`,
+        resolveDir: bindir,
+      },
+      bundle: true,
+      outdir,
+      entryNames: filename,
+      platform: 'node',
+      define: {
+        'process.env.FORCE_COLOR': JSON.stringify('0'),
+        'process.env.NO_COLOR': JSON.stringify('1'),
+        'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+        'process.env.EXODUS_TEST_CONTEXT': JSON.stringify('pure'),
+        'process.env.EXODUS_TEST_ENVIRONMENT': JSON.stringify('bundle'),
+        'process.env.EXODUS_TEST_JEST_CONFIG': JSON.stringify(JSON.stringify(jestConfig)),
+        'process.env.EXODUS_TEST_EXECARGV': JSON.stringify(process.env.EXODUS_TEST_EXECARGV),
+        EXODUS_TEST_FILES: JSON.stringify(ifiles), // paths are relative here
+        EXODUS_TEST_SNAPSHOTS: JSON.stringify(EXODUS_TEST_SNAPSHOTS),
+      },
+      alias: {
+        'ansi-styles': resolveRequire('../src/bundle-apis/ansi-styles.cjs'),
+        'jest-util': resolveRequire('../src/bundle-apis/jest-util.js'),
+        'jest-message-util': resolveRequire('../src/bundle-apis/jest-message-util.js'),
+      },
+      sourcemap: 'both',
+      sourcesContent: false,
+      keepNames: true,
+      target: `node${process.versions.node}`,
+      plugins: [
+        {
+          name: 'import.meta',
+          setup({ onLoad }) {
+            onLoad({ filter: /\.m?js$/, namespace: 'file' }, async (args) => {
+              const source = await readFile(args.path, 'utf8')
+              const contents = source
+                .replace(/\bimport\.meta\.url\b/g, JSON.stringify(pathToFileURL(args.path)))
+                .replace(/\bimport\.meta\.dirname\b/g, JSON.stringify(dirname(args.path)))
+                .replace(/\bimport\.meta\.filename\b/g, JSON.stringify(basename(args.path)))
+              return { contents }
+            })
+          },
+        },
+      ],
+    })
+
+    // require('fs').copyFileSync(outfile, 'tempout.cjs') // DEBUG
+    return { file: outfile, errors: res.errors, warnings: res.warnings }
+  }
+
+  for (const input of inputs) Object.assign(input, await buildOne(input.file)) // TODO: queued concurrency
+}
+
+assert.equal(inputs.length, files.length)
+assert(options.binary && ['node', 'bun', c8].includes(options.binary))
 
 if (options.pure) {
   process.env.EXODUS_TEST_CONTEXT = 'pure'
   console.warn(`\n${options.engine} engine is experimental and may not work an expected\n\n`)
   const failures = []
-  for (const file of files) {
-    const node = spawn(options.binary, [...args, file], { stdio: 'inherit' })
+  for (const input of inputs) {
+    if (input.errors?.length > 0 || input.warnings?.length > 0) {
+      failures.push(input.source)
+      continue
+    }
+
+    const node = spawn(options.binary, [...args, input.file], { stdio: 'inherit' })
     const [code] = await once(node, 'close')
-    if (code !== 0) failures.push(file)
+    if (code !== 0) failures.push(input.source)
   }
 
   if (failures.length > 0) {
@@ -352,6 +461,7 @@ if (options.pure) {
   assert(['node', c8].includes(options.binary), `Unexpected native engine: ${options.binary}`)
   assert(['node:test'].includes(options.engine))
   process.env.EXODUS_TEST_CONTEXT = options.engine
+  assert(files.length > 0) // otherwise we can run recursively
   const node = spawn(options.binary, [...args, ...files], { stdio: 'inherit' })
   const [code] = await once(node, 'close')
   process.exitCode = code
