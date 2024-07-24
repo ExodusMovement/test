@@ -81,7 +81,10 @@ const makeEach =
     }
   }
 
-const forceExit = process.execArgv.map((x) => x.replaceAll('_', '-')).includes('--test-force-exit')
+const execArgv = process.env.EXODUS_TEST_EXECARGV
+  ? JSON.parse(process.env.EXODUS_TEST_EXECARGV)
+  : process.execArgv
+const forceExit = execArgv.map((x) => x.replaceAll('_', '-')).includes('--test-force-exit')
 
 const inConcurrent = []
 const inDescribe = []
@@ -149,25 +152,27 @@ node.afterEach(() => {
   for (const { error } of expect.extractExpectedAssertionsErrors()) throw error
 })
 
-node.after(() => {
-  jestTimers.useRealTimers()
-  const prefix = `Tests completed, but still have asynchronous activity after`
+if (globalThis.process) {
+  node.after(() => {
+    jestTimers.useRealTimers()
+    const prefix = `Tests completed, but still have asynchronous activity after`
 
-  // give everything additional (configurable) defaultTimeout time to finish, otherwide fail
-  const timeout = defaultTimeout
-  setTimeout(() => {
-    console.error(`${prefix} additional ${timeout}ms. Terminating with a failure...`)
-    process.exit(1)
-  }, timeout).unref()
-
-  // Warn after 5s that something is going on
-  const warnTimeout = 5000
-  if (warnTimeout < timeout + 1000) {
+    // give everything additional (configurable) defaultTimeout time to finish, otherwide fail
+    const timeout = defaultTimeout
     setTimeout(() => {
-      console.warn(`${prefix} ${warnTimeout}ms. Waiting for ${timeout}ms to pass to finish...`)
-    }, warnTimeout).unref()
-  }
-})
+      console.error(`${prefix} additional ${timeout}ms. Terminating with a failure...`)
+      process.exit(1)
+    }, timeout).unref()
+
+    // Warn after 5s that something is going on
+    const warnTimeout = 5000
+    if (warnTimeout < timeout + 1000) {
+      setTimeout(() => {
+        console.warn(`${prefix} ${warnTimeout}ms. Waiting for ${timeout}ms to pass to finish...`)
+      }, warnTimeout).unref()
+    }
+  })
+}
 
 const isBundle = process.env.EXODUS_TEST_ENVIRONMENT === 'bundle' // TODO: improve mocking from bundle
 export const jest = {
