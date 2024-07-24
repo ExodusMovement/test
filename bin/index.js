@@ -25,6 +25,7 @@ const ENGINES = new Map(
     'bun:bundle': { binary: 'bun', pure: true, bundle: true, esbuild: true },
     'deno:bundle': { binary: 'deno', binaryArgs: ['run'], pure: true, bundle: true, esbuild: true },
     'jsc:bundle': { binary: 'jsc', pure: true, bundle: true, esbuild: true }, // mostly broken?
+    'hermes:bundle': { binary: 'hermes', pure: true, bundle: true, esbuild: true }, // broken
   })
 )
 
@@ -456,10 +457,25 @@ if (options.bundle) {
 }
 
 assert.equal(inputs.length, files.length)
-assert(options.binary && ['node', 'bun', 'deno', 'jsc', c8].includes(options.binary))
+assert(options.binary && ['node', 'bun', 'deno', 'jsc', 'hermes', c8].includes(options.binary))
 
 if (options.pure) {
-  if (options.binary === 'jsc') {
+  if (options.binary === 'hermes') {
+    const dir = dirname(require.resolve('hermes-engine-cli/package.json'))
+    switch (process.platform) {
+      case 'darwin':
+        process.env.PATH = `${join(dir, 'osx-bin')}:${process.env.PATH}`
+        break
+      case 'linux':
+        process.env.PATH = `${join(dir, 'linux64-bin')}:${process.env.PATH}`
+        break
+      case 'win32':
+        process.env.PATH = `${join(dir, 'win64-bin')}:${process.env.PATH}`
+        break
+      default:
+        assert.fail(`Unexpected platform: ${process.platform}`)
+    }
+  } else if (options.binary === 'jsc' && process.platform === 'darwin') {
     const prefix = '/System/Library/Frameworks/JavaScriptCore.framework/Versions/A'
     for (const dir of [`${prefix}/Helpers`, `${prefix}/Resources`]) {
       if (existsSync(join(dir, 'jsc'))) {

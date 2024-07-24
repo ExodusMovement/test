@@ -105,5 +105,13 @@
     "jest-serializer-ansi-escapes": "^3.0.0",
     "jest-when": "^3.6.0"
   },
+  "peerDependencies": {
+    "hermes-engine-cli": "^0.12.0"
+  },
+  "peerDependenciesMeta": {
+    "hermes-engine-cli": {
+      "optional": true
+    }
+  },
   "packageManager": "pnpm@9.4.0+sha1.9217c800d4ab947a7aee520242a7b70d64fc7638"
 }
