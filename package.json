@@ -41,6 +41,7 @@
     "src/bundle-apis/assert-strict.cjs",
     "src/bundle-apis/jest-message-util.js",
     "src/bundle-apis/jest-util.js",
+    "src/bundle-apis/util-format.js",
     "src/dark.cjs",
     "src/engine.js",
     "src/engine.node.cjs",

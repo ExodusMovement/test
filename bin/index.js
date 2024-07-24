@@ -409,7 +409,6 @@ if (options.bundle) {
         // Node browserify
         'node:assert': resolveRequire('assert'),
         'node:assert/strict': resolveRequire('../src/bundle-apis/assert-strict.cjs'),
-        'node:util': resolveRequire('util'),
         assert: resolveRequire('assert'),
         buffer: resolveRequire('buffer'),
         crypto: resolveRequire('crypto-browserify'),

@@ -1,6 +1,5 @@
 const assert = require('node:assert/strict')
 const assertLoose = require('node:assert')
-const { format: utilFormat } = require('node:util')
 
 const { setTimeout, setInterval, setImmediate, Date } = globalThis
 const { clearTimeout, clearInterval, clearImmediate } = globalThis
@@ -307,7 +306,7 @@ const nodeVersion = '9999.99.99'
 
 let builtinModules = []
 let requireIsRelative = false
-let relativeRequire, isTopLevelESM, syncBuiltinESMExports, readSnapshot
+let relativeRequire, isTopLevelESM, syncBuiltinESMExports, readSnapshot, utilFormat
 if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
   // eslint-disable-next-line no-undef
   const files = EXODUS_TEST_FILES
@@ -317,6 +316,7 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
   const bundleSnaps = typeof EXODUS_TEST_SNAPSHOTS !== 'undefined' && new Map(EXODUS_TEST_SNAPSHOTS)
   const resolveSnapshot = (f) => snapshotResolver(f[0], f[1]).join('/')
   readSnapshot = (f = baseFile) => (f ? bundleSnaps.get(resolveSnapshot(f)) : null)
+  utilFormat = require('./bundle-apis/util-format.cjs')
 } else {
   const { existsSync, readFileSync } = require('node:fs')
   const { dirname, basename, normalize, join } = require('node:path')
@@ -333,6 +333,7 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
   readSnapshot = (f = baseFile) => (f ? readFileSync(resolveSnapshot(f), 'utf8') : null)
   builtinModules = nodeModule.builtinModules
   syncBuiltinESMExports = nodeModule.syncBuiltinESMExports || nodeModule.syncBuiltinExports // bun has it under a different name (also a no-op and always synced atm)
+  utilFormat = require('node:util').format
 }
 
 // eslint-disable-next-line no-undef
