@@ -311,20 +311,28 @@ const after = (fn) => context.hooks.after.push(fn)
 const isPromise = (x) => Boolean(x && x.then && x.catch && x.finally)
 const nodeVersion = '9999.99.99'
 
-const files =
-  process.env.EXODUS_TEST_FILES === undefined
-    ? process.argv.slice(1)
-    : JSON.parse(process.env.EXODUS_TEST_FILES)
+// eslint-disable-next-line no-undef
+const files = typeof EXODUS_TEST_FILES === 'undefined' ? process.argv.slice(1) : EXODUS_TEST_FILES
 const baseFile = files.length === 1 && existsSync(files[0]) ? normalize(files[0]) : undefined
-const relativeRequire = baseFile ? createRequire(baseFile) : require
-const isTopLevelESM = () =>
-  !baseFile || // assume ESM otherwise
-  !Object.hasOwn(relativeRequire.cache, baseFile) || // node esm
-  relativeRequire.cache[baseFile].exports[Symbol.toStringTag] === 'Module' // bun esm
+const relativeRequire =
+  process.env.EXODUS_TEST_ENVIRONMENT === 'bundle'
+    ? undefined
+    : baseFile
+      ? createRequire(baseFile)
+      : require
+const isTopLevelESM = relativeRequire
+  ? () => false // does not have require at all, likely bundled
+  : () =>
+      !baseFile || // assume ESM otherwise
+      !Object.hasOwn(relativeRequire.cache, baseFile) || // node esm
+      relativeRequire.cache[baseFile].exports[Symbol.toStringTag] === 'Module' // bun esm
 
+// eslint-disable-next-line no-undef
+const bundleSnaps = typeof EXODUS_TEST_SNAPSHOTS !== 'undefined' && new Map(EXODUS_TEST_SNAPSHOTS)
 let snapshotResolver = (dir, name) => [dir, `${name}.snapshot`] // default per Node.js docs
 const resolveSnapshot = (f) => pathJoin(...snapshotResolver(dirname(f), basename(f)))
-const readSnapshot = (f = baseFile) => (f ? readFileSync(resolveSnapshot(f), 'utf8') : null)
+const readSnapshotFile = (f) => (bundleSnaps ? bundleSnaps.get(f) : readFileSync(f, 'utf8'))
+const readSnapshot = (f = baseFile) => (f ? readSnapshotFile(resolveSnapshot(f)) : null)
 const setSnapshotSerializers = () => {}
 const setSnapshotResolver = (fn) => {
   snapshotResolver = fn

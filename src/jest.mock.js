@@ -173,6 +173,8 @@ function mockCloneItem(obj, cache) {
 }
 
 export function jestmock(name, mocker, { override = false } = {}) {
+  assert(process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle', 'module mocks unsupported from bundle') // TODO: can we do something?
+
   // Loaded ESM: isn't mocked
   // Loaded CJS: mocked via object overriding
   // Loaded built-ins: mocked via object overriding where possible
@@ -236,7 +238,6 @@ export function jestmock(name, mocker, { override = false } = {}) {
   }
 
   if (likelyESM || (!okFromESM && isTopLevelESM())) {
-    assert(process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle', 'module mocks unsupported from bundle') // TODO: better detection of what we can't do
     // Native module mocks is required if loading ESM or __from__ ESM
     // No good way to check the locations that import the module, but we can check top-level file
     // Built-in modules are fine though
