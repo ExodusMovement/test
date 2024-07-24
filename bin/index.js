@@ -22,6 +22,7 @@ const ENGINES = new Map(
     'node:bundle': { binary: 'node', pure: true, bundle: true, esbuild: true },
     'bun:pure': { binary: 'bun', pure: true, hasImportLoader: false },
     'bun:bundle': { binary: 'bun', pure: true, bundle: true, esbuild: true },
+    'deno:bundle': { binary: 'deno', binaryArgs: ['run'], pure: true, bundle: true, esbuild: true },
   })
 )
 
@@ -437,7 +438,7 @@ if (options.bundle) {
 }
 
 assert.equal(inputs.length, files.length)
-assert(options.binary && ['node', 'bun', c8].includes(options.binary))
+assert(options.binary && ['node', 'bun', 'deno', c8].includes(options.binary))
 
 if (options.pure) {
   process.env.EXODUS_TEST_CONTEXT = 'pure'
@@ -449,7 +450,8 @@ if (options.pure) {
       continue
     }
 
-    const node = spawn(options.binary, [...args, input.file], { stdio: 'inherit' })
+    const { binaryArgs = [] } = options
+    const node = spawn(options.binary, [...binaryArgs, ...args, input.file], { stdio: 'inherit' })
     const [code] = await once(node, 'close')
     if (code !== 0) failures.push(input.source)
   }
@@ -468,6 +470,7 @@ if (options.pure) {
   assert(['node:test'].includes(options.engine))
   process.env.EXODUS_TEST_CONTEXT = options.engine
   assert(files.length > 0) // otherwise we can run recursively
+  assert(!options.binaryArgs)
   const node = spawn(options.binary, [...args, ...files], { stdio: 'inherit' })
   const [code] = await once(node, 'close')
   process.exitCode = code
