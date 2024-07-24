@@ -53,6 +53,14 @@ async function runFunction(fn, context) {
   return new Promise((resolve, reject) => fn(context, (err) => (err ? reject(err) : resolve())))
 }
 
+let fallbackExitCode = 0
+const failExitCode = (...args) => {
+  console.log(...args)
+  if (globalThis.process) return (globalThis.process.exitCode = 1)
+  if (globalThis.Deno) return (globalThis.Deno.exitCode = 1)
+  return (fallbackExitCode = 1)
+}
+
 async function runContext(context) {
   const { options, children, hooks, fn } = context
   assert(!context.running, 'Can not run twice')
@@ -77,11 +85,7 @@ async function runContext(context) {
     for (const c of stack) for (const hook of c.hooks.afterEach) await runFunction(hook, context)
 
     console.log(error === undefined ? '✔ PASS' : '✖ FAIL', context.fullName)
-    if (error) {
-      console.log(' ', error)
-      if (globalThis.process) globalThis.process.exitCode = 1
-      if (globalThis.Deno) globalThis.Deno.exitCode = 1
-    }
+    if (error) failExitCode(' ', error)
   } else {
     // if (context !== context.root) console.log(`▶ ${context.fullName}`)
     // TODO: try/catch for hooks?
@@ -97,12 +101,15 @@ async function run() {
   assert(!running)
   running = true
   assert(context === context.root)
-  runContext(context).catch((error) => {
+  await runContext(context).catch((error) => {
     // Should not throw under regular circumstances
-    console.log('Fatal: ', error)
-    if (globalThis.process) globalThis.process.exitCode = 1
-    if (globalThis.Deno) globalThis.Deno.exitCode = 1
+    failExitCode('Fatal: ', error)
   })
+  if (fallbackExitCode !== 0) {
+    setTimeout(() => {
+      throw new Error('Test failed')
+    }, 0)
+  }
 }
 
 function describe(...args) {
