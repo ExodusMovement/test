@@ -1,14 +1,7 @@
 const assert = require('node:assert/strict')
 const assertLoose = require('node:assert')
-const { existsSync, readFileSync } = require('node:fs')
-const { normalize, basename, dirname, join: pathJoin } = require('node:path')
 const { format: utilFormat } = require('node:util')
-const {
-  createRequire,
-  builtinModules,
-  syncBuiltinESMExports,
-  syncBuiltinExports, // bun has it under a different name (also a no-op and always synced atm)
-} = require('node:module')
+const { basename, dirname } = require('node:path')
 
 const { setTimeout, setInterval, setImmediate, Date } = globalThis
 const { clearTimeout, clearInterval, clearImmediate } = globalThis
@@ -311,27 +304,35 @@ const after = (fn) => context.hooks.after.push(fn)
 const isPromise = (x) => Boolean(x && x.then && x.catch && x.finally)
 const nodeVersion = '9999.99.99'
 
-// eslint-disable-next-line no-undef
-const files = typeof EXODUS_TEST_FILES === 'undefined' ? process.argv.slice(1) : EXODUS_TEST_FILES
-const baseFile = files.length === 1 && existsSync(files[0]) ? normalize(files[0]) : undefined
-const relativeRequire =
-  process.env.EXODUS_TEST_ENVIRONMENT === 'bundle'
-    ? undefined
-    : baseFile
-      ? createRequire(baseFile)
-      : require
-const isTopLevelESM = relativeRequire
-  ? () => false // does not have require at all, likely bundled
-  : () =>
-      !baseFile || // assume ESM otherwise
-      !Object.hasOwn(relativeRequire.cache, baseFile) || // node esm
-      relativeRequire.cache[baseFile].exports[Symbol.toStringTag] === 'Module' // bun esm
+let builtinModules = []
+let files, baseFile, relativeRequire, isTopLevelESM, readSnapshotFile, syncBuiltinESMExports
+if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
+  // eslint-disable-next-line no-undef
+  files = EXODUS_TEST_FILES
+  baseFile = files.length === 1 ? files[0] : undefined
+  isTopLevelESM = () => false
+  // eslint-disable-next-line no-undef
+  const bundleSnaps = typeof EXODUS_TEST_SNAPSHOTS !== 'undefined' && new Map(EXODUS_TEST_SNAPSHOTS)
+  readSnapshotFile = (f) => bundleSnaps.get(f.join('/'))
+} else {
+  const { existsSync, readFileSync } = require('node:fs')
+  const { normalize, join } = require('node:path')
+  const nodeModule = require('node:module')
+  files = process.argv.slice(1)
+  baseFile = files.length === 1 && existsSync(files[0]) ? normalize(files[0]) : undefined
+  relativeRequire = baseFile ? nodeModule.createRequire(baseFile) : require
+  isTopLevelESM = () =>
+    !baseFile || // assume ESM otherwise
+    !Object.hasOwn(relativeRequire.cache, baseFile) || // node esm
+    relativeRequire.cache[baseFile].exports[Symbol.toStringTag] === 'Module' // bun esm
+  readSnapshotFile = (f) => readFileSync(join(...f), 'utf8')
+  builtinModules = nodeModule.builtinModules
+  syncBuiltinESMExports = nodeModule.syncBuiltinESMExports || nodeModule.syncBuiltinExports // bun has it under a different name (also a no-op and always synced atm)
+}
 
 // eslint-disable-next-line no-undef
-const bundleSnaps = typeof EXODUS_TEST_SNAPSHOTS !== 'undefined' && new Map(EXODUS_TEST_SNAPSHOTS)
 let snapshotResolver = (dir, name) => [dir, `${name}.snapshot`] // default per Node.js docs
-const resolveSnapshot = (f) => pathJoin(...snapshotResolver(dirname(f), basename(f)))
-const readSnapshotFile = (f) => (bundleSnaps ? bundleSnaps.get(f) : readFileSync(f, 'utf8'))
+const resolveSnapshot = (f) => snapshotResolver(dirname(f), basename(f))
 const readSnapshot = (f = baseFile) => (f ? readSnapshotFile(resolveSnapshot(f)) : null)
 const setSnapshotSerializers = () => {}
 const setSnapshotResolver = (fn) => {
@@ -345,7 +346,7 @@ module.exports = {
   engine: 'pure',
   ...{ assert, assertLoose },
   ...{ mock, describe, test, beforeEach, afterEach, before, after },
-  ...{ builtinModules, syncBuiltinESMExports: syncBuiltinESMExports || syncBuiltinExports },
+  ...{ builtinModules, syncBuiltinESMExports },
   ...{ utilFormat, isPromise, nodeVersion },
   ...{ baseFile, relativeRequire, isTopLevelESM },
   ...{ readSnapshot, setSnapshotSerializers, setSnapshotResolver },
