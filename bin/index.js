@@ -457,7 +457,7 @@ if (options.bundle) {
         'jest-util': resolveRequire('../src/bundle-apis/jest-util.js'),
         'jest-message-util': resolveRequire('../src/bundle-apis/jest-message-util.js'),
       },
-      sourcemap: 'both',
+      sourcemap: 'linked',
       sourcesContent: false,
       keepNames: true,
       target: options.binary === 'hermes' ? 'es2018' : `node${process.versions.node}`,
