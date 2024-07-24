@@ -347,7 +347,7 @@ const inputs = files.map((file) => ({ source: file, file }))
 
 if (options.bundle) {
   const esbuild = await import('esbuild')
-  const { readFile } = await import('node:fs/promises')
+  const { readFile, writeFile } = await import('node:fs/promises')
   const { rmSync } = await import('node:fs')
   const os = await import('node:os')
   const outdir = join(os.tmpdir(), `exodus-test-${randomUUID().slice(0, 8)}`)
@@ -374,7 +374,7 @@ if (options.bundle) {
     return snapshots
   }
 
-  const pipeline = [
+  const loadPipeline = [
     function (source, args) {
       return source
         .replace(/\bimport\.meta\.url\b/g, JSON.stringify(pathToFileURL(args.path)))
@@ -383,11 +383,10 @@ if (options.bundle) {
     },
   ]
 
+  const writePipeline = []
   if (options.binary === 'hermes') {
     const babel = await import('@babel/core')
-    const babelMap = new Map()
-    pipeline.push((source) => {
-      if (babelMap.has(source)) return babelMap.get(source)
+    writePipeline.push((source) => {
       const result = babel.transformSync(source, {
         compact: false,
         plugins: [
@@ -397,7 +396,6 @@ if (options.bundle) {
           '@babel/plugin-transform-block-scoping',
         ],
       })
-      babelMap.set(source, result.code)
       return result.code
     })
   }
@@ -457,7 +455,7 @@ if (options.bundle) {
         'jest-util': resolveRequire('../src/bundle-apis/jest-util.js'),
         'jest-message-util': resolveRequire('../src/bundle-apis/jest-message-util.js'),
       },
-      sourcemap: 'linked',
+      sourcemap: writePipeline.length > 0 ? 'inline' : 'linked',
       sourcesContent: false,
       keepNames: true,
       target: options.binary === 'hermes' ? 'es2018' : `node${process.versions.node}`,
@@ -467,13 +465,19 @@ if (options.bundle) {
           setup({ onLoad }) {
             onLoad({ filter: /\.m?js$/, namespace: 'file' }, async (args) => {
               let contents = await readFile(args.path, 'utf8')
-              for (const transform of pipeline) contents = await transform(contents, args)
+              for (const transform of loadPipeline) contents = await transform(contents, args)
               return { contents }
             })
           },
         },
       ],
     })
+
+    if (writePipeline.length > 0 && res.errors.length === 0) {
+      let contents = await readFile(outfile, 'utf8')
+      for (const transform of writePipeline) contents = await transform(contents)
+      await writeFile(outfile, contents)
+    }
 
     // require('fs').copyFileSync(outfile, 'tempout.cjs') // DEBUG
     return { file: outfile, errors: res.errors, warnings: res.warnings }
