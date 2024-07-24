@@ -377,7 +377,8 @@ if (options.bundle) {
       ifiles.length === 1 ? `${ifiles[0]}-${randomUUID().slice(0, 8)}` : `bundle-${randomUUID()}`
     const outfile = `${join(outdir, filename)}.js`
     const EXODUS_TEST_SNAPSHOTS = await readSnapshots(ifiles)
-    const res = await esbuild.build({
+    const build = async (opts) => esbuild.build(opts).catch((err) => ({ errors: [err] }))
+    const res = await build({
       stdin: {
         contents: `(async () => {${input.join('\n')}})()`,
         resolveDir: bindir,
@@ -385,7 +386,8 @@ if (options.bundle) {
       bundle: true,
       outdir,
       entryNames: filename,
-      platform: 'node',
+      platform: 'neutral',
+      mainFields: ['browser', 'module', 'main'],
       define: {
         'process.env.FORCE_COLOR': JSON.stringify('0'),
         'process.env.NO_COLOR': JSON.stringify('1'),
