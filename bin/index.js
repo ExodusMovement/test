@@ -402,12 +402,22 @@ if (options.bundle) {
 
   const buildOne = async (...ifiles) => {
     const input = []
+    const importSource = async (file) => input.push(await readFile(resolveRequire(file), 'utf8'))
+    const importFile = (...args) => input.push(`await import(${JSON.stringify(resolve(...args))});`)
+
     if (process.env.EXODUS_TEST_PLATFORM !== 'node') {
-      input.push(await readFile(resolveRequire('../src/bundle-apis/globals.cjs'), 'utf8'))
+      await importSource('../src/bundle-apis/globals.cjs')
     }
 
-    if (options.jest) input.push(await readFile(resolveRequire('./jest.js'), 'utf8'))
-    for (const file of ifiles) input.push(`await import(${JSON.stringify(resolve(file))});`) // todo: can we use relative paths?
+    if (options.jest) {
+      assert(jestConfig.rootDir)
+      await importSource('./jest.js')
+      for (const file of jestConfig.setupFiles || []) importFile(jestConfig.rootDir, file)
+      // TODO: env setup support
+      for (const file of jestConfig.setupFilesAfterEnv || []) importFile(jestConfig.rootDir, file)
+    }
+
+    for (const file of ifiles) importFile(file)
     const filename =
       ifiles.length === 1 ? `${ifiles[0]}-${randomUUID().slice(0, 8)}` : `bundle-${randomUUID()}`
     const outfile = `${join(outdir, filename)}.js`

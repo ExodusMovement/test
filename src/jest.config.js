@@ -73,6 +73,12 @@ export async function loadJestConfig(...args) {
 
   config = normalizeJestConfig(rawConfig)
   verifyJestConfig(config)
+
+  // require is already relative to rootDir
+  const cleanFile = (file) => file.replace(/^<rootDir>\//g, './')
+  config.setupFiles = config.setupFiles?.map((f) => cleanFile(f))
+  config.setupFilesAfterEnv = config.setupFilesAfterEnv?.map((f) => cleanFile(f))
+
   return config
 }
 
@@ -104,13 +110,18 @@ export async function installJestEnvironment(jestGlobals) {
     require = () => assert.fail('Unreachable: requiring plugins without a rootDir')
   }
 
+  if (process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle') {
+    for (const file of c.setupFiles || []) require(file)
+  }
+
+  // Currently unsupported in bundle and throws
   if (Object.hasOwn(specialEnvironments, c.testEnvironment)) {
     specialEnvironments[c.testEnvironment](require, engine, jestGlobals, c.testEnvironmentOptions)
   }
 
-  // require is already relative to rootDir
-  for (const file of c.setupFiles || []) require(file.replace(/^<rootDir>\//g, './'))
-  for (const file of c.setupFilesAfterEnv || []) require(file.replace(/^<rootDir>\//g, './'))
+  if (process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle') {
+    for (const file of c.setupFilesAfterEnv || []) require(file)
+  }
 
   // @jest/globals import auto-mocking is disabled until https://github.com/nodejs/node/issues/53807 is resolved
   /*
