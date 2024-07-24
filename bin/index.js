@@ -385,7 +385,9 @@ if (options.bundle) {
 
   if (options.binary === 'hermes') {
     const babel = await import('@babel/core')
+    const babelMap = new Map()
     pipeline.push((source) => {
+      if (babelMap.has(source)) return babelMap.get(source)
       const result = babel.transformSync(source, {
         compact: false,
         plugins: [
@@ -395,6 +397,7 @@ if (options.bundle) {
           '@babel/plugin-transform-block-scoping',
         ],
       })
+      babelMap.set(source, result.code)
       return result.code
     })
   }
