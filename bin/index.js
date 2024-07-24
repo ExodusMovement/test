@@ -24,9 +24,9 @@ const ENGINES = new Map(
     'node:bundle': { binary: 'node', ...bundleOptions },
     'bun:pure': { binary: 'bun', pure: true, hasImportLoader: false },
     'bun:bundle': { binary: 'bun', ...bundleOptions },
-    'deno:bundle': { binary: 'deno', binaryArgs: ['run'], ...bundleOptions },
-    'jsc:bundle': { binary: 'jsc', ...bundleOptions }, // mostly broken?
-    'hermes:bundle': { binary: 'hermes', binaryArgs: ['-Og'], ...bundleOptions }, // broken
+    'deno:bundle': { binary: 'deno', binaryArgs: ['run'], target: 'deno1', ...bundleOptions },
+    'jsc:bundle': { binary: 'jsc', ...bundleOptions, target: 'safari11' }, // mostly broken?
+    'hermes:bundle': { binary: 'hermes', binaryArgs: ['-Og'], target: 'es2018', ...bundleOptions }, // mostly broken?
   })
 )
 
@@ -471,7 +471,7 @@ if (options.bundle) {
       sourcemap: writePipeline.length > 0 ? 'inline' : 'linked',
       sourcesContent: false,
       keepNames: true,
-      target: options.binary === 'hermes' ? 'es2018' : `node${process.versions.node}`,
+      target: options.target || `node${process.versions.node}`,
       plugins: [
         {
           name: 'exodus-test.bundle',
