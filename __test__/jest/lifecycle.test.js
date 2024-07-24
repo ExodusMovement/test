@@ -22,8 +22,12 @@ afterAll(() => {
   expect(hooklog.length).toMatchSnapshot()
   expect(flatten(hooklog.filter((x) => x.method !== 'afterEach'))).toMatchSnapshot()
 
-  const [major, minor] = process.versions.node.split('.').map(Number)
-  if (!jest.exodus || major > 20 || (major === 20 && minor >= 13)) {
+  const isNodeVersionOk = () => {
+    const [major, minor] = process.versions.node.split('.').map(Number)
+    return major > 20 || (major === 20 && minor >= 13)
+  }
+
+  if (!jest.exodus || jest.exodus.features.engine !== 'node:test' || isNodeVersionOk()) {
     // See comment on top
     expect(flatten(hooklog)).toMatchSnapshot()
   }
