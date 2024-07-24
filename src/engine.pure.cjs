@@ -329,7 +329,7 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
   readSnapshotFile = (f) => readFileSync(join(...f), 'utf8')
   builtinModules = nodeModule.builtinModules
   syncBuiltinESMExports = nodeModule.syncBuiltinESMExports || nodeModule.syncBuiltinExports // bun has it under a different name (also a no-op and always synced atm)
-  utilFormat = require('node:util')
+  utilFormat = require('node:util').format
 }
 
 // eslint-disable-next-line no-undef
