@@ -19,12 +19,13 @@ if (process.env.EXODUS_TEST_PLATFORM === 'hermes') {
   let i = 0
   const timers = new Map()
   const { setTimeout, clearTimeout } = globalThis
+  const dateNow = Date.now
   globalThis.setTimeout = (fn, time) => {
     const id = `ht${i++}`
-    const now = Date.now()
+    const now = dateNow()
     const tick = () => {
       if (!timers.has(id)) return
-      const remaining = now + time - Date.now()
+      const remaining = now + time - dateNow()
       if (remaining < 0) {
         timers.delete(id)
         fn()
