@@ -75,6 +75,11 @@
     "lint:fix": "prettier --write . && eslint --fix ."
   },
   "dependencies": {
+    "@babel/core": "^7.24.9",
+    "@babel/plugin-transform-arrow-functions": "^7.24.7",
+    "@babel/plugin-transform-block-scoping": "^7.24.7",
+    "@babel/plugin-transform-class-properties": "^7.24.7",
+    "@babel/plugin-transform-classes": "^7.24.8",
     "@babel/register": "^7.0.0",
     "assert": "^2.1.0",
     "buffer": "^6.0.3",

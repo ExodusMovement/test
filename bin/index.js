@@ -374,6 +374,31 @@ if (options.bundle) {
     return snapshots
   }
 
+  const pipeline = [
+    function (source, args) {
+      return source
+        .replace(/\bimport\.meta\.url\b/g, JSON.stringify(pathToFileURL(args.path)))
+        .replace(/\bimport\.meta\.dirname\b/g, JSON.stringify(dirname(args.path)))
+        .replace(/\bimport\.meta\.filename\b/g, JSON.stringify(basename(args.path)))
+    },
+  ]
+
+  if (options.binary === 'hermes') {
+    const babel = await import('@babel/core')
+    pipeline.push((source) => {
+      const result = babel.transformSync(source, {
+        compact: false,
+        plugins: [
+          '@babel/plugin-transform-arrow-functions',
+          '@babel/plugin-transform-class-properties',
+          '@babel/plugin-transform-classes',
+          '@babel/plugin-transform-block-scoping',
+        ],
+      })
+      return result.code
+    })
+  }
+
   const buildOne = async (...ifiles) => {
     const input = []
     if (process.env.EXODUS_TEST_PLATFORM !== 'node') {
@@ -389,7 +414,7 @@ if (options.bundle) {
     const build = async (opts) => esbuild.build(opts).catch((err) => ({ errors: [err] }))
     const res = await build({
       stdin: {
-        contents: `(async () => {${input.join('\n')}})()`,
+        contents: `(async function () {${input.join('\n')}})()`,
         resolveDir: bindir,
       },
       bundle: true,
@@ -435,14 +460,11 @@ if (options.bundle) {
       target: options.binary === 'hermes' ? 'es2018' : `node${process.versions.node}`,
       plugins: [
         {
-          name: 'import.meta',
+          name: 'exodus-test.bundle',
           setup({ onLoad }) {
             onLoad({ filter: /\.m?js$/, namespace: 'file' }, async (args) => {
-              const source = await readFile(args.path, 'utf8')
-              const contents = source
-                .replace(/\bimport\.meta\.url\b/g, JSON.stringify(pathToFileURL(args.path)))
-                .replace(/\bimport\.meta\.dirname\b/g, JSON.stringify(dirname(args.path)))
-                .replace(/\bimport\.meta\.filename\b/g, JSON.stringify(basename(args.path)))
+              let contents = await readFile(args.path, 'utf8')
+              for (const transform of pipeline) contents = await transform(contents, args)
               return { contents }
             })
           },
