@@ -471,6 +471,7 @@ if (options.bundle) {
       sourcemap: writePipeline.length > 0 ? 'inline' : 'linked',
       sourcesContent: false,
       keepNames: true,
+      format: 'iife',
       target: options.target || `node${process.versions.node}`,
       plugins: [
         {
