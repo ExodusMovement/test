@@ -157,7 +157,19 @@ class MockTimers {
     }
 
     if (apis.includes('setImmediate')) {
-      globalThis.setImmediate = this.#setImmediate.bind(this)
+      if (process.env.EXODUS_TEST_PLATFORM === 'hermes') {
+        // Sigh, these are used internally
+        const isInternal = (x) =>
+          x.includes('at handleResolved ') || x.includes('/InternalBytecode/InternalBytecode')
+        globalThis.setImmediate = (...args) => {
+          const { stack } = new Error() // eslint-disable-line unicorn/error-message
+          if (isInternal(stack.split('\n')[2])) return setImmediate(...args)
+          return this.#setImmediate(...args)
+        }
+      } else {
+        globalThis.setImmediate = this.#setImmediate.bind(this)
+      }
+
       globalThis.clearImmediate = this.#clearImmediate.bind(this)
     }
 
