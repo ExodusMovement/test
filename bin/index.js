@@ -413,9 +413,14 @@ if (options.bundle) {
     const outfile = `${join(outdir, filename)}.js`
     const EXODUS_TEST_SNAPSHOTS = await readSnapshots(ifiles)
     const build = async (opts) => esbuild.build(opts).catch((err) => ({ errors: [err] }))
+    let main = input.join('\n')
+    if (['jsc', 'hermes'].includes(options.binary)) {
+      main = `try {\n${main}\n} catch (err) { print(err); throw err }` // TODO: fix reporting
+    }
+
     const res = await build({
       stdin: {
-        contents: `(async function () {${input.join('\n')}})()`,
+        contents: `(async function () {\n${main}\n})()`,
         resolveDir: bindir,
       },
       bundle: true,
