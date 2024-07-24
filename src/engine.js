@@ -15,8 +15,8 @@ export { builtinModules, syncBuiltinESMExports }
 const { utilFormat, isPromise, nodeVersion } = engine
 export { utilFormat, isPromise, nodeVersion }
 
-const { baseFile, relativeRequire, isTopLevelESM } = engine
-export { baseFile, relativeRequire, isTopLevelESM }
+const { requireIsRelative, relativeRequire, isTopLevelESM } = engine
+export { requireIsRelative, relativeRequire, isTopLevelESM }
 
 const { readSnapshot, setSnapshotSerializers, setSnapshotResolver } = engine
 export { readSnapshot, setSnapshotSerializers, setSnapshotResolver }

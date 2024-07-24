@@ -304,11 +304,12 @@ const isPromise = (x) => Boolean(x && x.then && x.catch && x.finally)
 const nodeVersion = '9999.99.99'
 
 let builtinModules = []
-let files, baseFile, relativeRequire, isTopLevelESM, readSnapshotFile, syncBuiltinESMExports
+let requireIsRelative = false
+let baseFile, relativeRequire, isTopLevelESM, readSnapshotFile, syncBuiltinESMExports
 let utilFormat
 if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
   // eslint-disable-next-line no-undef
-  files = EXODUS_TEST_FILES
+  const files = EXODUS_TEST_FILES
   baseFile = files.length === 1 ? files[0] : undefined
   isTopLevelESM = () => false
   // eslint-disable-next-line no-undef
@@ -319,8 +320,9 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
   const { existsSync, readFileSync } = require('node:fs')
   const { normalize, join } = require('node:path')
   const nodeModule = require('node:module')
-  files = process.argv.slice(1)
+  const files = process.argv.slice(1)
   baseFile = files.length === 1 && existsSync(files[0]) ? normalize(files[0]) : undefined
+  requireIsRelative = Boolean(baseFile)
   relativeRequire = baseFile ? nodeModule.createRequire(baseFile) : require
   isTopLevelESM = () =>
     !baseFile || // assume ESM otherwise
@@ -350,7 +352,7 @@ module.exports = {
   ...{ mock, describe, test, beforeEach, afterEach, before, after },
   ...{ builtinModules, syncBuiltinESMExports },
   ...{ utilFormat, isPromise, nodeVersion },
-  ...{ baseFile, relativeRequire, isTopLevelESM },
+  ...{ requireIsRelative, relativeRequire, isTopLevelESM },
   ...{ readSnapshot, setSnapshotSerializers, setSnapshotResolver },
 }
 /* eslint-enable unicorn/no-useless-spread */

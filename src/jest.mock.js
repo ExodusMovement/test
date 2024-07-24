@@ -1,7 +1,7 @@
 import {
   mock,
   assert,
-  baseFile,
+  requireIsRelative,
   relativeRequire as require,
   isTopLevelESM,
   builtinModules,
@@ -34,7 +34,7 @@ export const jestModuleMocks = {
 }
 
 export function resolveModule(name) {
-  assert(baseFile || /^[@a-zA-Z]/u.test(name), 'Mocking relative paths is not possible')
+  assert(requireIsRelative || /^[@a-zA-Z]/u.test(name), 'Mocking relative paths is not possible')
   const unprefixed = name.replace(/^node:/, '')
   if (builtinModules.includes(unprefixed)) return unprefixed
   return require.resolve(name)

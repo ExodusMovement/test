@@ -14,6 +14,7 @@ const nodeVersion = process.versions.node
 const files = process.argv.slice(1)
 const baseFile = files.length === 1 && existsSync(files[0]) ? normalize(files[0]) : undefined
 const relativeRequire = baseFile ? createRequire(baseFile) : require
+const requireIsRelative = Boolean(baseFile)
 const isTopLevelESM = () => !baseFile || !Object.hasOwn(relativeRequire.cache, baseFile) // assume ESM otherwise
 
 const snapshot = nodeTest.snapshot
@@ -33,7 +34,7 @@ module.exports = {
   ...{ mock, describe, test, beforeEach, afterEach, before, after },
   ...{ builtinModules, syncBuiltinESMExports },
   ...{ utilFormat, isPromise, nodeVersion },
-  ...{ baseFile, relativeRequire, isTopLevelESM },
+  ...{ requireIsRelative, relativeRequire, isTopLevelESM },
   ...{ readSnapshot, setSnapshotSerializers, setSnapshotResolver },
 }
 /* eslint-enable unicorn/no-useless-spread */
