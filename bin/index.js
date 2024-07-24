@@ -16,16 +16,17 @@ const bindir = dirname(fileURLToPath(import.meta.url))
 const EXTS = `.?([cm])[jt]s?(x)` // we differ from jest, allowing [cm] before everything
 const DEFAULT_PATTERNS = [`**/__tests__/**/*${EXTS}`, `**/?(*.)+(spec|test)${EXTS}`]
 
+const bundleOptions = { pure: true, bundle: true, esbuild: true }
 const ENGINES = new Map(
   Object.entries({
     'node:test': { binary: 'node', pure: false, hasImportLoader: true },
     'node:pure': { binary: 'node', pure: true, hasImportLoader: true },
-    'node:bundle': { binary: 'node', pure: true, bundle: true, esbuild: true },
+    'node:bundle': { binary: 'node', ...bundleOptions },
     'bun:pure': { binary: 'bun', pure: true, hasImportLoader: false },
-    'bun:bundle': { binary: 'bun', pure: true, bundle: true, esbuild: true },
-    'deno:bundle': { binary: 'deno', binaryArgs: ['run'], pure: true, bundle: true, esbuild: true },
-    'jsc:bundle': { binary: 'jsc', pure: true, bundle: true, esbuild: true }, // mostly broken?
-    'hermes:bundle': { binary: 'hermes', pure: true, bundle: true, esbuild: true }, // broken
+    'bun:bundle': { binary: 'bun', ...bundleOptions },
+    'deno:bundle': { binary: 'deno', binaryArgs: ['run'], ...bundleOptions },
+    'jsc:bundle': { binary: 'jsc', ...bundleOptions }, // mostly broken?
+    'hermes:bundle': { binary: 'hermes', binaryArgs: ['-Og'], ...bundleOptions }, // broken
   })
 )
 
@@ -431,7 +432,7 @@ if (options.bundle) {
       sourcemap: 'both',
       sourcesContent: false,
       keepNames: true,
-      target: `node${process.versions.node}`,
+      target: options.binary === 'hermes' ? 'es2018' : `node${process.versions.node}`,
       plugins: [
         {
           name: 'import.meta',
