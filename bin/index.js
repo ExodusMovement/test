@@ -373,6 +373,10 @@ if (options.bundle) {
 
   const buildOne = async (...ifiles) => {
     const input = []
+    if (process.env.EXODUS_TEST_PLATFORM !== 'node') {
+      input.push(await readFile(resolveRequire('../src/bundle-apis/globals.cjs'), 'utf8'))
+    }
+
     if (options.jest) input.push(await readFile(resolveRequire('./jest.js'), 'utf8'))
     for (const file of ifiles) input.push(`await import(${JSON.stringify(resolve(file))});`) // todo: can we use relative paths?
     const filename =

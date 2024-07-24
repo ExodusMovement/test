@@ -39,6 +39,7 @@
     "bin/jest.js",
     "src/bundle-apis/ansi-styles.cjs",
     "src/bundle-apis/assert-strict.cjs",
+    "src/bundle-apis/globals.cjs",
     "src/bundle-apis/jest-message-util.js",
     "src/bundle-apis/jest-util.js",
     "src/bundle-apis/util-format.js",
