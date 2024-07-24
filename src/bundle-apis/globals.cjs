@@ -13,3 +13,33 @@ if (!Array.prototype.at) {
 }
 
 if (globalThis.describe) delete globalThis.describe
+
+if (process.env.EXODUS_TEST_PLATFORM === 'hermes') {
+  // Ok, we have broken timers, let's hack them around
+  let i = 0
+  const timers = new Map()
+  const { setTimeout, clearTimeout } = globalThis
+  globalThis.setTimeout = (fn, time) => {
+    const id = `ht${i++}`
+    const now = Date.now()
+    const tick = () => {
+      if (!timers.has(id)) return
+      const remaining = now + time - Date.now()
+      if (remaining < 0) {
+        timers.delete(id)
+        fn()
+      } else {
+        timers.set(id, setTimeout(tick, remaining))
+      }
+    }
+
+    timers.set(id, setTimeout(tick, time))
+  }
+
+  globalThis.clearTimeout = (id) => {
+    if (!timers.has(id)) return
+    clearTimeout(timers.get(id))
+    timers.delete(id)
+  }
+  // TODO: setInterval, clearInterval
+}
