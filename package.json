@@ -38,6 +38,7 @@
     "bin/babel.cjs",
     "bin/jest.js",
     "src/bundle-apis/ansi-styles.cjs",
+    "src/bundle-apis/assert-strict.cjs",
     "src/bundle-apis/jest-message-util.js",
     "src/bundle-apis/jest-util.js",
     "src/dark.cjs",
@@ -73,6 +74,7 @@
   },
   "dependencies": {
     "@babel/register": "^7.0.0",
+    "assert": "^2.1.0",
     "c8": "^9.1.0",
     "esbuild": "~0.21.5",
     "expect": "^29.7.0",
