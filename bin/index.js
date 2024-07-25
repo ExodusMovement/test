@@ -476,6 +476,7 @@ if (options.bundle) {
         'process.emitWarning': 'undefined',
         'process.stderr': 'undefined',
         'process.stdout': 'undefined',
+        'process.type': 'undefined',
         EXODUS_TEST_FILES: stringify(ifiles.map((f) => [dirname(f), basename(f)])),
         EXODUS_TEST_SNAPSHOTS: stringify(EXODUS_TEST_SNAPSHOTS),
         EXODUS_TEST_FSFILES: stringify(fsfiles.map((file) => resolve(file))), // TODO: can we safely use relative paths?
