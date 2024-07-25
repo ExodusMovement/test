@@ -91,6 +91,7 @@
     "@babel/plugin-transform-class-properties": "^7.0.0",
     "@babel/plugin-transform-classes": "^7.0.0",
     "@babel/register": "^7.0.0",
+    "amaro": "^0.0.4",
     "assert": "^2.1.0",
     "buffer": "^6.0.3",
     "c8": "^9.1.0",
