@@ -74,7 +74,10 @@ const stubs = Object.fromEntries(mainKeys.map((key) => [key, () => err(key)]))
 const stubsPromises = Object.fromEntries(promisesKeys.map((key) => [key, async () => err(key)]))
 const promises = { ...stubsPromises, constants }
 
+// eslint-disable-next-line no-undef
+const fsFiles = typeof EXODUS_TEST_FSFILES === 'undefined' ? null : new Set(EXODUS_TEST_FSFILES)
 const existsSync = (file) => {
+  if (fsFiles.has(file)) return true
   err('existsSync', file)
 }
 

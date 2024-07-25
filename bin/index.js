@@ -400,6 +400,19 @@ if (options.bundle) {
     })
   }
 
+  const getPackageFiles = async () => {
+    // Returns an empty list on errors
+    let patterns
+    try {
+      patterns = JSON.parse(await readFile('package.json', 'utf8')).files
+    } catch {}
+
+    if (!patterns) return []
+    // Hack for now, TODO: fix this
+    const expanded = patterns.flatMap((x) => (x.includes('.') ? [x] : [x, `${x}/**/*`]))
+    return glob(expanded, { ignore: ['**/node_modules'] })
+  }
+
   const buildOne = async (...ifiles) => {
     const input = []
     const importSource = async (file) => input.push(await readFile(resolveRequire(file), 'utf8'))
@@ -433,6 +446,8 @@ if (options.bundle) {
       main = `try {\n${main}\n} catch (err) { print(err); throw err }` // TODO: fix reporting
     }
 
+    const fsfiles = await getPackageFiles()
+
     const stringify = (x) => ([undefined, null].includes(x) ? `${x}` : JSON.stringify(x))
     const res = await build({
       stdin: {
@@ -463,6 +478,7 @@ if (options.bundle) {
         'process.stdout': 'undefined',
         EXODUS_TEST_FILES: stringify(ifiles.map((f) => [dirname(f), basename(f)])),
         EXODUS_TEST_SNAPSHOTS: stringify(EXODUS_TEST_SNAPSHOTS),
+        EXODUS_TEST_FSFILES: stringify(fsfiles.map((file) => resolve(file))), // TODO: can we safely use relative paths?
       },
       alias: {
         // Node browserify
