@@ -470,6 +470,7 @@ if (options.bundle) {
         'node:assert/strict': resolveRequire('../src/bundle-apis/assert-strict.cjs'),
         assert: resolveRequire('assert'),
         buffer: resolveRequire('buffer'),
+        constants: resolveRequire('constants-browserify'),
         crypto: resolveRequire('crypto-browserify'),
         events: resolveRequire('events'),
         os: resolveRequire('os-browserify'),
