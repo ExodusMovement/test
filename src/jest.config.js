@@ -101,7 +101,11 @@ export async function installJestEnvironment(jestGlobals) {
 
   let require
   if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
-    require = () => assert.fail('Requiring non-bundled plugins from bundle is unsupported')
+    const preloaded = new Map(EXODUS_TEST_PRELOADED) // eslint-disable-line no-undef
+    require = (name) => {
+      if (preloaded.has(name)) return preloaded.get(name)()
+      assert.fail('Requiring non-bundled plugins from bundle is unsupported')
+    }
   } else if (config.rootDir) {
     const { resolve } = await import('node:path')
     const { createRequire } = await import('node:module')
@@ -110,18 +114,14 @@ export async function installJestEnvironment(jestGlobals) {
     require = () => assert.fail('Unreachable: requiring plugins without a rootDir')
   }
 
-  if (process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle') {
-    for (const file of c.setupFiles || []) require(file)
-  }
+  for (const file of c.setupFiles || []) require(file)
 
-  // Currently unsupported in bundle and throws
   if (Object.hasOwn(specialEnvironments, c.testEnvironment)) {
-    specialEnvironments[c.testEnvironment](require, engine, jestGlobals, c.testEnvironmentOptions)
+    const { setup } = specialEnvironments[c.testEnvironment]
+    await setup(require, engine, jestGlobals, c.testEnvironmentOptions)
   }
 
-  if (process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle') {
-    for (const file of c.setupFilesAfterEnv || []) require(file)
-  }
+  for (const file of c.setupFilesAfterEnv || []) require(file)
 
   // @jest/globals import auto-mocking is disabled until https://github.com/nodejs/node/issues/53807 is resolved
   /*

@@ -409,10 +409,17 @@ if (options.bundle) {
 
     if (options.jest) {
       assert(jestConfig.rootDir)
+      const preload = [...(jestConfig.setupFiles || []), ...(jestConfig.setupFilesAfterEnv || [])]
+      if (jestConfig.testEnvironment && jestConfig.testEnvironment !== 'node') {
+        const { specialEnvironments } = await import('../src/jest.environment.js')
+        assert(Object.hasOwn(specialEnvironments, jestConfig.testEnvironment))
+        preload.push(...(specialEnvironments[jestConfig.testEnvironment].dependencies || []))
+      }
+
+      const local = createRequire(resolve(jestConfig.rootDir, 'package.json'))
+      const w = (f) => `[${JSON.stringify(f)}, () => require(${JSON.stringify(local.resolve(f))})]`
+      input.push(`globalThis.EXODUS_TEST_PRELOADED = [${preload.map((f) => w(f)).join(', ')}]`)
       await importSource('./jest.js')
-      for (const file of jestConfig.setupFiles || []) importFile(jestConfig.rootDir, file)
-      // TODO: env setup support
-      for (const file of jestConfig.setupFilesAfterEnv || []) importFile(jestConfig.rootDir, file)
     }
 
     for (const file of ifiles) importFile(file)
