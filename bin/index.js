@@ -508,6 +508,10 @@ if (options.bundle) {
         // unwanted deps
         bindings: resolveRequire('../src/bundle-apis/empty/function-throw.cjs'),
         'node-gyp-build': resolveRequire('../src/bundle-apis/empty/function-throw.cjs'),
+        // unsupported deps
+        '@pollyjs/adapter-node-http': resolveRequire('../src/bundle-apis/empty/module-throw.cjs'),
+        '@pollyjs/node-server': resolveRequire('../src/bundle-apis/empty/module-throw.cjs'),
+        xmlhttprequest: resolveRequire('../src/bundle-apis/empty/module-throw.cjs'),
       },
       sourcemap: writePipeline.length > 0 ? 'inline' : 'linked',
       sourcesContent: false,

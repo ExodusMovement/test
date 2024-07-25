@@ -38,6 +38,7 @@
     "bin/babel.cjs",
     "bin/jest.js",
     "src/bundle-apis/empty/function-throw.cjs",
+    "src/bundle-apis/empty/module-throw.cjs",
     "src/bundle-apis/ansi-styles.cjs",
     "src/bundle-apis/assert-strict.cjs",
     "src/bundle-apis/fs.cjs",
