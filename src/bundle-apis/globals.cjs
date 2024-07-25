@@ -5,6 +5,18 @@ if (!globalThis.console) {
   globalThis.console = { log: print, error: print, warn: print, info: print, debug: print }
 }
 
+if (!globalThis.fetch) {
+  globalThis.fetch = () => {
+    throw new Error('Fetch not supported')
+  }
+}
+
+if (!globalThis.WebSocket) {
+  globalThis.WebSocket = () => {
+    throw new Error('WebSocket not supported')
+  }
+}
+
 if (!Array.prototype.at) {
   // eslint-disable-next-line no-extend-native
   Array.prototype.at = function (i) {
