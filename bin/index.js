@@ -495,6 +495,7 @@ if (options.bundle) {
         events: resolveRequire('events'),
         os: resolveRequire('os-browserify'),
         path: resolveRequire('path-browserify'),
+        querystring: resolveRequire('querystring-es3'),
         stream: resolveRequire('stream-browserify'),
         url: resolveRequire('url'),
         util: resolveRequire('util'),
