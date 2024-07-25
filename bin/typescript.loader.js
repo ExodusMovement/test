@@ -16,9 +16,9 @@ export async function load(url, context, nextLoad) {
     if (sourceBuf.length !== transformed.length) throw new Error('length mismatch')
     // eslint-disable-next-line unicorn/no-for-loop
     for (let i = 0; i < transformedBuf.length; i++) {
-      // should match either the source buffer or spaces
+      // should match either the source buffer or spaces or semicolon: https://github.com/swc-project/swc/issues/9331
       const val = transformedBuf[i]
-      if (val !== sourceBuf[i] && val !== 0x20) throw new Error('result mismatch')
+      if (val !== sourceBuf[i] && val !== 0x20 && val !== 0x3b) throw new Error('result mismatch')
     }
 
     return { format: 'module', source: transformed, shortCircuit: true }
