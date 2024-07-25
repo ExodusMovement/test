@@ -433,6 +433,7 @@ if (options.bundle) {
       main = `try {\n${main}\n} catch (err) { print(err); throw err }` // TODO: fix reporting
     }
 
+    const stringify = (x) => ([undefined, null].includes(x) ? `${x}` : JSON.stringify(x))
     const res = await build({
       stdin: {
         contents: `(async function () {\n${main}\n})()`,
@@ -444,22 +445,22 @@ if (options.bundle) {
       platform: 'neutral',
       mainFields: ['browser', 'module', 'main'],
       define: {
-        'process.env.FORCE_COLOR': JSON.stringify('0'),
-        'process.env.NO_COLOR': JSON.stringify('1'),
-        'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
-        'process.env.EXODUS_TEST_CONTEXT': JSON.stringify('pure'),
-        'process.env.EXODUS_TEST_ENVIRONMENT': JSON.stringify('bundle'),
-        'process.env.EXODUS_TEST_PLATFORM': JSON.stringify(process.env.EXODUS_TEST_PLATFORM),
-        'process.env.EXODUS_TEST_JEST_CONFIG': JSON.stringify(JSON.stringify(jestConfig)),
-        'process.env.EXODUS_TEST_EXECARGV': JSON.stringify(process.env.EXODUS_TEST_EXECARGV),
-        'process.env.NODE_DEBUG': JSON.stringify(''),
-        'process.env.READABLE_STREAM': JSON.stringify(''),
-        'process.browser': JSON.stringify(true),
+        'process.env.FORCE_COLOR': stringify('0'),
+        'process.env.NO_COLOR': stringify('1'),
+        'process.env.NODE_ENV': stringify(process.env.NODE_ENV),
+        'process.env.EXODUS_TEST_CONTEXT': stringify('pure'),
+        'process.env.EXODUS_TEST_ENVIRONMENT': stringify('bundle'),
+        'process.env.EXODUS_TEST_PLATFORM': stringify(process.env.EXODUS_TEST_PLATFORM),
+        'process.env.EXODUS_TEST_JEST_CONFIG': stringify(JSON.stringify(jestConfig)),
+        'process.env.EXODUS_TEST_EXECARGV': stringify(process.env.EXODUS_TEST_EXECARGV),
+        'process.env.NODE_DEBUG': stringify(),
+        'process.env.READABLE_STREAM': stringify(),
+        'process.browser': stringify(true),
         'process.emitWarning': 'undefined',
         'process.stderr': 'undefined',
         'process.stdout': 'undefined',
-        EXODUS_TEST_FILES: JSON.stringify(ifiles.map((f) => [dirname(f), basename(f)])),
-        EXODUS_TEST_SNAPSHOTS: JSON.stringify(EXODUS_TEST_SNAPSHOTS),
+        EXODUS_TEST_FILES: stringify(ifiles.map((f) => [dirname(f), basename(f)])),
+        EXODUS_TEST_SNAPSHOTS: stringify(EXODUS_TEST_SNAPSHOTS),
       },
       alias: {
         // Node browserify
