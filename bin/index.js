@@ -455,6 +455,8 @@ if (options.bundle) {
         'process.env.EXODUS_TEST_EXECARGV': stringify(process.env.EXODUS_TEST_EXECARGV),
         'process.env.NODE_DEBUG': stringify(),
         'process.env.READABLE_STREAM': stringify(),
+        'process.env.CI': stringify(process.env.CI),
+        'process.env.CI_ENABLE_VERBOSE_LOGS': stringify(process.env.CI_ENABLE_VERBOSE_LOGS),
         'process.browser': stringify(true),
         'process.emitWarning': 'undefined',
         'process.stderr': 'undefined',
