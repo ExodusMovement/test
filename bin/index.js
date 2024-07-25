@@ -374,12 +374,26 @@ if (options.bundle) {
     return snapshots
   }
 
+  // These packages throw on import
+  const blockedDeps = ['@pollyjs/adapter-node-http', '@pollyjs/node-server', 'xmlhttprequest']
   const loadPipeline = [
     function (source, args) {
       return source
         .replace(/\bimport\.meta\.url\b/g, JSON.stringify(pathToFileURL(args.path)))
         .replace(/\bimport\.meta\.dirname\b/g, JSON.stringify(dirname(args.path)))
         .replace(/\bimport\.meta\.filename\b/g, JSON.stringify(basename(args.path)))
+    },
+    function (source, args) {
+      // Just a convenience wrapper to show pretty errors instead of generic bundle-apis/empty/module-throw.cjs
+      for (const pkg of blockedDeps) {
+        const str = `require(${JSON.stringify(pkg)})`
+        assert(!str.includes("'"))
+        const err = `module unsupported in bundled form: ${pkg}\n       loaded from ${args.path}`
+        const rep = `((() => { throw new Error(${JSON.stringify(err)}) })())`
+        for (const sub of [str, str.replaceAll('"', "'")]) source = source.replace(sub, rep)
+      }
+
+      return source
     },
   ]
 
@@ -509,9 +523,9 @@ if (options.bundle) {
         bindings: resolveRequire('../src/bundle-apis/empty/function-throw.cjs'),
         'node-gyp-build': resolveRequire('../src/bundle-apis/empty/function-throw.cjs'),
         // unsupported deps
-        '@pollyjs/adapter-node-http': resolveRequire('../src/bundle-apis/empty/module-throw.cjs'),
-        '@pollyjs/node-server': resolveRequire('../src/bundle-apis/empty/module-throw.cjs'),
-        xmlhttprequest: resolveRequire('../src/bundle-apis/empty/module-throw.cjs'),
+        ...Object.fromEntries(
+          blockedDeps.map((n) => [n, resolveRequire('../src/bundle-apis/empty/module-throw.cjs')])
+        ),
       },
       sourcemap: writePipeline.length > 0 ? 'inline' : 'linked',
       sourcesContent: false,
