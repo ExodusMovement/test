@@ -443,7 +443,8 @@ if (options.bundle) {
     const build = async (opts) => esbuild.build(opts).catch((err) => ({ errors: [err] }))
     let main = input.join('\n')
     if (['jsc', 'hermes'].includes(options.binary)) {
-      main = `try {\n${main}\n} catch (err) { print(err); throw err }` // TODO: fix reporting
+      const exit = `EXODUS_TEST_PROCESS.exitCode = 1; EXODUS_TEST_PROCESS._maybeProcessExitCode();`
+      main = `try {\n${main}\n} catch (err) { print(err); ${exit} }`
     }
 
     const fsfiles = await getPackageFiles()

@@ -10,6 +10,8 @@ let context
 let running
 let willstart
 
+const abstractProcess = globalThis.process || globalThis.EXODUS_TEST_PROCESS
+
 function parseArgs(args) {
   assert(args.length <= 3)
   const name = typeof args[0] === 'string' ? args.shift() : 'test'
@@ -53,14 +55,6 @@ async function runFunction(fn, context) {
   return new Promise((resolve, reject) => fn(context, (err) => (err ? reject(err) : resolve())))
 }
 
-let fallbackExitCode = 0
-const failExitCode = (...args) => {
-  console.log(...args)
-  if (globalThis.process) return (globalThis.process.exitCode = 1)
-  if (globalThis.Deno) return (globalThis.Deno.exitCode = 1)
-  return (fallbackExitCode = 1)
-}
-
 async function runContext(context) {
   const { options, children, hooks, fn } = context
   assert(!context.running, 'Can not run twice')
@@ -85,7 +79,10 @@ async function runContext(context) {
     for (const c of stack) for (const hook of c.hooks.afterEach) await runFunction(hook, context)
 
     console.log(error === undefined ? '✔ PASS' : '✖ FAIL', context.fullName)
-    if (error) failExitCode(' ', error)
+    if (error) {
+      console.log(' ', error)
+      abstractProcess.exitCode = 1
+    }
   } else {
     // if (context !== context.root) console.log(`▶ ${context.fullName}`)
     // TODO: try/catch for hooks?
@@ -103,13 +100,10 @@ async function run() {
   assert(context === context.root)
   await runContext(context).catch((error) => {
     // Should not throw under regular circumstances
-    failExitCode('Fatal: ', error)
+    console.log('Fatal: ', error)
+    abstractProcess.exitCode = 1
   })
-  if (fallbackExitCode !== 0) {
-    setTimeout(() => {
-      throw new Error('Test failed')
-    }, 0)
-  }
+  abstractProcess._maybeProcessExitCode?.()
 }
 
 function describe(...args) {

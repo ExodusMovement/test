@@ -26,6 +26,39 @@ if (!Array.prototype.at) {
 
 if (globalThis.describe) delete globalThis.describe
 
+if (typeof process === 'undefined') {
+  // Fixes process.exitCode handling
+
+  const process = {
+    __proto__: null,
+    exitCode: 0,
+    _maybeProcessExitCode: () => {
+      if (globalThis.Deno) return // has native exitCode support
+      if (process.exitCode !== 0) {
+        setTimeout(() => {
+          throw new Error('Test failed')
+        }, 0)
+      }
+    },
+  }
+
+  globalThis.EXODUS_TEST_PROCESS = new Proxy(process, {
+    get: (obj, prop) => {
+      if (['exitCode', '_maybeProcessExitCode', Symbol.toStringTag].includes(prop)) return obj[prop]
+      throw new Error(`Only process.exitCode is supported, tried to get process.${prop}`)
+    },
+    set: (obj, prop, value) => {
+      if (prop === 'exitCode') {
+        if (globalThis.process) globalThis.process.exitCode = value
+        if (globalThis.Deno) globalThis.Deno.exitCode = value
+        return (obj[prop] = value) // eslint-disable-line @exodus/mutable/no-param-reassign-prop-only
+      }
+
+      throw new Error(`Only process.exitCode is supported, tried to set process.${prop}`)
+    },
+  })
+}
+
 if (process.env.EXODUS_TEST_PLATFORM === 'hermes') {
   // Ok, we have broken timers, let's hack them around
   let i = 0
