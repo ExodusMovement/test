@@ -484,7 +484,10 @@ if (options.bundle) {
         // Node browserify
         'node:assert': resolveRequire('assert'),
         'node:assert/strict': resolveRequire('../src/bundle-apis/assert-strict.cjs'),
+        'node:fs': resolveRequire('../src/bundle-apis/fs.cjs'),
+        'node:fs/promises': resolveRequire('../src/bundle-apis/fs-promises.cjs'),
         fs: resolveRequire('../src/bundle-apis/fs.cjs'),
+        'fs/promises': resolveRequire('../src/bundle-apis/fs-promises.cjs'),
         assert: resolveRequire('assert'),
         buffer: resolveRequire('buffer'),
         constants: resolveRequire('constants-browserify'),
