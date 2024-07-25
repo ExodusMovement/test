@@ -476,6 +476,9 @@ if (options.bundle) {
       keepNames: true,
       format: 'iife',
       target: options.target || `node${process.versions.node}`,
+      supported: {
+        bigint: true,
+      },
       plugins: [
         {
           name: 'exodus-test.bundle',
