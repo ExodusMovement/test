@@ -496,6 +496,7 @@ if (options.bundle) {
         os: resolveRequire('os-browserify'),
         path: resolveRequire('path-browserify'),
         stream: resolveRequire('stream-browserify'),
+        url: resolveRequire('url'),
         util: resolveRequire('util'),
         // expect-related deps
         'ansi-styles': resolveRequire('../src/bundle-apis/ansi-styles.cjs'),
