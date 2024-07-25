@@ -480,6 +480,8 @@ if (options.bundle) {
         'ansi-styles': resolveRequire('../src/bundle-apis/ansi-styles.cjs'),
         'jest-util': resolveRequire('../src/bundle-apis/jest-util.js'),
         'jest-message-util': resolveRequire('../src/bundle-apis/jest-message-util.js'),
+        // unwanted deps
+        'node-gyp-build': resolveRequire('../src/bundle-apis/empty/function-throw.cjs'),
       },
       sourcemap: writePipeline.length > 0 ? 'inline' : 'linked',
       sourcesContent: false,
