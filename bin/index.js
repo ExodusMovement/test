@@ -454,11 +454,8 @@ if (options.bundle) {
       await importSource('../src/bundle-apis/globals.cjs')
     }
 
-    // we later increase timeout just in case
-    let timeout = 5000
     if (options.jest) {
       assert(jestConfig.rootDir)
-      timeout = timeout || jestConfig.testTimeout
       const preload = [...(jestConfig.setupFiles || []), ...(jestConfig.setupFilesAfterEnv || [])]
       if (jestConfig.testEnvironment && jestConfig.testEnvironment !== 'node') {
         const { specialEnvironments } = await import('../src/jest.environment.js')
@@ -472,14 +469,7 @@ if (options.bundle) {
       await importSource('./jest.js')
     }
 
-    const abort = `console.log('Error: timeout reached'); abstractProcess.exit(1);`
-    input.push(
-      `const { setTimeout, clearTimeout } = globalThis;`,
-      `const abstractProcess = globalThis.process || globalThis.EXODUS_TEST_PROCESS;`,
-      `const testTimeout = setTimeout(() => { ${abort} }, ${stringify(timeout * 4)});` // 4x regular timeout
-    )
     for (const file of ifiles) importFile(file)
-    input.push(`clearTimeout(testTimeout);`)
 
     const filename =
       ifiles.length === 1 ? `${ifiles[0]}-${randomUUID().slice(0, 8)}` : `bundle-${randomUUID()}`

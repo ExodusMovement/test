@@ -46,7 +46,7 @@ if (typeof process === 'undefined') {
     },
     _maybeProcessExitCode: () => {
       if (globalThis.Deno) return // has native exitCode support
-      if (process.exitCode !== 0) {
+      if (process._exitCode !== 0) {
         setTimeout(() => {
           throw new Error('Test failed')
         }, 0)
