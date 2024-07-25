@@ -5,7 +5,7 @@ import { once } from 'node:events'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { basename, dirname, resolve, join } from 'node:path'
 import { createRequire } from 'node:module'
-import { randomUUID } from 'node:crypto'
+import { randomUUID, randomBytes } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import assert from 'node:assert/strict'
 import glob from 'fast-glob'
@@ -432,7 +432,14 @@ if (options.bundle) {
     const importSource = async (file) => input.push(await readFile(resolveRequire(file), 'utf8'))
     const importFile = (...args) => input.push(`await import(${JSON.stringify(resolve(...args))});`)
 
-    if (!['node', c8].includes(options.binary)) await importSource('../src/bundle-apis/globals.cjs')
+    if (!['node', c8].includes(options.binary)) {
+      if (['jsc', 'hermes'].includes(options.binary)) {
+        const entropy = randomBytes(5 * 1024).toString('base64')
+        input.push(`globalThis.EXODUS_TEST_CRYPTO_ENTROPY = ${JSON.stringify(entropy)};`)
+      }
+
+      await importSource('../src/bundle-apis/globals.cjs')
+    }
 
     if (options.jest) {
       assert(jestConfig.rootDir)
@@ -511,7 +518,7 @@ if (options.bundle) {
         buffer: resolveRequire('buffer'),
         child_process: resolveRequire('../src/bundle-apis/child_process.cjs'),
         constants: resolveRequire('constants-browserify'),
-        crypto: resolveRequire('crypto-browserify'),
+        crypto: resolveRequire('../src/bundle-apis/crypto.cjs'),
         events: resolveRequire('events'),
         http: resolveRequire('../src/bundle-apis/http.cjs'),
         https: resolveRequire('../src/bundle-apis/https.cjs'),

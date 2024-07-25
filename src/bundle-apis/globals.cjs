@@ -89,3 +89,42 @@ if (process.env.EXODUS_TEST_PLATFORM === 'hermes') {
   }
   // TODO: setInterval, clearInterval
 }
+
+if (!globalThis.crypto?.getRandomValues && globalThis.EXODUS_TEST_CRYPTO_ENTROPY) {
+  const entropy = Buffer.from(globalThis.EXODUS_TEST_CRYPTO_ENTROPY, 'base64')
+  let pos = 0
+  if (!globalThis.crypto) globalThis.crypto = {}
+  const TypedArray = Object.getPrototypeOf(Uint8Array)
+  globalThis.crypto.getRandomValues = (typedArray) => {
+    if (!(typedArray instanceof TypedArray)) throw new Error('Argument should be a TypedArray')
+    const view = Buffer.from(typedArray.buffer, typedArray.byteOffset, typedArray.byteLength)
+    if (pos + view.length <= entropy.length) {
+      pos += view.length
+      const copied = entropy.copy(view, 0, pos - view.length)
+      if (copied !== view.length) throw new Error('Unexpected')
+      return // ok
+    }
+
+    throw new Error(`Not enough csprng entropy in this test bundle (ref: @exodus/test)`)
+  }
+}
+
+delete globalThis.EXODUS_TEST_CRYPTO_ENTROPY
+
+if (globalThis.crypto?.getRandomValues && !globalThis.crypto?.randomUUID) {
+  const { getRandomValues } = globalThis.crypto
+  let entropy
+
+  const hex = (start, end) => entropy.slice(start, end).toString('hex')
+
+  globalThis.crypto.randomUUID = () => {
+    if (!entropy) entropy = Buffer.alloc(16)
+
+    getRandomValues(entropy)
+    entropy[6] = (entropy[6] & 0x0f) | 0x40 // version 4: 0100xxxx
+    entropy[8] = (entropy[8] & 0x3f) | 0x80 // variant 1: 10xxxxxx
+
+    // xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    return `${hex(0, 4)}-${hex(4, 6)}-${hex(6, 8)}-${hex(8, 10)}-${hex(10, 16)}`
+  }
+}

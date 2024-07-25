@@ -42,6 +42,7 @@
     "src/bundle-apis/ansi-styles.cjs",
     "src/bundle-apis/assert-strict.cjs",
     "src/bundle-apis/child_process.cjs",
+    "src/bundle-apis/crypto.cjs",
     "src/bundle-apis/fs.cjs",
     "src/bundle-apis/fs-promises.cjs",
     "src/bundle-apis/http.cjs",
