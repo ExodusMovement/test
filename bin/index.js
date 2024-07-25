@@ -431,18 +431,22 @@ if (options.bundle) {
     const input = []
     const importSource = async (file) => input.push(await readFile(resolveRequire(file), 'utf8'))
     const importFile = (...args) => input.push(`await import(${JSON.stringify(resolve(...args))});`)
+    const stringify = (x) => ([undefined, null].includes(x) ? `${x}` : JSON.stringify(x))
 
     if (!['node', c8].includes(options.binary)) {
       if (['jsc', 'hermes'].includes(options.binary)) {
         const entropy = randomBytes(5 * 1024).toString('base64')
-        input.push(`globalThis.EXODUS_TEST_CRYPTO_ENTROPY = ${JSON.stringify(entropy)};`)
+        input.push(`globalThis.EXODUS_TEST_CRYPTO_ENTROPY = ${stringify(entropy)};`)
       }
 
       await importSource('../src/bundle-apis/globals.cjs')
     }
 
+    // we later increase timeout just in case
+    let timeout = 5000
     if (options.jest) {
       assert(jestConfig.rootDir)
+      timeout = timeout || jestConfig.testTimeout
       const preload = [...(jestConfig.setupFiles || []), ...(jestConfig.setupFilesAfterEnv || [])]
       if (jestConfig.testEnvironment && jestConfig.testEnvironment !== 'node') {
         const { specialEnvironments } = await import('../src/jest.environment.js')
@@ -451,12 +455,20 @@ if (options.bundle) {
       }
 
       const local = createRequire(resolve(jestConfig.rootDir, 'package.json'))
-      const w = (f) => `[${JSON.stringify(f)}, () => require(${JSON.stringify(local.resolve(f))})]`
+      const w = (f) => `[${stringify(f)}, () => require(${stringify(local.resolve(f))})]`
       input.push(`globalThis.EXODUS_TEST_PRELOADED = [${preload.map((f) => w(f)).join(', ')}]`)
       await importSource('./jest.js')
     }
 
+    const abort = `console.log('Error: timeout reached'); abstractProcess.exit(1);`
+    input.push(
+      `const { setTimeout, clearTimeout } = globalThis;`,
+      `const abstractProcess = globalThis.process || globalThis.EXODUS_TEST_PROCESS;`,
+      `const testTimeout = setTimeout(() => { ${abort} }, ${stringify(timeout * 4)});` // 4x regular timeout
+    )
     for (const file of ifiles) importFile(file)
+    input.push(`clearTimeout(testTimeout);`)
+
     const filename =
       ifiles.length === 1 ? `${ifiles[0]}-${randomUUID().slice(0, 8)}` : `bundle-${randomUUID()}`
     const outfile = `${join(outdir, filename)}.js`
@@ -470,7 +482,6 @@ if (options.bundle) {
 
     const fsfiles = await getPackageFiles()
 
-    const stringify = (x) => ([undefined, null].includes(x) ? `${x}` : JSON.stringify(x))
     const res = await build({
       stdin: {
         contents: `(async function () {\n${main}\n})()`,
