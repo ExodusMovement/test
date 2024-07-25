@@ -31,7 +31,19 @@ if (typeof process === 'undefined') {
 
   const process = {
     __proto__: null,
-    exitCode: 0,
+    _exitCode: 0,
+    // eslint-disable-next-line accessor-pairs
+    set exitCode(value) {
+      process._exitCode = value
+      if (globalThis.process) globalThis.process.exitCode = value
+      if (globalThis.Deno) globalThis.Deno.exitCode = value
+    },
+    exit: (code = 0) => {
+      globalThis.Deno?.exit?.(code)
+      globalThis.process?.exit?.(code)
+      process.exitCode = code
+      process._maybeProcessExitCode()
+    },
     _maybeProcessExitCode: () => {
       if (globalThis.Deno) return // has native exitCode support
       if (process.exitCode !== 0) {
@@ -42,21 +54,7 @@ if (typeof process === 'undefined') {
     },
   }
 
-  globalThis.EXODUS_TEST_PROCESS = new Proxy(process, {
-    get: (obj, prop) => {
-      if (['exitCode', '_maybeProcessExitCode', Symbol.toStringTag].includes(prop)) return obj[prop]
-      throw new Error(`Only process.exitCode is supported, tried to get process.${prop}`)
-    },
-    set: (obj, prop, value) => {
-      if (prop === 'exitCode') {
-        if (globalThis.process) globalThis.process.exitCode = value
-        if (globalThis.Deno) globalThis.Deno.exitCode = value
-        return (obj[prop] = value) // eslint-disable-line @exodus/mutable/no-param-reassign-prop-only
-      }
-
-      throw new Error(`Only process.exitCode is supported, tried to set process.${prop}`)
-    },
-  })
+  globalThis.EXODUS_TEST_PROCESS = process
 }
 
 if (process.env.EXODUS_TEST_PLATFORM === 'hermes') {
