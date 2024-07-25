@@ -608,7 +608,7 @@ if (options.pure) {
   }
 
   process.env.EXODUS_TEST_CONTEXT = 'pure'
-  console.warn(`\n${options.engine} engine is experimental and may not work an expected\n\n`)
+  console.warn(`\n${options.engine} engine is experimental and may not work an expected\n`)
   const failures = []
   for (const input of inputs) {
     if (input.errors?.length > 0 || input.warnings?.length > 0) {
