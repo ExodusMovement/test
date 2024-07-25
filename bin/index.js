@@ -375,7 +375,7 @@ if (options.bundle) {
   }
 
   // These packages throw on import
-  const blockedDeps = ['@pollyjs/adapter-node-http', '@pollyjs/node-server', 'xmlhttprequest']
+  const blockedDeps = ['@pollyjs/adapter-node-http', '@pollyjs/node-server']
   const loadPipeline = [
     function (source, args) {
       return source
@@ -522,6 +522,8 @@ if (options.bundle) {
         // unwanted deps
         bindings: resolveRequire('../src/bundle-apis/empty/function-throw.cjs'),
         'node-gyp-build': resolveRequire('../src/bundle-apis/empty/function-throw.cjs'),
+        xmlhttprequest: resolveRequire('../src/bundle-apis/xmlhttprequest.cjs'),
+        'xmlhttprequest-ssl': resolveRequire('../src/bundle-apis/xmlhttprequest.cjs'),
         // unsupported deps
         ...Object.fromEntries(
           blockedDeps.map((n) => [n, resolveRequire('../src/bundle-apis/empty/module-throw.cjs')])
