@@ -37,6 +37,8 @@
   "files": [
     "bin/babel.cjs",
     "bin/jest.js",
+    "bin/typescript.js",
+    "bin/typescript.loader.js",
     "src/bundle-apis/empty/function-throw.cjs",
     "src/bundle-apis/empty/module-throw.cjs",
     "src/bundle-apis/ansi-styles.cjs",
@@ -74,8 +76,9 @@
   ],
   "scripts": {
     "test": "npm run test:jest",
-    "test:all": "npm run test:jest && npm run test:tape && npm run test:native && npm run test:pure",
+    "test:all": "npm run test:jest && npm run test:tape && npm run test:native && npm run test:pure && npm run test:typescript",
     "test:native": "EXODUS_TEST_IGNORE='{**/typescript/**,**/jest-repo/**/user.test.js}' ./bin/index.js --jest '__test__/**/*.test.{js,cjs,mjs}'",
+    "test:typescript": "./bin/index.js --jest --typescript __test__/typescript.test.ts",
     "test:jest": "./bin/index.js --jest --esbuild",
     "test:tape": "./bin/index.js --esbuild '__test__/tape/test/*.js' __test__/tape.test.js",
     "test:pure": "EXODUS_TEST_ENGINE=node:pure npm run test",

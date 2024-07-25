@@ -16,13 +16,13 @@ const bindir = dirname(fileURLToPath(import.meta.url))
 const EXTS = `.?([cm])[jt]s?(x)` // we differ from jest, allowing [cm] before everything
 const DEFAULT_PATTERNS = [`**/__tests__/**/*${EXTS}`, `**/?(*.)+(spec|test)${EXTS}`]
 
-const bundleOptions = { pure: true, bundle: true, esbuild: true }
+const bundleOptions = { pure: true, bundle: true, esbuild: true, ts: 'auto' }
 const ENGINES = new Map(
   Object.entries({
-    'node:test': { binary: 'node', pure: false, hasImportLoader: true },
-    'node:pure': { binary: 'node', pure: true, hasImportLoader: true },
+    'node:test': { binary: 'node', pure: false, hasImportLoader: true, ts: 'flag' },
+    'node:pure': { binary: 'node', pure: true, hasImportLoader: true, ts: 'flag' },
     'node:bundle': { binary: 'node', ...bundleOptions },
-    'bun:pure': { binary: 'bun', pure: true, hasImportLoader: false },
+    'bun:pure': { binary: 'bun', pure: true, hasImportLoader: false, ts: 'auto' },
     'bun:bundle': { binary: 'bun', ...bundleOptions },
     'deno:bundle': { binary: 'deno', binaryArgs: ['run'], target: 'deno1', ...bundleOptions },
     'jsc:bundle': { binary: 'jsc', ...bundleOptions, target: 'safari11' },
@@ -79,9 +79,7 @@ function parseOptions() {
         options.jest = true
         break
       case '--typescript':
-        console.warn('Option --typescript is going to be gone or changed. Use --esbuild instead')
         options.typescript = true
-        options.esbuild = true
         break
       case '--esbuild':
         options.esbuild = true
@@ -259,6 +257,20 @@ if (options.babel) {
   args.push('-r', resolveRequire('./babel.cjs'))
 }
 
+if (options.typescript) {
+  assert(!options.esbuild, 'Options --typescript and --esbuild are mutually exclusive')
+  assert(!options.babel, 'Options --typescript and --babel are mutually exclusive')
+
+  if (options.ts === 'flag') {
+    assert(resolveImport)
+    assert(options.hasImportLoader)
+    // TODO: switch to native --experimental-strip-types where available
+    args.push('--import', resolveImport('./typescript.js'))
+  } else if (options.ts !== 'auto') {
+    throw new Error(`Processing --typescript is not possible with engine ${options.engine}`)
+  }
+}
+
 if (patterns.length === 0) patterns.push(...DEFAULT_PATTERNS) // defaults
 const globbed = await glob(patterns, { ignore })
 const allfiles = filter ? globbed.filter(filter) : globbed
@@ -315,8 +327,8 @@ if (options.debug.files) {
 }
 
 const tsTests = files.filter((file) => /\.[mc]?tsx?$/u.test(file))
-if (tsTests.length > 0 && !options.esbuild) {
-  console.error(`Some tests require --esbuild flag:\n  ${tsTests.join('\n  ')}`)
+if (tsTests.length > 0 && !options.esbuild && !options.typescript) {
+  console.error(`Some tests require --typescript or --esbuild flag:\n  ${tsTests.join('\n  ')}`)
   process.exit(1)
 } else if (!allfiles.some((file) => file.endsWith('.ts')) && options.typescript) {
   console.warn(`Flag --typescript has been used, but there were no TypeScript tests found!`)
