@@ -65,12 +65,17 @@ const mainKeys = [
   'unwatchFile',
 ]
 
-const err = (key) => {
-  throw new Error(`fs.${key} unsupported in bundled mode`)
+const err = (key, file) => {
+  const info = file ? `\n  (trying to access ${file})` : ''
+  throw new Error(`fs.${key} unsupported in bundled mode${info}`)
 }
 
 const stubs = Object.fromEntries(mainKeys.map((key) => [key, () => err(key)]))
 const stubsPromises = Object.fromEntries(promisesKeys.map((key) => [key, async () => err(key)]))
 const promises = { ...stubsPromises, constants }
 
-module.exports = { ...stubs, promises, constants, F_OK, R_OK, W_OK, X_OK }
+const existsSync = (file) => {
+  err('existsSync', file)
+}
+
+module.exports = { ...stubs, existsSync, promises, constants, F_OK, R_OK, W_OK, X_OK }
