@@ -35,6 +35,7 @@ export function useFakeTimers({ doNotFake = doNotFakeDefault, ...rest } = {}) {
   }
 
   // Work-around a bug
+  // Ref: https://github.com/nodejs/node/pull/54005
   for (const name of ['clearTimeout', 'clearInterval', 'clearImmediate']) {
     const fn = globalThis[name]
     globalThis[name] = (id) => id && fn(id)
