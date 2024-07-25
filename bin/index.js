@@ -493,6 +493,8 @@ if (options.bundle) {
         'process.stderr': 'undefined',
         'process.stdout': 'undefined',
         'process.type': 'undefined',
+        'process.version': stringify('v22.5.1'), // shouldn't depend on currently used Node.js version
+        'process.versions.node': stringify('22.5.1'), // see line above
         EXODUS_TEST_FILES: stringify(ifiles.map((f) => [dirname(f), basename(f)])),
         EXODUS_TEST_SNAPSHOTS: stringify(EXODUS_TEST_SNAPSHOTS),
         EXODUS_TEST_FSFILES: stringify(fsfiles.map((file) => resolve(file))), // TODO: can we safely use relative paths?
