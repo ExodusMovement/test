@@ -506,6 +506,7 @@ if (options.bundle) {
         'fs/promises': resolveRequire('../src/bundle-apis/fs-promises.cjs'),
         assert: resolveRequire('assert'),
         buffer: resolveRequire('buffer'),
+        child_process: resolveRequire('../src/bundle-apis/child_process.cjs'),
         constants: resolveRequire('constants-browserify'),
         crypto: resolveRequire('crypto-browserify'),
         events: resolveRequire('events'),
