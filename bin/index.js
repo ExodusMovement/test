@@ -524,6 +524,7 @@ if (options.bundle) {
         'node-gyp-build': resolveRequire('../src/bundle-apis/empty/function-throw.cjs'),
         xmlhttprequest: resolveRequire('../src/bundle-apis/xmlhttprequest.cjs'),
         'xmlhttprequest-ssl': resolveRequire('../src/bundle-apis/xmlhttprequest.cjs'),
+        ws: resolveRequire('../src/bundle-apis/ws.cjs'),
         // unsupported deps
         ...Object.fromEntries(
           blockedDeps.map((n) => [n, resolveRequire('../src/bundle-apis/empty/module-throw.cjs')])

@@ -47,6 +47,7 @@
     "src/bundle-apis/jest-message-util.js",
     "src/bundle-apis/jest-util.js",
     "src/bundle-apis/util-format.cjs",
+    "src/bundle-apis/ws.cjs",
     "src/bundle-apis/xmlhttprequest.cjs",
     "src/dark.cjs",
     "src/engine.js",
