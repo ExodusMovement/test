@@ -44,6 +44,8 @@
     "src/bundle-apis/child_process.cjs",
     "src/bundle-apis/fs.cjs",
     "src/bundle-apis/fs-promises.cjs",
+    "src/bundle-apis/http.cjs",
+    "src/bundle-apis/https.cjs",
     "src/bundle-apis/globals.cjs",
     "src/bundle-apis/jest-message-util.js",
     "src/bundle-apis/jest-util.js",

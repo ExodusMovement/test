@@ -510,6 +510,8 @@ if (options.bundle) {
         constants: resolveRequire('constants-browserify'),
         crypto: resolveRequire('crypto-browserify'),
         events: resolveRequire('events'),
+        http: resolveRequire('../src/bundle-apis/http.cjs'),
+        https: resolveRequire('../src/bundle-apis/https.cjs'),
         os: resolveRequire('os-browserify'),
         path: resolveRequire('path-browserify'),
         querystring: resolveRequire('querystring-es3'),
