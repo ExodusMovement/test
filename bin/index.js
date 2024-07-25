@@ -481,6 +481,7 @@ if (options.bundle) {
         'jest-util': resolveRequire('../src/bundle-apis/jest-util.js'),
         'jest-message-util': resolveRequire('../src/bundle-apis/jest-message-util.js'),
         // unwanted deps
+        bindings: resolveRequire('../src/bundle-apis/empty/function-throw.cjs'),
         'node-gyp-build': resolveRequire('../src/bundle-apis/empty/function-throw.cjs'),
       },
       sourcemap: writePipeline.length > 0 ? 'inline' : 'linked',
