@@ -417,6 +417,7 @@ if (options.bundle) {
         compact: false,
         plugins: [
           '@babel/plugin-transform-arrow-functions',
+          '@babel/plugin-transform-async-generator-functions',
           '@babel/plugin-transform-class-properties',
           '@babel/plugin-transform-classes',
           '@babel/plugin-transform-block-scoping',
