@@ -521,6 +521,10 @@ if (options.bundle) {
         EXODUS_TEST_FSFILES: stringify(fsfiles.map((file) => resolve(file))), // TODO: can we safely use relative paths?
       },
       alias: {
+        // Jest and tape
+        '@jest/globals': resolveImport('../src/jest.js'),
+        tape: resolveImport('../src/tape.cjs'),
+        'tape-promise/tape': resolveImport('../src/tape.cjs'),
         // Node browserify
         'node:assert': dirname(dirname(resolveRequire('assert/'))),
         'node:assert/strict': resolveRequire('../src/bundle-apis/assert-strict.cjs'),

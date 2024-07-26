@@ -69,6 +69,7 @@
     "src/jest.timers.js",
     "src/node.js",
     "src/tape.js",
+    "src/tape.cjs",
     "src/version.js",
     "!__tests__",
     "CHANGELOG.md"
