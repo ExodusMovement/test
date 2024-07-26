@@ -392,8 +392,8 @@ if (options.bundle) {
     function (source, args) {
       return source
         .replace(/\bimport\.meta\.url\b/g, JSON.stringify(pathToFileURL(args.path)))
-        .replace(/\bimport\.meta\.dirname\b/g, JSON.stringify(dirname(args.path)))
-        .replace(/\bimport\.meta\.filename\b/g, JSON.stringify(basename(args.path)))
+        .replace(/\b(__dirname|import\.meta\.dirname)\b/g, JSON.stringify(dirname(args.path)))
+        .replace(/\b(__filename|import\.meta\.filename)\b/g, JSON.stringify(args.path))
     },
     function (source, args) {
       // Just a convenience wrapper to show pretty errors instead of generic bundle-apis/empty/module-throw.cjs
