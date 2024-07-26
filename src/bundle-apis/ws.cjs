@@ -1,11 +1,11 @@
 // Should not be an arrow function as might be used as a constructor
 const sub = function () {
-  throw new Error('module unsupported in bundled form: xmlhttprequest, xmlhttprequest-ssl')
+  throw new Error('module unsupported in bundled form: ws')
 }
 
 class WebSocket {
   constructor() {
-    throw new Error('module unsupported in bundled form: xmlhttprequest, xmlhttprequest-ssl')
+    throw new Error('module unsupported in bundled form: ws')
   }
 
   static CONNECTING = 0
