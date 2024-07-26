@@ -540,8 +540,10 @@ if (options.bundle) {
         path: resolveRequire('path-browserify'),
         querystring: resolveRequire('querystring-es3'),
         stream: resolveRequire('stream-browserify'),
+        timers: resolveRequire('timers-browserify'),
         url: resolveRequire('url'),
         util: resolveRequire('util'),
+        zlib: resolveRequire('browserify-zlib'),
         // expect-related deps
         'ansi-styles': resolveRequire('../src/bundle-apis/ansi-styles.cjs'),
         'jest-util': resolveRequire('../src/bundle-apis/jest-util.js'),

@@ -97,6 +97,7 @@
     "@ungap/url-search-params": "^0.2.2",
     "amaro": "^0.0.4",
     "assert": "^2.1.0",
+    "browserify-zlib": "^0.2.0",
     "buffer": "^6.0.3",
     "c8": "^9.1.0",
     "constants-browserify": "^1.0.0",
@@ -113,6 +114,7 @@
     "querystring-es3": "^0.2.1",
     "stream-browserify": "^3.0.0",
     "text-encoding": "^0.7.0",
+    "timers-browserify": "^2.0.12",
     "tsx": "^4.16.2",
     "url": "^0.11.0",
     "util": "^0.12.5"
