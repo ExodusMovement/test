@@ -63,7 +63,7 @@ const aliases = {
   doesNotThrow: ['doesNotThrow'],
   fail: ['fail'],
   rejects: ['rejects'],
-  doesNotReject: ['resolves'],
+  doesNotReject: ['doesNotReject', 'resolves'],
 
   // specially handled ones as do not exist in t.assert / assert
   notOk: ['notOk', 'false', 'notok'],
