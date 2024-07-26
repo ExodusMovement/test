@@ -1,4 +1,4 @@
-const { inspect, isString, isNull, isObject } = require('util/util.js') // dep
+const { inspect, isString, isNull, isObject } = require('util/') // dep
 
 // Patched impl from require('util'), added %i
 
