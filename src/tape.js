@@ -1,4 +1,4 @@
-import { assert, assertLoose, test } from './engine.js'
+import { assert, assertLoose, test as nodeTest } from './engine.js'
 import { createCallerLocationHook } from './dark.cjs'
 import './version.js'
 
@@ -156,5 +156,5 @@ function tapeWrap(test) {
   return tap
 }
 
-export const tape = tapeWrap(test)
-export default tape
+export const test = tapeWrap(nodeTest)
+export default test

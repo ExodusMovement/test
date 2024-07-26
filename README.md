@@ -37,7 +37,7 @@ Or, run with [`--jest` option](#options) to register jest globals
 ### Moving from tap/tape
 
 ```js
-import test from '@exodus/test/tap'
+import test from '@exodus/test/tape'
 ```
 
 ### Running tests asynchronously
