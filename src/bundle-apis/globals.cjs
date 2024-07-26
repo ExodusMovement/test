@@ -57,13 +57,18 @@ if (typeof process === 'undefined') {
   globalThis.EXODUS_TEST_PROCESS = process
 }
 
-if (process.env.EXODUS_TEST_PLATFORM === 'hermes') {
+if (
+  process.env.EXODUS_TEST_PLATFORM === 'hermes' ||
+  (process.env.EXODUS_TEST_PLATFORM === 'jsc' && !globalThis.clearTimeout)
+) {
   // Ok, we have broken timers, let's hack them around
   let i = 0
   const timers = new Map()
   const { setTimeout, clearTimeout } = globalThis
   const dateNow = Date.now
-  globalThis.setTimeout = (fn, time) => {
+  const precision = clearTimeout ? Infinity : 10 // have to tick this fast for clearTimeout to work
+
+  globalThis.setTimeout = (fn, time, ...args) => {
     const id = `ht${i++}`
     const now = dateNow()
     const tick = () => {
@@ -71,18 +76,19 @@ if (process.env.EXODUS_TEST_PLATFORM === 'hermes') {
       const remaining = now + time - dateNow()
       if (remaining < 0) {
         timers.delete(id)
-        fn()
+        fn(...args)
       } else {
-        timers.set(id, setTimeout(tick, remaining))
+        timers.set(id, setTimeout(tick, Math.min(precision, remaining)))
       }
     }
 
-    timers.set(id, setTimeout(tick, time))
+    timers.set(id, setTimeout(tick, Math.min(precision, time)))
+    return id
   }
 
   globalThis.clearTimeout = (id) => {
     if (!timers.has(id)) return
-    clearTimeout(timers.get(id))
+    clearTimeout?.(timers.get(id))
     timers.delete(id)
   }
   // TODO: setInterval, clearInterval
