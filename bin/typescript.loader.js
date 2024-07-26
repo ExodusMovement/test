@@ -1,11 +1,27 @@
 import { dirname, resolve as pathResolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
-import { readFile } from 'node:fs/promises'
+import { readFile, access } from 'node:fs/promises'
 
 const require = createRequire(import.meta.url)
 const amaroDir = dirname(require.resolve('amaro/package.json'))
 const amaro = await import(pathResolve(amaroDir, 'dist/index.js'))
 const extensionsRegex = /\.ts$|\.mts$/
+const jsExtensions = /(\.js$|\.mjs)$/
+
+export async function resolve(specifier, context, nextResolve) {
+  const url = new URL(specifier, context.parentURL).href
+
+  if (extensionsRegex.test(context.parentURL) && jsExtensions.test(url)) {
+    const alternate = url.replace(jsExtensions, (js) => js.replace('j', 't'))
+    try {
+      await access(fileURLToPath(alternate))
+      return { shortCircuit: true, url: alternate }
+    } catch {}
+  }
+
+  return nextResolve(specifier)
+}
 
 export async function load(url, context, nextLoad) {
   if (extensionsRegex.test(url) && !url.includes('/node_modules/')) {
