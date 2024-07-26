@@ -70,7 +70,16 @@ async function runContext(context) {
     // TODO: try/catch for hooks?
     for (const c of stack) for (const hook of c.hooks.beforeEach) await runFunction(hook, context)
     try {
-      await runFunction(fn, context)
+      const guard = { id: null, failed: false }
+      guard.promise = new Promise((resolve) => {
+        guard.id = setTimeout(() => {
+          guard.failed = true
+          resolve()
+        }, options.timeout || 5000)
+      })
+      await Promise.race([guard.promise, runFunction(fn, context)])
+      clearTimeout(guard.id)
+      if (guard.failed) throw new Error('timeout reached')
     } catch (e) {
       error = e ?? 'Unknown error'
     }
