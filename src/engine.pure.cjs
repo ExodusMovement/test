@@ -69,21 +69,21 @@ async function runContext(context) {
 
     // TODO: try/catch for hooks?
     for (const c of stack) for (const hook of c.hooks.beforeEach) await runFunction(hook, context)
+    const guard = { id: null, failed: false }
+    guard.promise = new Promise((resolve) => {
+      guard.id = setTimeout(() => {
+        guard.failed = true
+        resolve()
+      }, options.timeout || 5000)
+    })
     try {
-      const guard = { id: null, failed: false }
-      guard.promise = new Promise((resolve) => {
-        guard.id = setTimeout(() => {
-          guard.failed = true
-          resolve()
-        }, options.timeout || 5000)
-      })
       await Promise.race([guard.promise, runFunction(fn, context)])
-      clearTimeout(guard.id)
       if (guard.failed) throw new Error('timeout reached')
     } catch (e) {
       error = e ?? 'Unknown error'
     }
 
+    clearTimeout(guard.id)
     stack.reverse()
     for (const c of stack) for (const hook of c.hooks.afterEach) await runFunction(hook, context)
 
