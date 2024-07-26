@@ -132,3 +132,12 @@ if (globalThis.crypto?.getRandomValues && !globalThis.crypto?.randomUUID) {
     return `${hex(0, 4)}-${hex(4, 6)}-${hex(6, 8)}-${hex(8, 10)}-${hex(10, 16)}`
   }
 }
+
+if (process.env.EXODUS_TEST_PLATFORM === 'hermes' || process.env.EXODUS_TEST_PLATFORM === 'jsc') {
+  if (!globalThis.URLSearchParams) globalThis.URLSearchParams = require('@ungap/url-search-params')
+  if (!globalThis.TextEncoder || !globalThis.TextDecoder) {
+    const { TextEncoder, TextDecoder } = require('text-encoding')
+    if (!globalThis.TextEncoder) globalThis.TextEncoder = TextEncoder
+    if (!globalThis.TextDecoder) global.TextDecoder = TextDecoder
+  }
+}
