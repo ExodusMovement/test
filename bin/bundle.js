@@ -65,7 +65,6 @@ export const init = async ({ platform, jest, target, jestConfig, outdir }) => {
       const result = await babel.transformAsync(source, {
         compact: false,
         plugins: [
-          '@babel/plugin-transform-arrow-functions',
           '@babel/plugin-transform-class-properties',
           '@babel/plugin-transform-classes',
           '@babel/plugin-transform-block-scoping',
@@ -77,6 +76,7 @@ export const init = async ({ platform, jest, target, jestConfig, outdir }) => {
 }
 
 const hermesSupported = {
+  arrow: false,
   'async-generator': false,
   'for-await': false,
 }

@@ -91,7 +91,6 @@
   },
   "dependencies": {
     "@babel/core": "^7.0.0",
-    "@babel/plugin-transform-arrow-functions": "^7.0.0",
     "@babel/plugin-transform-block-scoping": "^7.0.0",
     "@babel/plugin-transform-class-properties": "^7.0.0",
     "@babel/plugin-transform-classes": "^7.0.0",
