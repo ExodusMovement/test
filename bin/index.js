@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-import { spawn } from 'node:child_process'
+import { spawn, execFile as execFileCallback } from 'node:child_process'
+import { promisify } from 'node:util'
 import { once } from 'node:events'
 import { fileURLToPath } from 'node:url'
 import { basename, dirname, resolve, join } from 'node:path'
@@ -407,20 +408,43 @@ if (options.pure) {
 
   process.env.EXODUS_TEST_CONTEXT = 'pure'
   console.warn(`\n${options.engine} engine is experimental and may not work an expected\n`)
+
+  const execFile = promisify(execFileCallback)
+  const execFileResult = async (...args) => {
+    try {
+      const { code = 0, stdout, stderr } = await execFile(...args)
+      return { ok: code === 0, output: [stdout, stderr] }
+    } catch (err) {
+      const { code, stdout = '', stderr = '', signal, killed } = err
+      if (code === null) {
+        assert(signal)
+        const message = `  ${signal}${killed ? ' (killed)' : ''}`
+        const comment = killed && signal === 'SIGTERM' ? '  Most likely due to timeout reached' : ''
+        return { ok: false, output: [stdout, stderr, message, comment] }
+      }
+
+      assert(Number.isInteger(code) && code > 0)
+      return { ok: false, output: [stdout, stderr] }
+    }
+  }
+
+  const runOne = async (input) => {
+    await input.promise
+    if (input.errors?.length > 0) return { ok: false, output: input.errors }
+
+    const { binaryArgs = [] } = options
+    // 5 MiB just in case, timeout is fallback if timeout in script hangs, 10x as it can be adjusted per-script inside them
+    // Do we want to extract timeouts from script code instead? Also, hermes might be slower, so makes sense to increase
+    const execOpts = { maxBuffer: 5 * 1024 * 1024, timeout: (jestConfig?.testTimeout || 5000) * 10 }
+    return execFileResult(options.binary, [...binaryArgs, ...args, input.file], execOpts)
+  }
+
   const failures = []
   for (const input of inputs) {
     console.log(`# ${input.source}`)
-    await input.promise
-    if (input.errors?.length > 0) {
-      for (const err of input.errors) console.log(err)
-      failures.push(input.source)
-      continue
-    }
-
-    const { binaryArgs = [] } = options
-    const node = spawn(options.binary, [...binaryArgs, ...args, input.file], { stdio: 'inherit' })
-    const [code] = await once(node, 'close')
-    if (code !== 0) failures.push(input.source)
+    const { ok, output } = await runOne(input)
+    for (const chunk of output.map((x) => x.trimEnd()).filter(Boolean)) console.log(chunk)
+    if (!ok) failures.push(input.source)
   }
 
   if (failures.length > 0) {
