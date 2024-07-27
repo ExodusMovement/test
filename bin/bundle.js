@@ -4,7 +4,7 @@ import { existsSync } from 'node:fs'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { basename, dirname, resolve, join } from 'node:path'
 import { createRequire } from 'node:module'
-import { randomUUID, randomBytes } from 'node:crypto'
+import { randomUUID as uuid, randomBytes } from 'node:crypto'
 import { availableParallelism } from 'node:os'
 import { Queue } from '@chalker/queue'
 import * as esbuild from 'esbuild'
@@ -14,9 +14,9 @@ const require = createRequire(import.meta.url)
 const resolveRequire = (query) => require.resolve(query)
 const resolveImport = import.meta.resolve && ((query) => fileURLToPath(import.meta.resolve(query)))
 
-const readSnapshots = async (ifiles) => {
+const readSnapshots = async (files) => {
   const snapshots = []
-  for (const file of ifiles) {
+  for (const file of files) {
     for (const resolver of [
       (dir, name) => [dir, `${name}.snapshot`], // node:test
       (dir, name) => [dir, '__snapshots__', `${name}.snap`], // jest
@@ -92,7 +92,7 @@ const getPackageFiles = async () => {
   return glob(expanded, { ignore: ['**/node_modules'] })
 }
 
-const buildOne = async (...ifiles) => {
+const buildOne = async (...files) => {
   const input = []
   const importSource = async (file) => input.push(await readFile(resolveRequire(file), 'utf8'))
   const importFile = (...args) => input.push(`await import(${JSON.stringify(resolve(...args))});`)
@@ -123,13 +123,12 @@ const buildOne = async (...ifiles) => {
     await importSource('./jest.js')
   }
 
-  for (const file of ifiles) importFile(file)
+  for (const file of files) importFile(file)
 
-  const filename =
-    ifiles.length === 1 ? `${ifiles[0]}-${randomUUID().slice(0, 8)}` : `bundle-${randomUUID()}`
+  const filename = files.length === 1 ? `${files[0]}-${uuid().slice(0, 8)}` : `bundle-${uuid()}`
   const outfile = `${join(options.outdir, filename)}.js`
-  const EXODUS_TEST_SNAPSHOTS = await readSnapshots(ifiles)
-  const buildWrap = async (opts) => esbuild.build(opts).catch((err) => ({ errors: [err] }))
+  const EXODUS_TEST_SNAPSHOTS = await readSnapshots(files)
+  const buildWrap = async (opts) => esbuild.build(opts).catch((err) => err)
   let main = input.join('\n')
   if (['jsc', 'hermes'].includes(options.platform)) {
     const exit = `EXODUS_TEST_PROCESS.exitCode = 1; EXODUS_TEST_PROCESS._maybeProcessExitCode();`
@@ -172,7 +171,7 @@ const buildOne = async (...ifiles) => {
       'process.type': 'undefined',
       'process.version': stringify('v22.5.1'), // shouldn't depend on currently used Node.js version
       'process.versions.node': stringify('22.5.1'), // see line above
-      EXODUS_TEST_FILES: stringify(ifiles.map((f) => [dirname(f), basename(f)])),
+      EXODUS_TEST_FILES: stringify(files.map((f) => [dirname(f), basename(f)])),
       EXODUS_TEST_SNAPSHOTS: stringify(EXODUS_TEST_SNAPSHOTS),
       EXODUS_TEST_FSFILES: stringify(fsfiles.map((file) => resolve(file))), // TODO: can we safely use relative paths?
     },
@@ -245,6 +244,7 @@ const buildOne = async (...ifiles) => {
       },
     ],
   })
+  assert.equal(res instanceof Error, res.errors.length > 0)
 
   if (writePipeline.length > 0 && res.errors.length === 0) {
     let contents = await readFile(outfile, 'utf8')
@@ -254,19 +254,12 @@ const buildOne = async (...ifiles) => {
 
   // require('fs').copyFileSync(outfile, 'tempout.cjs') // DEBUG
 
-  // unwrap errors and warnings
-  const out = { errors: [], warnings: [...(res.warnings || [])] }
-  for (const x of res.errors || []) {
-    out.warnings.push(...x.warnings)
-    out.errors.push(...x.errors)
-  }
-
   // We treat warnings as errors, so just merge all them
   const errors = []
   const formatOpts = { color: process.stdout.hasColors(), terminalWidth: process.stdout.columns }
   const formatMessages = (list, kind) => esbuild.formatMessages(list, { kind, ...formatOpts })
-  if (out.warnings.length > 0) errors.push(...(await formatMessages(out.warnings, 'warning')))
-  if (out.errors.length > 0) errors.push(...(await formatMessages(out.errors, 'error')))
+  if (res.warnings.length > 0) errors.push(...(await formatMessages(res.warnings, 'warning')))
+  if (res.errors.length > 0) errors.push(...(await formatMessages(res.errors, 'error')))
   return { file: outfile, errors }
 }
 
