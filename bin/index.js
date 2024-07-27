@@ -373,7 +373,7 @@ if (options.bundle) {
     Object.assign(input, await bundle.build(input.file))
   }
 
-  await Promise.all(inputs.map((x) => doBuild(x)))
+  for (const input of inputs) input.promise = doBuild(input)
 }
 
 assert.equal(inputs.length, files.length)
@@ -410,6 +410,7 @@ if (options.pure) {
   const failures = []
   for (const input of inputs) {
     console.log(`# ${input.source}`)
+    await input.promise
     if (input.errors?.length > 0) {
       for (const err of input.errors) console.log(err)
       failures.push(input.source)

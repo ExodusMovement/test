@@ -270,7 +270,7 @@ const buildOne = async (...ifiles) => {
   return { file: outfile, errors }
 }
 
-const queue = new Queue(availableParallelism() - 1)
+const queue = new Queue(availableParallelism() > 2 ? 2 : 1)
 export const build = async (...files) => {
   await queue.claim()
   try {
