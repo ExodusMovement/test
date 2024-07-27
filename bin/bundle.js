@@ -270,7 +270,7 @@ export const build = async (...files) => {
 
   // We treat warnings as errors, so just merge all them
   const errors = []
-  const formatOpts = { color: process.stdout.hasColors(), terminalWidth: process.stdout.columns }
+  const formatOpts = { color: process.stdout.hasColors?.(), terminalWidth: process.stdout.columns }
   const formatMessages = (list, kind) => esbuild.formatMessages(list, { kind, ...formatOpts })
   if (res.warnings.length > 0) errors.push(...(await formatMessages(res.warnings, 'warning')))
   if (res.errors.length > 0) errors.push(...(await formatMessages(res.errors, 'error')))
