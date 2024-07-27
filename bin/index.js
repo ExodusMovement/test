@@ -447,6 +447,7 @@ if (options.pure) {
 
   const failures = []
   const tasks = files.map((file) => ({ file, task: runConcurrent(file) }))
+  console.time('Total time')
   for (const { file, task } of tasks) {
     console.log(`# ${file}`)
     const { ok, output } = await task
@@ -463,6 +464,8 @@ if (options.pure) {
   } else {
     console.log(`All ${files.length} test suites passed`)
   }
+
+  console.timeEnd('Total time')
 } else {
   assert(!buildFile)
   assert(['node', c8].includes(options.binary), `Unexpected native engine: ${options.binary}`)
