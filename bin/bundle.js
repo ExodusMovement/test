@@ -66,7 +66,6 @@ export const init = async ({ platform, jest, target, jestConfig, outdir }) => {
         compact: false,
         plugins: [
           '@babel/plugin-transform-arrow-functions',
-          '@babel/plugin-transform-async-generator-functions',
           '@babel/plugin-transform-class-properties',
           '@babel/plugin-transform-classes',
           '@babel/plugin-transform-block-scoping',
@@ -75,6 +74,11 @@ export const init = async ({ platform, jest, target, jestConfig, outdir }) => {
       return result.code
     })
   }
+}
+
+const hermesSupported = {
+  'async-generator': false,
+  'for-await': false,
 }
 
 const getPackageFiles = async () => {
@@ -219,6 +223,7 @@ export const build = async (...files) => {
     target: options.target || `node${process.versions.node}`,
     supported: {
       bigint: true,
+      ...(options.platform === 'hermes' ? hermesSupported : {}),
     },
     plugins: [
       {
