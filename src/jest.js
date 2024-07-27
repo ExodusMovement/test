@@ -94,7 +94,7 @@ const describe = (...args) => {
   inDescribe.push(fn)
   const optionsConcurrent = args?.at(-1)?.concurrency > 1
   if (optionsConcurrent) inConcurrent.push(fn)
-  const result = node.describe(...args, async () => {
+  const result = node.describe(...args, () => {
     const res = fn()
 
     // We do only block-level concurrency, not file-level
