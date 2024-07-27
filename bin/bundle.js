@@ -63,8 +63,8 @@ export const init = async ({ platform, jest, target, jestConfig, outdir }) => {
   Object.assign(options, { platform, jest, target, jestConfig, outdir })
   if (options.platform === 'hermes') {
     const babel = await import('@babel/core')
-    writePipeline.push((source) => {
-      const result = babel.transformSync(source, {
+    writePipeline.push(async (source) => {
+      const result = await babel.transformAsync(source, {
         compact: false,
         plugins: [
           '@babel/plugin-transform-arrow-functions',
