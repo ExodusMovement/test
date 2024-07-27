@@ -485,6 +485,7 @@ if (options.bundle) {
 
     const fsfiles = await getPackageFiles()
 
+    const hasBuffer = ['node', c8, 'bun'].includes(options.binary)
     const api = (f) => resolveRequire(join('../src/bundle-apis', f))
     const res = await build({
       stdin: {
@@ -534,7 +535,7 @@ if (options.bundle) {
         fs: api('fs.cjs'),
         'fs/promises': api('fs-promises.cjs'),
         assert: dirname(dirname(resolveRequire('assert/'))),
-        buffer: dirname(resolveRequire('buffer/')),
+        buffer: hasBuffer ? api('node-buffer.cjs') : dirname(resolveRequire('buffer/')),
         child_process: api('child_process.cjs'),
         constants: resolveRequire('constants-browserify'),
         crypto: api('crypto.cjs'),

@@ -52,6 +52,7 @@
     "src/bundle-apis/globals.cjs",
     "src/bundle-apis/jest-message-util.js",
     "src/bundle-apis/jest-util.js",
+    "src/bundle-apis/node-buffer.cjs",
     "src/bundle-apis/util-format.cjs",
     "src/bundle-apis/ws.cjs",
     "src/dark.cjs",
