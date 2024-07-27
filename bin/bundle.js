@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFile, writeFile } from 'node:fs/promises'
+import { readFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { basename, dirname, resolve, join } from 'node:path'
@@ -54,20 +54,21 @@ const loadPipeline = [
   },
 ]
 
-const writePipeline = []
 const options = {}
 
 export const init = async ({ platform, jest, target, jestConfig, outdir }) => {
   Object.assign(options, { platform, jest, target, jestConfig, outdir })
   if (options.platform === 'hermes') {
     const babel = await import('@babel/core')
-    writePipeline.push(async (source) => {
+    loadPipeline.push(async (source) => {
       const result = await babel.transformAsync(source, {
         compact: false,
         plugins: [
+          '@babel/plugin-syntax-typescript',
+          '@babel/plugin-transform-block-scoping',
           '@babel/plugin-transform-class-properties',
           '@babel/plugin-transform-classes',
-          '@babel/plugin-transform-block-scoping',
+          '@babel/plugin-transform-private-methods',
         ],
       })
       return result.code
@@ -77,7 +78,9 @@ export const init = async ({ platform, jest, target, jestConfig, outdir }) => {
 
 const hermesSupported = {
   arrow: false,
+  class: false, // we get a safeguard check this way that it's not used
   'async-generator': false,
+  'const-and-let': false, // have to explicitly set for esbuild to not emit that in helpers, also to get a safeguard check
   'for-await': false,
 }
 
@@ -94,9 +97,24 @@ const getPackageFiles = async () => {
   return glob(expanded, { ignore: ['**/node_modules'] })
 }
 
+const loadCache = new Map()
+const loadSourceFile = async (filepath) => {
+  if (!loadCache.has(filepath)) {
+    const load = async () => {
+      let contents = await readFile(filepath, 'utf8')
+      for (const transform of loadPipeline) contents = await transform(contents, filepath)
+      return contents
+    }
+
+    loadCache.set(filepath, load())
+  }
+
+  return loadCache.get(filepath)
+}
+
 export const build = async (...files) => {
   const input = []
-  const importSource = async (file) => input.push(await readFile(resolveRequire(file), 'utf8'))
+  const importSource = async (file) => input.push(await loadSourceFile(resolveRequire(file)))
   const importFile = (...args) => input.push(`await import(${JSON.stringify(resolve(...args))});`)
   const stringify = (x) => ([undefined, null].includes(x) ? `${x}` : JSON.stringify(x))
 
@@ -131,7 +149,7 @@ export const build = async (...files) => {
   const outfile = `${join(options.outdir, filename)}.js`
   const EXODUS_TEST_SNAPSHOTS = await readSnapshots(files)
   const buildWrap = async (opts) => esbuild.build(opts).catch((err) => err)
-  let main = input.join('\n')
+  let main = input.join(';\n')
   if (['jsc', 'hermes'].includes(options.platform)) {
     const exit = `EXODUS_TEST_PROCESS.exitCode = 1; EXODUS_TEST_PROCESS._maybeProcessExitCode();`
     main = `try {\n${main}\n} catch (err) { print(err); ${exit} }`
@@ -216,7 +234,7 @@ export const build = async (...files) => {
       // unsupported deps
       ...Object.fromEntries(blockedDeps.map((n) => [n, api('empty/module-throw.cjs')])),
     },
-    sourcemap: writePipeline.length > 0 ? 'inline' : 'linked',
+    sourcemap: ['hermes', 'jsc'].includes(options.platform) ? 'inline' : 'linked', // FIXME?
     sourcesContent: false,
     keepNames: true,
     format: 'iife',
@@ -240,9 +258,7 @@ export const build = async (...files) => {
             }
 
             const loader = /\.[cm]?ts$/.test(filepath) ? 'ts' : 'js'
-            let contents = await readFile(filepath, 'utf8')
-            for (const transform of loadPipeline) contents = await transform(contents, filepath)
-            return { contents, loader }
+            return { contents: await loadSourceFile(filepath), loader }
           })
         },
       },
@@ -250,13 +266,7 @@ export const build = async (...files) => {
   })
   assert.equal(res instanceof Error, res.errors.length > 0)
 
-  if (writePipeline.length > 0 && res.errors.length === 0) {
-    let contents = await readFile(outfile, 'utf8')
-    for (const transform of writePipeline) contents = await transform(contents)
-    await writeFile(outfile, contents)
-  }
-
-  // require('fs').copyFileSync(outfile, 'tempout.cjs') // DEBUG
+  // if (res.errors.length === 0) require('fs').copyFileSync(outfile, 'tempout.cjs') // DEBUG
 
   // We treat warnings as errors, so just merge all them
   const errors = []

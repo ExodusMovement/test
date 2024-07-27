@@ -11,6 +11,9 @@ importers:
       '@babel/core':
         specifier: ^7.0.0
         version: 7.24.9
+      '@babel/plugin-syntax-typescript':
+        specifier: ^7.0.0
+        version: 7.24.7(@babel/core@7.24.9)
       '@babel/plugin-transform-block-scoping':
         specifier: ^7.0.0
         version: 7.24.7(@babel/core@7.24.9)
@@ -20,6 +23,9 @@ importers:
       '@babel/plugin-transform-classes':
         specifier: ^7.0.0
         version: 7.24.8(@babel/core@7.24.9)
+      '@babel/plugin-transform-private-methods':
+        specifier: ^7.0.0
+        version: 7.24.7(@babel/core@7.24.9)
       '@babel/register':
         specifier: ^7.0.0
         version: 7.24.6(@babel/core@7.24.9)
@@ -346,6 +352,12 @@ packages:
 
   '@babel/plugin-transform-classes@7.24.8':
     resolution: {integrity: sha512-VXy91c47uujj758ud9wx+OMgheXm4qJfyhj1P18YvlrQkNOSrwsteHk+EFS3OMGfhMhpZa0A+81eE7G4QC+3CA==}
+    engines: {node: '>=6.9.0'}
+    peerDependencies:
+      '@babel/core': ^7.0.0-0
+
+  '@babel/plugin-transform-private-methods@7.24.7':
+    resolution: {integrity: sha512-COTCOkG2hn4JKGEKBADkA8WNb35TGkkRbI5iT845dB+NyqgO8Hn+ajPbSnIQznneJTa3d30scb6iz/DhH8GsJQ==}
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': ^7.0.0-0
@@ -3221,6 +3233,14 @@ snapshots:
       '@babel/helper-replace-supers': 7.24.7(@babel/core@7.24.9)
       '@babel/helper-split-export-declaration': 7.24.7
       globals: 11.12.0
+    transitivePeerDependencies:
+      - supports-color
+
+  '@babel/plugin-transform-private-methods@7.24.7(@babel/core@7.24.9)':
+    dependencies:
+      '@babel/core': 7.24.9
+      '@babel/helper-create-class-features-plugin': 7.24.8(@babel/core@7.24.9)
+      '@babel/helper-plugin-utils': 7.24.8
     transitivePeerDependencies:
       - supports-color
 
