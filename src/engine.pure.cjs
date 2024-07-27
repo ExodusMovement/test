@@ -119,7 +119,14 @@ function describe(...args) {
   const { name, options, fn } = parseArgs(args)
   enterContext(name, options)
   context.options = options
-  if (!options.skip) fn(context) // todo: callback
+  // todo: callback support?
+  if (!options.skip) {
+    Promise.resolve(fn(context)).catch((error) => {
+      console.log('describe() body threw an error:', error)
+      abstractProcess.exitCode = 1
+    })
+  }
+
   exitContext()
 }
 
