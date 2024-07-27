@@ -229,19 +229,20 @@ export const build = async (...files) => {
       {
         name: 'exodus-test.bundle',
         setup({ onLoad }) {
-          onLoad({ filter: /\.m?js$/, namespace: 'file' }, async (args) => {
+          onLoad({ filter: /\.[cm]?[jt]s$/, namespace: 'file' }, async (args) => {
             let filepath = args.path
             // Resolve .native versions
             // TODO: move flag to engine options
             // TODO: maybe follow package.json for this
             if (['jsc', 'hermes'].includes(options.platform)) {
-              const maybeNative = filepath.replace(/(\.[cm]?js)$/u, '.native$1')
+              const maybeNative = filepath.replace(/(\.[cm]?[jt]s)$/u, '.native$1')
               if (existsSync(maybeNative)) filepath = maybeNative
             }
 
+            const loader = /\.[cm]?ts$/.test(filepath) ? 'ts' : 'js'
             let contents = await readFile(filepath, 'utf8')
             for (const transform of loadPipeline) contents = await transform(contents, args)
-            return { contents }
+            return { contents, loader }
           })
         },
       },
