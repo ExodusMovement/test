@@ -488,6 +488,7 @@ if (options.bundle) {
     const hasBuffer = ['node', c8, 'bun'].includes(options.binary)
     const api = (f) => resolveRequire(join('../src/bundle-apis', f))
     const res = await build({
+      logLevel: 'silent',
       stdin: {
         contents: `(async function () {\n${main}\n})()`,
         resolveDir: bindir,
@@ -599,7 +600,21 @@ if (options.bundle) {
     }
 
     // require('fs').copyFileSync(outfile, 'tempout.cjs') // DEBUG
-    return { file: outfile, errors: res.errors, warnings: res.warnings }
+
+    // unwrap errors and warnings
+    const out = { errors: [], warnings: [...(res.warnings || [])] }
+    for (const x of res.errors || []) {
+      out.warnings.push(...x.warnings)
+      out.errors.push(...x.errors)
+    }
+
+    // We treat warnings as errors, so just merge all them
+    const errors = []
+    const formatOpts = { color: process.stdout.hasColors(), terminalWidth: process.stdout.columns }
+    const formatMessages = (list, kind) => esbuild.formatMessages(list, { kind, ...formatOpts })
+    if (out.warnings.length > 0) errors.push(...(await formatMessages(out.warnings, 'warning')))
+    if (out.errors.length > 0) errors.push(...(await formatMessages(out.errors, 'error')))
+    return { file: outfile, errors }
   }
 
   for (const input of inputs) Object.assign(input, await buildOne(input.file)) // TODO: queued concurrency
@@ -638,13 +653,14 @@ if (options.pure) {
   console.warn(`\n${options.engine} engine is experimental and may not work an expected\n`)
   const failures = []
   for (const input of inputs) {
-    if (input.errors?.length > 0 || input.warnings?.length > 0) {
+    console.log(`# ${input.source}`)
+    if (input.errors?.length > 0) {
+      for (const err of input.errors) console.log(err)
       failures.push(input.source)
       continue
     }
 
     const { binaryArgs = [] } = options
-    console.log(`# ${input.source}`)
     const node = spawn(options.binary, [...binaryArgs, ...args, input.file], { stdio: 'inherit' })
     const [code] = await once(node, 'close')
     if (code !== 0) failures.push(input.source)
