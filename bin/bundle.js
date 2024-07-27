@@ -5,8 +5,6 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { basename, dirname, resolve, join } from 'node:path'
 import { createRequire } from 'node:module'
 import { randomUUID as uuid, randomBytes } from 'node:crypto'
-import { availableParallelism } from 'node:os'
-import { Queue } from '@chalker/queue'
 import * as esbuild from 'esbuild'
 import glob from 'fast-glob'
 
@@ -92,7 +90,7 @@ const getPackageFiles = async () => {
   return glob(expanded, { ignore: ['**/node_modules'] })
 }
 
-const buildOne = async (...files) => {
+export const build = async (...files) => {
   const input = []
   const importSource = async (file) => input.push(await readFile(resolveRequire(file), 'utf8'))
   const importFile = (...args) => input.push(`await import(${JSON.stringify(resolve(...args))});`)
@@ -261,15 +259,4 @@ const buildOne = async (...files) => {
   if (res.warnings.length > 0) errors.push(...(await formatMessages(res.warnings, 'warning')))
   if (res.errors.length > 0) errors.push(...(await formatMessages(res.errors, 'error')))
   return { file: outfile, errors }
-}
-
-const queue = new Queue(availableParallelism() > 2 ? 2 : 1)
-export const build = async (...files) => {
-  await queue.claim()
-  try {
-    // need to await here
-    return await buildOne(...files)
-  } finally {
-    queue.release()
-  }
 }

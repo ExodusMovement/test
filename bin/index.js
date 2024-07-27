@@ -8,7 +8,9 @@ import { basename, dirname, resolve, join } from 'node:path'
 import { createRequire } from 'node:module'
 import { randomUUID } from 'node:crypto'
 import { existsSync } from 'node:fs'
+import { availableParallelism } from 'node:os'
 import assert from 'node:assert/strict'
+import { Queue } from '@chalker/queue'
 import glob from 'fast-glob'
 import { haveModuleMocks, haveSnapshots, haveForceExit } from '../src/version.js'
 
@@ -357,7 +359,7 @@ if (options.coverage) {
 }
 
 process.env.EXODUS_TEST_EXECARGV = JSON.stringify(args)
-const inputs = files.map((file) => ({ source: file, file }))
+let buildFile
 
 if (options.bundle) {
   const { rmSync } = await import('node:fs')
@@ -370,14 +372,9 @@ if (options.bundle) {
 
   const bundle = await import('./bundle.js')
   await bundle.init({ ...options, outdir, jestConfig })
-  const doBuild = async (input) => {
-    Object.assign(input, await bundle.build(input.file))
-  }
-
-  for (const input of inputs) input.promise = doBuild(input)
+  buildFile = (file) => bundle.build(file)
 }
 
-assert.equal(inputs.length, files.length)
 assert(options.binary && ['node', 'bun', 'deno', 'jsc', 'hermes', c8].includes(options.binary))
 
 if (options.pure) {
@@ -410,9 +407,18 @@ if (options.pure) {
   console.warn(`\n${options.engine} engine is experimental and may not work an expected\n`)
 
   const execFile = promisify(execFileCallback)
-  const execFileResult = async (...args) => {
+
+  const runOne = async (inputFile) => {
+    const { file, errors } = buildFile ? await buildFile(inputFile) : { file: inputFile }
+    if (errors?.length > 0) return { ok: false, output: errors }
+
+    const { binaryArgs = [] } = options
+    // 5 MiB just in case, timeout is fallback if timeout in script hangs, 10x as it can be adjusted per-script inside them
+    // Do we want to extract timeouts from script code instead? Also, hermes might be slower, so makes sense to increase
+    const execOpts = { maxBuffer: 5 * 1024 * 1024, timeout: (jestConfig?.testTimeout || 5000) * 10 }
     try {
-      const { code = 0, stdout, stderr } = await execFile(...args)
+      const fullArgs = [...binaryArgs, ...args, file]
+      const { code = 0, stdout, stderr } = await execFile(options.binary, fullArgs, execOpts)
       return { ok: code === 0, output: [stdout, stderr] }
     } catch (err) {
       const { code, stdout = '', stderr = '', signal, killed } = err
@@ -428,23 +434,24 @@ if (options.pure) {
     }
   }
 
-  const runOne = async (input) => {
-    await input.promise
-    if (input.errors?.length > 0) return { ok: false, output: input.errors }
-
-    const { binaryArgs = [] } = options
-    // 5 MiB just in case, timeout is fallback if timeout in script hangs, 10x as it can be adjusted per-script inside them
-    // Do we want to extract timeouts from script code instead? Also, hermes might be slower, so makes sense to increase
-    const execOpts = { maxBuffer: 5 * 1024 * 1024, timeout: (jestConfig?.testTimeout || 5000) * 10 }
-    return execFileResult(options.binary, [...binaryArgs, ...args, input.file], execOpts)
+  const queue = new Queue(availableParallelism() - 1)
+  const runConcurrent = async (file) => {
+    await queue.claim()
+    try {
+      // need to await here
+      return await runOne(file)
+    } finally {
+      queue.release()
+    }
   }
 
   const failures = []
-  for (const input of inputs) {
-    console.log(`# ${input.source}`)
-    const { ok, output } = await runOne(input)
+  const tasks = files.map((file) => ({ file, task: runConcurrent(file) }))
+  for (const { file, task } of tasks) {
+    console.log(`# ${file}`)
+    const { ok, output } = await task
     for (const chunk of output.map((x) => x.trimEnd()).filter(Boolean)) console.log(chunk)
-    if (!ok) failures.push(input.source)
+    if (!ok) failures.push(file)
   }
 
   if (failures.length > 0) {
@@ -457,6 +464,7 @@ if (options.pure) {
     console.log(`All ${files.length} test suites passed`)
   }
 } else {
+  assert(!buildFile)
   assert(['node', c8].includes(options.binary), `Unexpected native engine: ${options.binary}`)
   assert(['node:test'].includes(options.engine))
   process.env.EXODUS_TEST_CONTEXT = options.engine
