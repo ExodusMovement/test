@@ -34,18 +34,18 @@ const readSnapshots = async (files) => {
 // These packages throw on import
 const blockedDeps = ['@pollyjs/adapter-node-http', '@pollyjs/node-server']
 const loadPipeline = [
-  function (source, args) {
+  function (source, filepath) {
     return source
-      .replace(/\bimport\.meta\.url\b/g, JSON.stringify(pathToFileURL(args.path)))
-      .replace(/\b(__dirname|import\.meta\.dirname)\b/g, JSON.stringify(dirname(args.path)))
-      .replace(/\b(__filename|import\.meta\.filename)\b/g, JSON.stringify(args.path))
+      .replace(/\bimport\.meta\.url\b/g, JSON.stringify(pathToFileURL(filepath)))
+      .replace(/\b(__dirname|import\.meta\.dirname)\b/g, JSON.stringify(dirname(filepath)))
+      .replace(/\b(__filename|import\.meta\.filename)\b/g, JSON.stringify(filepath))
   },
-  function (source, args) {
+  function (source, filepath) {
     // Just a convenience wrapper to show pretty errors instead of generic bundle-apis/empty/module-throw.cjs
     for (const pkg of blockedDeps) {
       const str = `require(${JSON.stringify(pkg)})`
       assert(!str.includes("'"))
-      const err = `module unsupported in bundled form: ${pkg}\n       loaded from ${args.path}`
+      const err = `module unsupported in bundled form: ${pkg}\n       loaded from ${filepath}`
       const rep = `((() => { throw new Error(${JSON.stringify(err)}) })())`
       for (const sub of [str, str.replaceAll('"', "'")]) source = source.replace(sub, rep)
     }
@@ -241,7 +241,7 @@ export const build = async (...files) => {
 
             const loader = /\.[cm]?ts$/.test(filepath) ? 'ts' : 'js'
             let contents = await readFile(filepath, 'utf8')
-            for (const transform of loadPipeline) contents = await transform(contents, args)
+            for (const transform of loadPipeline) contents = await transform(contents, filepath)
             return { contents, loader }
           })
         },
