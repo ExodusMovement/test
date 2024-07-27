@@ -115,16 +115,20 @@ async function run() {
   abstractProcess._maybeProcessExitCode?.()
 }
 
-function describe(...args) {
+async function describe(...args) {
   const { name, options, fn } = parseArgs(args)
   enterContext(name, options)
   context.options = options
   // todo: callback support?
   if (!options.skip) {
-    Promise.resolve(fn(context)).catch((error) => {
+    try {
+      const res = fn(context)
+      // we don't need to be async if fn is sync
+      if (isPromise(res)) await res
+    } catch (error) {
       console.log('describe() body threw an error:', error)
       abstractProcess.exitCode = 1
-    })
+    }
   }
 
   exitContext()
