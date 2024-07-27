@@ -485,6 +485,7 @@ if (options.bundle) {
 
     const fsfiles = await getPackageFiles()
 
+    const api = (f) => resolveRequire(join('../src/bundle-apis', f))
     const res = await build({
       stdin: {
         contents: `(async function () {\n${main}\n})()`,
@@ -527,19 +528,19 @@ if (options.bundle) {
         'tape-promise/tape': resolveImport('../src/tape.cjs'),
         // Node browserify
         'node:assert': dirname(dirname(resolveRequire('assert/'))),
-        'node:assert/strict': resolveRequire('../src/bundle-apis/assert-strict.cjs'),
-        'node:fs': resolveRequire('../src/bundle-apis/fs.cjs'),
-        'node:fs/promises': resolveRequire('../src/bundle-apis/fs-promises.cjs'),
-        fs: resolveRequire('../src/bundle-apis/fs.cjs'),
-        'fs/promises': resolveRequire('../src/bundle-apis/fs-promises.cjs'),
+        'node:assert/strict': api('assert-strict.cjs'),
+        'node:fs': api('fs.cjs'),
+        'node:fs/promises': api('fs-promises.cjs'),
+        fs: api('fs.cjs'),
+        'fs/promises': api('fs-promises.cjs'),
         assert: dirname(dirname(resolveRequire('assert/'))),
         buffer: dirname(resolveRequire('buffer/')),
-        child_process: resolveRequire('../src/bundle-apis/child_process.cjs'),
+        child_process: api('child_process.cjs'),
         constants: resolveRequire('constants-browserify'),
-        crypto: resolveRequire('../src/bundle-apis/crypto.cjs'),
+        crypto: api('crypto.cjs'),
         events: dirname(resolveRequire('events/')),
-        http: resolveRequire('../src/bundle-apis/http.cjs'),
-        https: resolveRequire('../src/bundle-apis/https.cjs'),
+        http: api('http.cjs'),
+        https: api('https.cjs'),
         os: resolveRequire('os-browserify'),
         path: resolveRequire('path-browserify'),
         querystring: resolveRequire('querystring-es3'),
@@ -549,17 +550,15 @@ if (options.bundle) {
         util: dirname(resolveRequire('util/')),
         zlib: resolveRequire('browserify-zlib'),
         // expect-related deps
-        'ansi-styles': resolveRequire('../src/bundle-apis/ansi-styles.cjs'),
-        'jest-util': resolveRequire('../src/bundle-apis/jest-util.js'),
-        'jest-message-util': resolveRequire('../src/bundle-apis/jest-message-util.js'),
+        'ansi-styles': api('ansi-styles.cjs'),
+        'jest-util': api('jest-util.js'),
+        'jest-message-util': api('jest-message-util.js'),
         // unwanted deps
-        bindings: resolveRequire('../src/bundle-apis/empty/function-throw.cjs'),
-        'node-gyp-build': resolveRequire('../src/bundle-apis/empty/function-throw.cjs'),
-        ws: resolveRequire('../src/bundle-apis/ws.cjs'),
+        bindings: api('empty/function-throw.cjs'),
+        'node-gyp-build': api('empty/function-throw.cjs'),
+        ws: api('ws.cjs'),
         // unsupported deps
-        ...Object.fromEntries(
-          blockedDeps.map((n) => [n, resolveRequire('../src/bundle-apis/empty/module-throw.cjs')])
-        ),
+        ...Object.fromEntries(blockedDeps.map((n) => [n, api('empty/module-throw.cjs')])),
       },
       sourcemap: writePipeline.length > 0 ? 'inline' : 'linked',
       sourcesContent: false,
