@@ -373,7 +373,7 @@ if (options.bundle) {
     Object.assign(input, await bundle.build(input.file))
   }
 
-  for (const input of inputs) await doBuild(input) // TODO: queued concurrency
+  await Promise.all(inputs.map((x) => doBuild(x)))
 }
 
 assert.equal(inputs.length, files.length)

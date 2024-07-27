@@ -29,6 +29,9 @@ importers:
       '@babel/register':
         specifier: ^7.0.0
         version: 7.24.6(@babel/core@7.24.9)
+      '@chalker/queue':
+        specifier: ^1.0.0
+        version: 1.0.0
       '@ungap/url-search-params':
         specifier: ^0.2.2
         version: 0.2.2
@@ -399,6 +402,9 @@ packages:
 
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
+
+  '@chalker/queue@1.0.0':
+    resolution: {integrity: sha512-WIIEU7B3vO1JQelTuipH5/W/HfirpDUPNzQaCY4IsSR6WEF1lKuEPon7EjQQ1iyXawU6hm0QcxxBcmKdwL1CDg==}
 
   '@es-joy/jsdoccomment@0.43.1':
     resolution: {integrity: sha512-I238eDtOolvCuvtxrnqtlBaw0BwdQuYqK7eA6XIonicMdOOOb75mqdIzkGDUbS04+1Di007rgm9snFRNeVrOog==}
@@ -3322,6 +3328,8 @@ snapshots:
       to-fast-properties: 2.0.0
 
   '@bcoe/v8-coverage@0.2.3': {}
+
+  '@chalker/queue@1.0.0': {}
 
   '@es-joy/jsdoccomment@0.43.1':
     dependencies:
