@@ -413,9 +413,9 @@ if (options.pure) {
     if (errors?.length > 0) return { ok: false, output: errors }
 
     const { binaryArgs = [] } = options
-    // 5 MiB just in case, timeout is fallback if timeout in script hangs, 10x as it can be adjusted per-script inside them
+    // 5 MiB just in case, timeout is fallback if timeout in script hangs, 50x as it can be adjusted per-script inside them
     // Do we want to extract timeouts from script code instead? Also, hermes might be slower, so makes sense to increase
-    const execOpts = { maxBuffer: 5 * 1024 * 1024, timeout: (jestConfig?.testTimeout || 5000) * 10 }
+    const execOpts = { maxBuffer: 5 * 1024 * 1024, timeout: (jestConfig?.testTimeout || 5000) * 50 }
     try {
       const fullArgs = [...binaryArgs, ...args, file]
       const { code = 0, stdout, stderr } = await execFile(options.binary, fullArgs, execOpts)
