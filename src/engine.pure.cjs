@@ -227,7 +227,7 @@ class MockTimers {
   }
 
   runAll() {
-    this.tick(Math.max(0, ...this.#queue.map((x) => x.at)))
+    this.tick(Math.max(0, ...this.#queue.map((x) => x.at - this.#elapsed)))
   }
 
   setTime(milliseconds) {
@@ -235,15 +235,21 @@ class MockTimers {
   }
 
   #setTimeout(fn, delay, ...args) {
-    this.#queue.push({ type: 'timeout', fn, at: delay + this.#elapsed, args })
+    const id = { type: 'timeout', fn, at: delay + this.#elapsed, args }
+    this.#queue.push(id)
+    return id
   }
 
   #setInterval(fn, delay, ...args) {
-    this.#queue.push({ type: 'interval', fn, at: delay + this.#elapsed, interval: delay, args })
+    const id = { type: 'interval', fn, at: delay + this.#elapsed, interval: delay, args }
+    this.#queue.push(id)
+    return id
   }
 
   #setImmediate(fn, ...args) {
-    this.#queue.push({ type: 'immediate', fn, args })
+    const id = { type: 'immediate', fn, args }
+    this.#queue.push(id)
+    return id
   }
 
   #clearTimeout(id) {
