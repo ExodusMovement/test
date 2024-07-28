@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn, execFile as execFileCallback } from 'node:child_process'
-import { promisify } from 'node:util'
+import { promisify, inspect } from 'node:util'
 import { once } from 'node:events'
 import { fileURLToPath } from 'node:url'
 import { basename, dirname, resolve, join } from 'node:path'
@@ -448,27 +448,48 @@ if (options.pure) {
     }
   }
 
+  const haveColors = process.stdout.hasColors?.()
+  const colors = new Map(Object.entries(inspect.colors))
+  const color = (text, color) => {
+    if (!haveColors || text === '') return text
+    if (!colors.has(color)) throw new Error(`Unknown color: ${color}`)
+    const [start, end] = colors.get(color)
+    return `\x1B[${start}m${text}\x1B[${end}m`
+  }
+
+  const format = (chunk) => {
+    if (!haveColors) return chunk
+    return chunk
+      .replaceAll(/^✔ PASS /gmu, color('✔ PASS ', 'green'))
+      .replaceAll(/^⏭ SKIP /gmu, color('⏭ SKIP ', 'dim'))
+      .replaceAll(/^✖ FAIL /gmu, color('✖ FAIL ', 'red'))
+  }
+
   const failures = []
   const tasks = files.map((file) => ({ file, task: runConcurrent(file) }))
-  console.time('Total time')
+  const timeString = color('Total time', 'dim')
+  console.time(timeString)
   for (const { file, task } of tasks) {
-    console.log(`# ${file}`)
+    console.log(color(`# ${file}`, 'bold'))
     const { ok, output } = await task
-    for (const chunk of output.map((x) => x.trimEnd()).filter(Boolean)) console.log(chunk)
+    for (const chunk of output.map((x) => x.trimEnd()).filter(Boolean)) console.log(format(chunk))
     if (!ok) failures.push(file)
   }
 
   if (failures.length > 0) {
     process.exitCode = 1
     const [total, passed, failed] = [files.length, files.length - failures.length, failures.length]
-    console.log(`Test suites failed: ${failed} / ${total} (passed: ${passed} / ${total})`)
-    console.log('Failed test suites:')
+    const failLine = color(`${failed} / ${total}`, 'red')
+    const passLine = color(`${passed} / ${total}`, 'green')
+    const suffix = passed > 0 ? color(` (passed: ${passLine})`, 'dim') : ''
+    console.log(`${color('Test suites failed:', 'bold')} ${failLine}${suffix}`)
+    console.log(color('Failed test suites:', 'red'))
     for (const file of failures) console.log(`  ${file}`) // joining with \n can get truncated, too big
   } else {
-    console.log(`All ${files.length} test suites passed`)
+    console.log(color(`All ${files.length} test suites passed`, 'green'))
   }
 
-  console.timeEnd('Total time')
+  console.timeEnd(timeString)
 } else {
   assert(!buildFile)
   assert(['node', c8].includes(options.binary), `Unexpected native engine: ${options.binary}`)
