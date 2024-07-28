@@ -365,7 +365,7 @@ if (options.bundle) {
   const { rmSync } = await import('node:fs')
   const os = await import('node:os')
   const outdir = join(os.tmpdir(), `exodus-test-${randomUUID().slice(0, 8)}`)
-  process.on('beforeExit', async () => rmSync(outdir, { recursive: true, force: true }))
+  process.on('exit', () => rmSync(outdir, { recursive: true, force: true }))
   assert.deepEqual(args, [])
 
   if (options.binary === 'node') args.unshift('--enable-source-maps') // FIXME
