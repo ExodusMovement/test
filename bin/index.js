@@ -7,8 +7,8 @@ import { fileURLToPath } from 'node:url'
 import { basename, dirname, resolve, join } from 'node:path'
 import { createRequire } from 'node:module'
 import { randomUUID } from 'node:crypto'
-import { existsSync } from 'node:fs'
-import { availableParallelism } from 'node:os'
+import { existsSync, rmSync } from 'node:fs'
+import { tmpdir, availableParallelism } from 'node:os'
 import assert from 'node:assert/strict'
 import { Queue } from '@chalker/queue'
 import glob from 'fast-glob'
@@ -362,9 +362,7 @@ process.env.EXODUS_TEST_EXECARGV = JSON.stringify(args)
 let buildFile
 
 if (options.bundle) {
-  const { rmSync } = await import('node:fs')
-  const os = await import('node:os')
-  const outdir = join(os.tmpdir(), `exodus-test-${randomUUID().slice(0, 8)}`)
+  const outdir = join(tmpdir(), `exodus-test-${randomUUID().slice(0, 8)}`)
   process.on('exit', () => rmSync(outdir, { recursive: true, force: true }))
   assert.deepEqual(args, [])
 
