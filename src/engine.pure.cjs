@@ -109,7 +109,7 @@ async function run() {
   assert(context === context.root)
   await runContext(context).catch((error) => {
     // Should not throw under regular circumstances
-    console.log('Fatal: ', error)
+    console.log('‼ FATAL', error)
     abstractProcess.exitCode = 1
   })
   abstractProcess._maybeProcessExitCode?.()
@@ -126,7 +126,8 @@ async function describe(...args) {
       // we don't need to be async if fn is sync
       if (isPromise(res)) await res
     } catch (error) {
-      console.log('describe() body threw an error:', error)
+      console.log('✖ FAIL', context.fullName)
+      console.log('  describe() body threw an error:', error)
       abstractProcess.exitCode = 1
     }
   }

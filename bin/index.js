@@ -463,6 +463,7 @@ if (options.pure) {
       .replaceAll(/^✔ PASS /gmu, color('✔ PASS ', 'green'))
       .replaceAll(/^⏭ SKIP /gmu, color('⏭ SKIP ', 'dim'))
       .replaceAll(/^✖ FAIL /gmu, color('✖ FAIL ', 'red'))
+      .replaceAll(/^‼ FATAL /gmu, `${color('‼', 'red')} ${color(' FATAL ', 'bgRed')} `)
   }
 
   const failures = []
