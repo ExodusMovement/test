@@ -86,17 +86,22 @@ const hermesSupported = {
   'for-await': false,
 }
 
-const getPackageFiles = async () => {
+const getPackageFiles = async (dir) => {
   // Returns an empty list on errors
   let patterns
   try {
-    patterns = JSON.parse(await readFile('package.json', 'utf8')).files
+    patterns = JSON.parse(await readFile(resolve(dir, 'package.json'), 'utf8')).files
   } catch {}
 
-  if (!patterns) return []
+  if (!patterns) {
+    const parent = dirname(dir)
+    if (parent !== dir) return getPackageFiles(parent)
+    return []
+  }
+
   // Hack for now, TODO: fix this
   const expanded = patterns.flatMap((x) => (x.includes('.') ? [x] : [x, `${x}/**/*`]))
-  return glob(expanded, { ignore: ['**/node_modules'] })
+  return glob(expanded, { ignore: ['**/node_modules'], cwd: dir, absolute: true })
 }
 
 const loadCache = new Map()
@@ -157,7 +162,7 @@ export const build = async (...files) => {
     main = `try {\n${main}\n} catch (err) { print(err); ${exit} }`
   }
 
-  const fsfiles = await getPackageFiles()
+  const fsfiles = await getPackageFiles(filename ? dirname(resolve(filename)) : process.cwd())
 
   const hasBuffer = ['node', 'bun'].includes(options.platform)
   const api = (f) => resolveRequire(join('../src/bundle-apis', f))
@@ -195,7 +200,7 @@ export const build = async (...files) => {
       'process.versions.node': stringify('22.5.1'), // see line above
       EXODUS_TEST_FILES: stringify(files.map((f) => [dirname(f), basename(f)])),
       EXODUS_TEST_SNAPSHOTS: stringify(EXODUS_TEST_SNAPSHOTS),
-      EXODUS_TEST_FSFILES: stringify(fsfiles.map((file) => resolve(file))), // TODO: can we safely use relative paths?
+      EXODUS_TEST_FSFILES: stringify(fsfiles), // TODO: can we safely use relative paths?
     },
     alias: {
       // Jest and tape
