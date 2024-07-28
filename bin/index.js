@@ -8,6 +8,7 @@ import { basename, dirname, resolve, join } from 'node:path'
 import { createRequire } from 'node:module'
 import { randomUUID } from 'node:crypto'
 import { existsSync, rmSync } from 'node:fs'
+import { unlink } from 'node:fs/promises'
 import { tmpdir, availableParallelism } from 'node:os'
 import assert from 'node:assert/strict'
 import { Queue } from '@chalker/queue'
@@ -407,8 +408,10 @@ if (options.pure) {
   const execFile = promisify(execFileCallback)
 
   const runOne = async (inputFile) => {
-    const { file, errors } = buildFile ? await buildFile(inputFile) : { file: inputFile }
-    if (errors?.length > 0) return { ok: false, output: errors }
+    const bundled = buildFile ? await buildFile(inputFile) : undefined
+    if (buildFile) assert(bundled.file)
+    const file = buildFile ? bundled.file : inputFile
+    if (bundled?.errors.length > 0) return { ok: false, output: bundled.errors }
 
     const { binaryArgs = [] } = options
     // 5 MiB just in case, timeout is fallback if timeout in script hangs, 50x as it can be adjusted per-script inside them
@@ -429,6 +432,8 @@ if (options.pure) {
 
       assert(Number.isInteger(code) && code > 0)
       return { ok: false, output: [stdout, stderr] }
+    } finally {
+      if (bundled) await unlink(bundled.file)
     }
   }
 
