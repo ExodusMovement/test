@@ -38,6 +38,18 @@ exports[`complex 5`] = `
 }
 `;
 
+exports[`deep matcher 1`] = `
+{
+  "foo": {
+    "bar": {
+      "property": "value 123",
+      "uuid": Any<String>,
+    },
+  },
+  "one": 1,
+}
+`;
+
 exports[`errors 1`] = `
 "Whoops
 I

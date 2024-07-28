@@ -197,3 +197,15 @@ describe('', () => {
     expect('empty names test').toMatchSnapshot()
   })
 })
+
+test('deep matcher', () => {
+  expect({
+    one: 1,
+    foo: {
+      bar: {
+        property: 'value 123',
+        uuid: typeof crypto === 'undefined' ? 'hey Node.js 18' : crypto.randomUUID(),
+      },
+    },
+  }).toMatchSnapshot({ foo: { bar: { uuid: expect.any(String) } } })
+})

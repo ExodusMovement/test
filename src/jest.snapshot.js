@@ -96,6 +96,20 @@ const snapInline = (obj, inline) => {
   getAssert().strictEqual(serialize(obj).trim(), inline.trim())
 }
 
+const deepMerge = (obj, matcher) => {
+  if (!obj || !matcher) return matcher
+  const proto = Object.getPrototypeOf(obj)
+  if (![Object.prototype, null].includes(proto)) return matcher
+  const protoM = Object.getPrototypeOf(matcher)
+  if (![Object.prototype, null].includes(protoM)) return matcher
+  // all matcher keys should be already in obj, as verified by toMatchObject prior to this
+  const map = new Map(Object.entries(matcher))
+  const merge = (key, value) => [key, map.has(key) ? deepMerge(value, map.get(key)) : value]
+  const res = Object.fromEntries(Object.entries(obj).map(([key, value]) => merge(key, value)))
+  Object.setPrototypeOf(res, proto)
+  return res
+}
+
 const snapOnDisk = (orig, matcher) => {
   if (matcher) {
     expect(orig).toMatchObject(matcher)
@@ -105,7 +119,7 @@ const snapOnDisk = (orig, matcher) => {
     state.numPassingAsserts--
   }
 
-  const obj = matcher ? { ...orig, ...matcher } : orig
+  const obj = matcher ? deepMerge(orig, matcher) : orig
   const escape = (str) => str.replaceAll(/([\\`])/gu, '\\$1')
 
   maybeSetupJestSnapshots()
