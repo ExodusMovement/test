@@ -1,3 +1,6 @@
+// We expect bundler to optimize out EXODUS_TEST_PLATFORM blocks
+/* eslint-disable sonarjs/no-collapsible-if, unicorn/no-lonely-if */
+
 if (!globalThis.global) globalThis.global = globalThis
 if (!globalThis.Buffer) globalThis.Buffer = require('buffer').Buffer
 if (!globalThis.console) {
@@ -21,6 +24,19 @@ if (!Array.prototype.at) {
   // eslint-disable-next-line no-extend-native
   Array.prototype.at = function (i) {
     return this[i < 0 ? this.length + i : i]
+  }
+}
+
+if (process.env.EXODUS_TEST_PLATFORM === 'hermes') {
+  // Fixed after 0.12, not present in 0.12
+  // Refs: https://github.com/facebook/hermes/commit/e8fa81328dd630e39975e6d16ac3e6f47f4cba06
+  if (!Promise.allSettled) {
+    const wrap = (element) =>
+      Promise.resolve(element).then(
+        (value) => ({ status: 'fulfilled', value }),
+        (reason) => ({ status: 'rejected', reason })
+      )
+    Promise.allSettled = (iterable) => Promise.all([...iterable].map((element) => wrap(element)))
   }
 }
 
