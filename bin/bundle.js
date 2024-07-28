@@ -59,7 +59,7 @@ const options = {}
 export const init = async ({ platform, jest, target, jestConfig, outdir }) => {
   Object.assign(options, { platform, jest, target, jestConfig, outdir })
   if (options.platform === 'hermes') {
-    const babel = await import('@babel/core')
+    const babel = await import('./babel-worker.cjs')
     loadPipeline.push(async (source) => {
       const result = await babel.transformAsync(source, {
         compact: false,

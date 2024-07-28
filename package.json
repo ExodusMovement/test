@@ -36,6 +36,7 @@
   "prettier": "@exodus/prettier",
   "files": [
     "bin/babel.cjs",
+    "bin/babel-worker.cjs",
     "bin/bundle.js",
     "bin/jest.js",
     "bin/typescript.js",
