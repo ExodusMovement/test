@@ -353,7 +353,7 @@ if (options.coverage) {
     args.unshift(options.binary)
     options.binary = c8
     // perhaps use text-summary ?
-    args.unshift('-r', 'text', '-r', 'html')
+    args.unshift('-r', 'text', '-r', 'html', '-r', 'lcov')
   } else {
     throw new Error(`Unknown coverage engine: ${JSON.stringify(options.coverageEngine)}`)
   }
