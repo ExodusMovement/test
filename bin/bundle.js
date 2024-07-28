@@ -63,6 +63,8 @@ export const init = async ({ platform, jest, target, jestConfig, outdir }) => {
     loadPipeline.push(async (source) => {
       const result = await babel.transformAsync(source, {
         compact: false,
+        babelrc: false,
+        configFile: false,
         plugins: [
           '@babel/plugin-syntax-typescript',
           '@babel/plugin-transform-block-scoping',
