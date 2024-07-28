@@ -265,50 +265,12 @@ class MockTimers {
   }
 }
 
-class MockedFunction extends Function {
-  get mock() {
-    return this._mock
-  }
-}
-
 const mock = {
   module: undefined,
   timers: new MockTimers(),
   fn: (original = () => {}, implementation = original) => {
     let impl = implementation
-    const mocked = function (...args) {
-      const call = {
-        arguments: args,
-        // eslint-disable-next-line unicorn/error-message
-        stack: new Error(), // todo: recheck location
-        target: undefined,
-        this: this,
-      }
-
-      mocked.mock.calls.push(call)
-
-      try {
-        // todo: what's if it a promise
-        if (this instanceof mocked) {
-          impl.apply(this, args)
-          call.result = call.target = this
-        } else {
-          call.result = impl.apply(this, args)
-        }
-
-        call.error = undefined
-      } catch (err) {
-        call.result = undefined
-        call.error = err
-        throw err
-      }
-
-      return call.result
-    }
-
-    Object.setPrototypeOf(mocked, MockedFunction.prototype)
-
-    mocked._mock = {
+    const _mock = {
       calls: [],
       get callCount() {
         return this.calls.length
@@ -324,14 +286,64 @@ const mock = {
         }
       },
       resetCalls: () => {
-        mocked._mock.calls.length = 0
+        _mock.calls.length = 0
       },
       restore: () => {
         impl = original
       },
     }
 
-    return mocked
+    return new Proxy(function () {}, {
+      __proto__: null,
+      apply(fn, _this, args) {
+        // eslint-disable-next-line unicorn/error-message
+        const call = { arguments: args, stack: new Error(), target: undefined, this: _this } // todo: recheck .stack location
+
+        try {
+          call.result = impl.apply(_this, args)
+          call.error = undefined
+        } catch (err) {
+          call.result = undefined
+          call.error = err
+          throw err
+        } finally {
+          _mock.calls.push(call)
+        }
+
+        return call.result
+      },
+      construct(target, args) {
+        // eslint-disable-next-line unicorn/error-message
+        const call = { arguments: args, stack: new Error(), target } // todo: recheck .stack location
+
+        try {
+          call.result = call.this = new impl(...args) // eslint-disable-line new-cap
+          call.error = undefined
+        } catch (err) {
+          call.result = undefined
+          call.error = err
+          throw err
+        } finally {
+          _mock.calls.push(call)
+        }
+
+        return call.result
+      },
+      get: (fn, key) => {
+        if (key === 'mock') return _mock
+        const target = key !== 'prototype' && key in fn ? fn : impl
+        return target[key]
+      },
+      set: (fn, key, value) => {
+        const target = key !== 'prototype' && key in fn ? fn : impl
+        target[key] = value
+        return true
+      },
+      getOwnPropertyDescriptor(fn, key) {
+        const target = key !== 'prototype' && key in fn ? fn : impl
+        return Object.getOwnPropertyDescriptor(target, key)
+      },
+    })
   },
 }
 

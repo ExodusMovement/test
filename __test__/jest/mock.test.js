@@ -79,6 +79,36 @@ test('mockRestore with spyOn', () => {
   expect(obj.x).not.toBe(fn)
 })
 
+test('properties are transparent', () => {
+  const Socket = jest.fn()
+  let ping
+
+  Socket.mockImplementation(() => {
+    const socket = {}
+    ping = () => socket.callopen()
+    return socket
+  })
+
+  const instance = new Socket()
+  instance.callopen = () => true
+
+  expect(() => ping()).not.toThrow()
+  expect(ping()).toBe(true)
+
+  instance.callopen = () => 42
+  expect(ping()).toBe(42)
+})
+
+// jest is actually failing on this, we follow node:test in pure impl
+test('calls are not counted prior to finish', () => {
+  const f = jest.fn(() => f.mock.calls.length)
+  expect(f()).toBe(0)
+  expect(f(2)).toBe(1)
+  expect(f()).toBe(2)
+  expect(f.mock.calls.length).toBe(3)
+  expect(f.mock.calls).toEqual([[], [2], []])
+})
+
 // https://jestjs.io/docs/mock-function-api#mockfnmockcalls
 test('mockFn.mock.calls', () => {
   const f = jest.fn()
