@@ -100,7 +100,7 @@
     "@babel/register": "^7.0.0",
     "@chalker/queue": "^1.0.0",
     "@ungap/url-search-params": "^0.2.2",
-    "amaro": "^0.0.4",
+    "amaro": "^0.0.5",
     "assert": "^2.1.0",
     "browserify-zlib": "^0.2.0",
     "buffer": "^6.0.3",
