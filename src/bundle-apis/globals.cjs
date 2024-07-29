@@ -75,6 +75,24 @@ if (typeof process === 'undefined') {
   globalThis.EXODUS_TEST_PROCESS = process
 }
 
+if (process.env.EXODUS_TEST_PLATFORM === 'hermes') {
+  let headerLogged = false
+  globalThis.HermesInternal?.enablePromiseRejectionTracker({
+    allRejections: true,
+    onUnhandled: (i, err) => {
+      globalThis.EXODUS_TEST_PROCESS.exitCode = 1
+      if (!headerLogged) {
+        console.log(`‼ FATAL Tests generated asynchronous activity after they ended.
+This activity created errors and would have caused tests to fail, but instead triggered unhandledRejection events`)
+        headerLogged = true
+      }
+
+      console.log(`Uncaught error #${i}: ${err}`)
+      globalThis.EXODUS_TEST_PROCESS._maybeProcessExitCode()
+    },
+  })
+}
+
 if (
   process.env.EXODUS_TEST_PLATFORM === 'hermes' ||
   (process.env.EXODUS_TEST_PLATFORM === 'jsc' && !globalThis.clearTimeout)
