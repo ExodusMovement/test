@@ -81,4 +81,8 @@ const existsSync = (file) => {
   err('existsSync', file)
 }
 
-module.exports = { ...stubs, existsSync, promises, constants, F_OK, R_OK, W_OK, X_OK }
+const readFileSync = (file /*, options */) => {
+  err('readFileSync', file)
+}
+
+module.exports = { ...stubs, existsSync, readFileSync, promises, constants, F_OK, R_OK, W_OK, X_OK }
