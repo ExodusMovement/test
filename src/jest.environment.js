@@ -32,12 +32,16 @@ export const specialEnvironments = {
     dependencies: ['@pollyjs/core', 'setup-polly-jest', 'setup-polly-jest/lib/common'],
     setup: async (require, engine) => {
       const { getTestNamePath } = await import('./dark.cjs')
+      // polly has bad defer impl in case if it finds MessageChannel but not process.* (e.g. on deno), forever blocking
+      const { MessageChannel } = globalThis
+      if (MessageChannel) globalThis.MessageChannel = undefined
       const { Polly } = require('@pollyjs/core')
       const pollyJest = require('setup-polly-jest')
       const {
         JestPollyGlobals,
         createPollyContextAccessor,
       } = require('setup-polly-jest/lib/common')
+      if (MessageChannel) globalThis.MessageChannel = MessageChannel
       const pollyGlobals = new JestPollyGlobals(globalThis)
       pollyGlobals.isJestPollyEnvironment = true
       pollyJest.setupPolly = (options) => {
