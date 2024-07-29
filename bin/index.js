@@ -29,7 +29,7 @@ const ENGINES = new Map(
     'bun:pure': { binary: 'bun', pure: true, hasImportLoader: false, ts: 'auto' },
     'bun:bundle': { binary: 'bun', ...bundleOptions },
     'deno:bundle': { binary: 'deno', binaryArgs: ['run'], target: 'deno1', ...bundleOptions },
-    'jsc:bundle': { binary: 'jsc', ...bundleOptions, target: 'safari11' },
+    'jsc:bundle': { binary: 'jsc', ...bundleOptions, target: 'safari13' },
     'hermes:bundle': { binary: 'hermes', binaryArgs: ['-Og'], target: 'es2018', ...bundleOptions },
   })
 )
