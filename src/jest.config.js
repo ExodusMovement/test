@@ -64,11 +64,11 @@ export const jestConfig = () => {
 
 export async function loadJestConfig(...args) {
   let rawConfig
-  if (process.env.EXODUS_TEST_JEST_CONFIG) {
-    rawConfig = JSON.parse(process.env.EXODUS_TEST_JEST_CONFIG)
-  } else {
+  if (process.env.EXODUS_TEST_JEST_CONFIG === undefined) {
     const { readJestConfig } = await import('./jest.config.fs.js')
     rawConfig = await readJestConfig(...args)
+  } else {
+    rawConfig = JSON.parse(process.env.EXODUS_TEST_JEST_CONFIG)
   }
 
   config = normalizeJestConfig(rawConfig)
