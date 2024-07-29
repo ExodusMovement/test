@@ -68,6 +68,9 @@ importers:
       fast-glob:
         specifier: ^3.2.11
         version: 3.3.2
+      flow-remove-types:
+        specifier: ^2.242.0
+        version: 2.242.0
       hermes-engine-cli:
         specifier: ^0.12.0
         version: 0.12.0
@@ -1554,6 +1557,11 @@ packages:
   flatted@3.3.1:
     resolution: {integrity: sha512-X8cqMLLie7KsNUDSdzeN8FYK9rEt4Dt67OsG/DNGnYTSDBG4uFAJFBnUeiV+zCVAvwFy56IjM9sH51jVaEhNxw==}
 
+  flow-remove-types@2.242.0:
+    resolution: {integrity: sha512-eNyar+dzet+HmKHZVywRLnkd3sxkkt/eYqCRLSsh2hOQ0mvqDWbnXJ4cwvGogAAq/QkG64BHMJ8g5aSuk41e/w==}
+    engines: {node: '>=4'}
+    hasBin: true
+
   for-each@0.3.3:
     resolution: {integrity: sha512-jqYfLp7mo9vIyQf8ykW2v7A+2N4QjeCeI5+Dz9XraiO1ign81wjiH7Fb9vSOWvQfNtmSa4H2RoQTrrXivdUZmw==}
 
@@ -1690,6 +1698,12 @@ packages:
 
   hermes-engine-cli@0.12.0:
     resolution: {integrity: sha512-72a5yvwSC2qWtxJ80nlcoCCfNTkpYI8VVAfOro4FL9O105NM8Vpigz/A5Nq1rECKdP7M1N81HHiYL6jU5N1gYw==}
+
+  hermes-estree@0.23.0:
+    resolution: {integrity: sha512-Rkp0PNLGpORw4ktsttkVbpYJbrYKS3hAnkxu8D9nvQi6LvSbuPa+tYw/t2u3Gjc35lYd/k95YkjqyTcN4zspag==}
+
+  hermes-parser@0.23.0:
+    resolution: {integrity: sha512-xLwM4ylfHGwrm+2qXfO1JT/fnqEDGSnpS/9hQ4VLtqTexSviu2ZpBgz07U8jVtndq67qdb/ps0qvaWDZ3fkTyg==}
 
   hmac-drbg@1.0.1:
     resolution: {integrity: sha512-Tti3gMqLdZfhOQY1Mzf/AanLiqh1WTiJgEj26ZuYQ9fbkLomzGchCws4FyrSd4VkpBfiNhaE1On+lOz894jvXg==}
@@ -2223,6 +2237,10 @@ packages:
   node-int64@0.4.0:
     resolution: {integrity: sha512-O5lz91xSOeoXP6DulyHfllpq+Eg00MWitZIbtPfoSEvqIHdl5gfcY6hYzDWnj0qD5tz52PI08u9qUvSVeUBeHw==}
 
+  node-modules-regexp@1.0.0:
+    resolution: {integrity: sha512-JMaRS9L4wSRIR+6PTVEikTrq/lMGEZR43a48ETeilY0Q0iMwVnccMFrUM1k+tNzmYuIU0Vh710bCUqHX+/+ctQ==}
+    engines: {node: '>=0.10.0'}
+
   node-releases@2.0.14:
     resolution: {integrity: sha512-y10wOWt8yZpqXmOgRo77WaHEmhYQYGNA6y421PKsKYWEK8aW+cqAphborZDhqfyKrbZEN92CN1X2KbafY2s7Yw==}
 
@@ -2368,6 +2386,10 @@ packages:
   pify@4.0.1:
     resolution: {integrity: sha512-uB80kBFb/tfd68bVleG9T5GGsGPjJrLAUpR5PZIrhBnIaRTQRjqdJSsIKkOP6OAIFbj7GOrcudc5pNjZ+geV2g==}
     engines: {node: '>=6'}
+
+  pirates@3.0.2:
+    resolution: {integrity: sha512-c5CgUJq6H2k6MJz72Ak1F5sN9n9wlSlJyEnwvpm9/y3WB4E3pHBDT2c6PEiS1vyJvq2bUxUAIu0EGf8Cx4Ic7Q==}
+    engines: {node: '>= 4'}
 
   pirates@4.0.6:
     resolution: {integrity: sha512-saLsH7WeYYPiD25LDuLRRY/i+6HaPYr6G1OUlN39otzkSTxKnubR9RTxS3/Kk50s1g2JTgFwWQDQyplC5/SHZg==}
@@ -2876,6 +2898,9 @@ packages:
 
   validate-npm-package-license@3.0.4:
     resolution: {integrity: sha512-DpKm2Ui/xN7/HQKCtpZxoRWBhZ9Z0kqtygG8XCgNQ8ZlDnxuQmWhj566j8fN4Cu3/JmbhsDo7fcAJq4s9h27Ew==}
+
+  vlq@0.2.3:
+    resolution: {integrity: sha512-DRibZL6DsNhIgYQ+wNdWDL2SL3bKPlVrRiBqV5yuMm++op8W4kGFtaQfCs4KEJn0wBZcHVHJ3eoywX8983k1ow==}
 
   w3c-xmlserializer@5.0.0:
     resolution: {integrity: sha512-o8qghlI8NZHU1lLPrpi2+Uq7abh4GGPpYANlalzWxyWteJOCsr/P+oPBA49TOLu5FTZO4d3F9MnWJfiMo4BkmA==}
@@ -4792,6 +4817,12 @@ snapshots:
 
   flatted@3.3.1: {}
 
+  flow-remove-types@2.242.0:
+    dependencies:
+      hermes-parser: 0.23.0
+      pirates: 3.0.2
+      vlq: 0.2.3
+
   for-each@0.3.3:
     dependencies:
       is-callable: 1.2.7
@@ -4933,6 +4964,12 @@ snapshots:
       function-bind: 1.1.2
 
   hermes-engine-cli@0.12.0: {}
+
+  hermes-estree@0.23.0: {}
+
+  hermes-parser@0.23.0:
+    dependencies:
+      hermes-estree: 0.23.0
 
   hmac-drbg@1.0.1:
     dependencies:
@@ -5634,6 +5671,8 @@ snapshots:
 
   node-int64@0.4.0: {}
 
+  node-modules-regexp@1.0.0: {}
+
   node-releases@2.0.14: {}
 
   normalize-package-data@2.5.0:
@@ -5785,6 +5824,10 @@ snapshots:
   picomatch@2.3.1: {}
 
   pify@4.0.1: {}
+
+  pirates@3.0.2:
+    dependencies:
+      node-modules-regexp: 1.0.0
 
   pirates@4.0.6: {}
 
@@ -6310,6 +6353,8 @@ snapshots:
     dependencies:
       spdx-correct: 3.2.0
       spdx-expression-parse: 3.0.1
+
+  vlq@0.2.3: {}
 
   w3c-xmlserializer@5.0.0:
     dependencies:

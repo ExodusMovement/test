@@ -111,6 +111,7 @@
     "events": "^3.3.0",
     "expect": "^29.7.0",
     "fast-glob": "^3.2.11",
+    "flow-remove-types": "^2.242.0",
     "jest-extended": "^4.0.2",
     "jsdom": "^24.1.0",
     "os-browserify": "^0.3.0",

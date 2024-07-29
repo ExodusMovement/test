@@ -56,8 +56,14 @@ const loadPipeline = [
 
 const options = {}
 
-export const init = async ({ platform, jest, target, jestConfig, outdir }) => {
-  Object.assign(options, { platform, jest, target, jestConfig, outdir })
+export const init = async ({ platform, jest, flow, target, jestConfig, outdir }) => {
+  Object.assign(options, { platform, jest, flow, target, jestConfig, outdir })
+
+  if (options.flow) {
+    const { default: flowRemoveTypes } = await import('flow-remove-types')
+    loadPipeline.unshift((source) => flowRemoveTypes(source, { pretty: true }).toString())
+  }
+
   if (options.platform === 'hermes') {
     const babel = await import('./babel-worker.cjs')
     loadPipeline.push(async (source) => {

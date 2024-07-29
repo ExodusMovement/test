@@ -38,6 +38,7 @@ function parseOptions() {
   const options = {
     jest: false,
     typescript: false,
+    flow: false,
     esbuild: false,
     babel: false,
     coverage: false,
@@ -84,6 +85,9 @@ function parseOptions() {
         break
       case '--typescript':
         options.typescript = true
+        break
+      case '--flow':
+        options.flow = true
         break
       case '--esbuild':
         options.esbuild = true
