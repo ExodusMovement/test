@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { basename, dirname, resolve, join } from 'node:path'
+import { basename, dirname, extname, resolve, join } from 'node:path'
 import { createRequire } from 'node:module'
 import { randomUUID as uuid, randomBytes } from 'node:crypto'
 import * as esbuild from 'esbuild'
@@ -260,17 +260,19 @@ export const build = async (...files) => {
       {
         name: 'exodus-test.bundle',
         setup({ onLoad }) {
-          onLoad({ filter: /\.[cm]?[jt]s$/, namespace: 'file' }, async (args) => {
+          onLoad({ filter: /\.[cm]?[jt]sx?$/, namespace: 'file' }, async (args) => {
             let filepath = args.path
             // Resolve .native versions
             // TODO: move flag to engine options
             // TODO: maybe follow package.json for this
             if (['jsc', 'hermes'].includes(options.platform)) {
-              const maybeNative = filepath.replace(/(\.[cm]?[jt]s)$/u, '.native$1')
+              const maybeNative = filepath.replace(/(\.[cm]?[jt]sx?)$/u, '.native$1')
               if (existsSync(maybeNative)) filepath = maybeNative
             }
 
-            const loader = /\.[cm]?ts$/.test(filepath) ? 'ts' : 'js'
+            const loader = extname(filepath).replace(/^\.[cm]?/, '') // TODO: a flag to force jsx/tsx perhaps
+            assert(['js', 'ts', 'jsx', 'tx'].includes(loader))
+
             return { contents: await loadSourceFile(filepath), loader }
           })
         },
