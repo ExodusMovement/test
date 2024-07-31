@@ -104,6 +104,7 @@ function parseOptions() {
       case '--watch':
         options.watch = true
         break
+      case '--test-only':
       case '--only':
         options.only = true
         break
