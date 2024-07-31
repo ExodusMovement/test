@@ -27,7 +27,7 @@ afterAll(() => {
     return major > 20 || (major === 20 && minor >= 13)
   }
 
-  if (!jest.exodus || jest.exodus.features.engine !== 'node:test' || isNodeVersionOk()) {
+  if (!jest.exodus || jest.exodus.engine !== 'node:test' || isNodeVersionOk()) {
     // See comment on top
     expect(flatten(hooklog)).toMatchSnapshot()
   }

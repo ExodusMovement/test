@@ -184,10 +184,11 @@ const isBundle = process.env.EXODUS_TEST_ENVIRONMENT === 'bundle' // TODO: impro
 export const jest = {
   exodus: {
     __proto__: null,
+    platform: String(process.env.EXODUS_TEST_PLATFORM), // e.g. 'hermes', 'node'
+    engine: String(process.env.EXODUS_TEST_ENGINE), // e.g. 'hermes:bundle', 'node:bundle', 'node:test', 'node:pure'
+    implementation: String(node.engine), // aka process.env.EXODUS_TEST_CONTEXT, e.g. 'node:test' or 'pure'
     features: {
       __proto__: null,
-      platform: String(process.env.EXODUS_TEST_PLATFORM),
-      engine: String(node.engine),
       timers: Boolean(mock.timers && haveValidTimers),
       esmMocks: Boolean(mock.module && !isBundle), // full support for ESM mocks
       esmInterop: Boolean(insideEsbuild && !isBundle), // loading/using ESM as CJS, ESM mocks creation without a mocker function
