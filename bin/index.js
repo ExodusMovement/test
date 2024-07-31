@@ -344,7 +344,8 @@ if (tsTests.length > 0 && !options.esbuild && !options.typescript) {
 }
 
 if (!Object.hasOwn(process.env, 'NODE_ENV')) process.env.NODE_ENV = 'test'
-process.env.EXODUS_TEST_PLATFORM = options.binary
+process.env.EXODUS_TEST_PLATFORM = options.binary // e.g. 'hermes', 'node'
+process.env.EXODUS_TEST_ENGINE = options.engine // e.g. 'hermes:bundle', 'node:bundle', 'node:test', 'node:pure'
 
 const c8 = resolveRequire('c8/bin/c8.js')
 if (resolveImport) assert.equal(c8, resolveImport('c8/bin/c8.js'))
