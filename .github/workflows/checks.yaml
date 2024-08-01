@@ -46,4 +46,4 @@ jobs:
           cache: pnpm
           registry-url: 'https://registry.npmjs.org'
       - run: pnpm i --frozen-lockfile
-      - run: pnpm test:all
+      - run: EXODUS_TEST_DROP_NETWORK=1 pnpm test:all
