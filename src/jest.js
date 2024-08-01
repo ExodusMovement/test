@@ -90,34 +90,32 @@ const inConcurrent = []
 const inDescribe = []
 const concurrent = []
 
-const makeDecribe =
-  (nodeDescribe) =>
-  (...args) => {
-    const fn = args.pop()
-    inDescribe.push(fn)
-    const optionsConcurrent = args?.at(-1)?.concurrency > 1
-    if (optionsConcurrent) inConcurrent.push(fn)
-    const result = nodeDescribe(...args, () => {
-      const res = fn()
+const describeRaw = (nodeDescribe, ...args) => {
+  const fn = args.pop()
+  inDescribe.push(fn)
+  const optionsConcurrent = args?.at(-1)?.concurrency > 1
+  if (optionsConcurrent) inConcurrent.push(fn)
+  const result = nodeDescribe(...args, () => {
+    const res = fn()
 
-      // We do only block-level concurrency, not file-level
-      if (concurrent.length === 1) {
-        testRaw(...concurrent[0])
-        concurrent.length = 0
-      } else if (concurrent.length > 0) {
-        const queue = [...concurrent]
-        concurrent.length = 0
-        nodeDescribe('concurrent', { concurrency: defaultConcurrency }, () => {
-          for (const args of queue) testRaw(...args)
-        })
-      }
+    // We do only block-level concurrency, not file-level
+    if (concurrent.length === 1) {
+      testRaw(...concurrent[0])
+      concurrent.length = 0
+    } else if (concurrent.length > 0) {
+      const queue = [...concurrent]
+      concurrent.length = 0
+      nodeDescribe('concurrent', { concurrency: defaultConcurrency }, () => {
+        for (const args of queue) testRaw(...args)
+      })
+    }
 
-      return res
-    })
-    if (optionsConcurrent) inConcurrent.pop()
-    inDescribe.pop()
-    return result
-  }
+    return res
+  })
+  if (optionsConcurrent) inConcurrent.pop()
+  inDescribe.pop()
+  return result
+}
 
 const testRaw = (callerLocation, testBase, name, fn, testTimeout) => {
   const timeout = testTimeout ?? defaultTimeout
@@ -136,8 +134,8 @@ Also, using expect.assertions() to ensure the planned number of assertions is be
   })
 }
 
-const describe = makeDecribe(node.describe)
-describe.only = makeDecribe(node.describe.only)
+const describe = (...args) => describeRaw(node.describe, ...args)
+describe.only = (...args) => describeRaw(node.describe.only, ...args)
 
 const test = (...args) => testRaw(getCallerLocation(), node.test, ...args)
 test.only = (...args) => testRaw(getCallerLocation(), node.test.only, ...args)
