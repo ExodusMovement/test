@@ -10,6 +10,7 @@ import { expect } from 'expect'
 import { format, plugins as builtinPlugins } from 'pretty-format'
 import { jestConfig } from './jest.config.js'
 import { getTestNamePath } from './dark.cjs'
+import { haveSnapshotsReportUnescaped } from './version.js'
 
 const { snapshotFormat, snapshotSerializers } = jestConfig()
 const plugins = Object.values(builtinPlugins)
@@ -160,7 +161,7 @@ const snapOnDisk = (orig, matcher) => {
     wrapContextName(() => getAssert().snapshot(obj))
   } catch (e) {
     if (typeof e.expected === 'string') {
-      const escaped = escape(e.expected)
+      const escaped = haveSnapshotsReportUnescaped ? e.expected : escape(e.expected)
       const final = escaped.includes('\n') ? escaped : `\n${escaped}\n`
       if (final === e.actual) return
     }
