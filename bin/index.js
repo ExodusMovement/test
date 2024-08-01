@@ -48,6 +48,7 @@ function parseOptions() {
     passWithNoTests: false,
     writeSnapshots: false,
     debug: { files: false },
+    dropNetwork: false,
     ideaCompat: false,
     engine: process.env.EXODUS_TEST_ENGINE ?? 'node:test',
   }
@@ -132,6 +133,9 @@ function parseOptions() {
         process.env.FORCE_COLOR = '0'
         process.env.NO_COLOR = '1'
         process.env.NODE_DISABLE_COLORS = '1'
+        break
+      case '--drop-network':
+        options.dropNetwork = true
         break
       case '--idea-compat':
         options.ideaCompat = true
@@ -380,12 +384,29 @@ if (options.bundle) {
   buildFile = (file) => bundle.build(file)
 }
 
+if (options.dropNetwork) {
+  console.warn(`--drop-network is experimental and is a test helper, not a security mechanism`)
+}
+
 const execFile = promisify(execFileCallback)
 
-async function launch(binary, args, options = {}, buffering = false) {
+async function launch(binary, args, opts = {}, buffering = false) {
   assert(binary && ['node', 'bun', 'deno', 'jsc', 'hermes', c8].includes(binary))
-  if (buffering) return execFile(binary, args, { maxBuffer: 5 * 1024 * 1024, ...options }) // 5 MiB just in case
-  const child = spawn(binary, args, { stdio: 'inherit', ...options })
+  if (options.dropNetwork) {
+    switch (process.platform) {
+      case 'darwin':
+        ;[binary, args] = ['sandbox-exec', ['-n', 'no-network', binary, ...args]]
+        break
+      case 'linux':
+        ;[binary, args] = ['unshare', ['-n', '-r', binary, ...args]]
+        break
+      default:
+        assert.fail(`--drop-network is not implemented on platform: ${process.platform}`)
+    }
+  }
+
+  if (buffering) return execFile(binary, args, { maxBuffer: 5 * 1024 * 1024, ...opts }) // 5 MiB just in case
+  const child = spawn(binary, args, { stdio: 'inherit', ...opts })
   const [code] = await once(child, 'close')
   return { code }
 }
