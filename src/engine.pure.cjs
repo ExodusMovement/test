@@ -20,28 +20,37 @@ function parseArgs(args) {
   return { name, options, fn }
 }
 
-function enterContext(name, options = {}) {
+class Context {
+  test = test // todo: bind to context
+  describe = describe // todo: bind to context
+  children = []
+  assert = { ...assertLoose, snapshot: undefined }
+  hooks = { __proto__: null, before: [], after: [], beforeEach: [], afterEach: [] }
+
+  constructor(parent, name, options = {}) {
+    Object.assign(this, { root: parent?.root, parent, name, options })
+    this.fullName = parent && parent !== parent.root ? `${parent.fullName} > ${name}` : name
+    if (this.root) {
+      this.parent.children.push(this)
+    } else {
+      assert(this.name === '<root>' && !this.parent)
+      this.root = this
+    }
+  }
+
+  get onlySomewhere() {
+    return this.options.only || this.children.some((x) => x.onlySomewhere)
+  }
+
+  get only() {
+    return (this.options.only && !this.children.some((x) => x.onlySomewhere)) || this.parent?.only
+  }
+}
+
+function enterContext(name, options) {
   assert(!running)
   if (willstart) clearTimeout(willstart) // have to he accurate for engines like Hermes
-  context = {
-    root: context?.root,
-    parent: context,
-    name,
-    options,
-    fullName: context && context !== context.root ? `${context.fullName} > ${name}` : name,
-    assert: { ...assertLoose, snapshot: undefined },
-    hooks: { __proto__: null, before: [], after: [], beforeEach: [], afterEach: [] },
-    test, // todo: bind to context
-    describe, // todo: bind to context
-    children: [],
-  }
-  if (context.root) {
-    context.parent.children.push(context)
-  } else {
-    assert((context.name = '<root>'))
-    assert(!context.parent)
-    context.root = context
-  }
+  context = new Context(context, name, options)
 }
 
 function exitContext() {
@@ -55,6 +64,8 @@ async function runFunction(fn, context) {
   return new Promise((resolve, reject) => fn(context, (err) => (err ? reject(err) : resolve())))
 }
 
+const runOnly = process.env.EXODUS_TEST_ONLY === '1'
+
 async function runContext(context) {
   const { options, children, hooks, fn } = context
   assert(!context.running, 'Can not run twice')
@@ -63,6 +74,12 @@ async function runContext(context) {
   assert(children.length === 0 || !fn)
   if (options.skip) return console.log('⏭ SKIP', context.fullName)
   if (context.fn) {
+    if (runOnly) {
+      if (!context.only) return console.log('⏭ SKIP', context.fullName)
+    } else if (options.only) {
+      console.log(`⚠ WARN test.only requires the --only command-line option`)
+    }
+
     let error
     const stack = [context]
     while (stack[0].parent) stack.unshift(stack[0].parent)
@@ -93,6 +110,10 @@ async function runContext(context) {
       abstractProcess.exitCode = 1
     }
   } else {
+    if (options.only && !runOnly) {
+      console.log(`⚠ WARN describe.only requires the --only command-line option`)
+    }
+
     // if (context !== context.root) console.log(`▶ ${context.fullName}`)
     // TODO: try/catch for hooks?
     // TODO: flatten recursion before running?
@@ -118,7 +139,6 @@ async function run() {
 async function describe(...args) {
   const { name, options, fn } = parseArgs(args)
   enterContext(name, options)
-  context.options = options
   // todo: callback support?
   if (!options.skip) {
     try {
@@ -140,6 +160,11 @@ describe.skip = (...args) => {
   return describe(name, { ...options, skip: true }, fn)
 }
 
+describe.only = (...args) => {
+  const { name, options, fn } = parseArgs(args)
+  return describe(name, { ...options, only: true }, fn)
+}
+
 function test(...args) {
   const { name, options, fn } = parseArgs(args)
   enterContext(name, options)
@@ -150,6 +175,11 @@ function test(...args) {
 test.skip = (...args) => {
   const { name, options, fn } = parseArgs(args)
   return test(name, { ...options, skip: true }, fn)
+}
+
+test.only = (...args) => {
+  const { name, options, fn } = parseArgs(args)
+  return test(name, { ...options, only: true }, fn)
 }
 
 class MockTimers {

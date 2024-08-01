@@ -174,7 +174,6 @@ if (options.pure) {
   assert(!options.writeSnapshots, `Can not use write snapshots with ${options.engine} engine`)
   assert(!options.forceExit, `Can not use --force-exit with ${options.engine} engine yet`) // TODO
   assert(!options.watch, `Can not use --watch with with ${options.engine} engine`)
-  assert(!options.only, `Can not use --only with with ${options.engine} engine yet`) // TODO
 } else if (options.engine === 'node:test') {
   args.push('--test', '--no-warnings=ExperimentalWarning', '--test-reporter=spec')
 
@@ -470,6 +469,7 @@ if (options.pure) {
       .replaceAll(/^✔ PASS /gmu, color('✔ PASS ', 'green'))
       .replaceAll(/^⏭ SKIP /gmu, color('⏭ SKIP ', 'dim'))
       .replaceAll(/^✖ FAIL /gmu, color('✖ FAIL ', 'red'))
+      .replaceAll(/^⚠ WARN /gmu, color('⚠ WARN ', 'blue'))
       .replaceAll(/^‼ FATAL /gmu, `${color('‼', 'red')} ${color(' FATAL ', 'bgRed')} `)
   }
 
