@@ -48,7 +48,7 @@ function parseOptions() {
     passWithNoTests: false,
     writeSnapshots: false,
     debug: { files: false },
-    dropNetwork: false,
+    dropNetwork: ![undefined, '', '0'].includes(process.env.EXODUS_TEST_DROP_NETWORK),
     ideaCompat: false,
     engine: process.env.EXODUS_TEST_ENGINE ?? 'node:test',
   }
