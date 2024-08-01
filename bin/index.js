@@ -380,7 +380,15 @@ if (options.bundle) {
   buildFile = (file) => bundle.build(file)
 }
 
-assert(options.binary && ['node', 'bun', 'deno', 'jsc', 'hermes', c8].includes(options.binary))
+const execFile = promisify(execFileCallback)
+
+async function launch(binary, args, options = {}, buffering = false) {
+  assert(binary && ['node', 'bun', 'deno', 'jsc', 'hermes', c8].includes(binary))
+  if (buffering) return execFile(binary, args, { maxBuffer: 5 * 1024 * 1024, ...options }) // 5 MiB just in case
+  const child = spawn(binary, args, { stdio: 'inherit', ...options })
+  const [code] = await once(child, 'close')
+  return { code }
+}
 
 if (options.pure) {
   if (options.binary === 'hermes') {
@@ -411,8 +419,6 @@ if (options.pure) {
   process.env.EXODUS_TEST_CONTEXT = 'pure'
   console.warn(`\n${options.engine} engine is experimental and may not work an expected\n`)
 
-  const execFile = promisify(execFileCallback)
-
   const runOne = async (inputFile) => {
     const bundled = buildFile ? await buildFile(inputFile) : undefined
     if (buildFile) assert(bundled.file)
@@ -420,12 +426,12 @@ if (options.pure) {
     if (bundled?.errors.length > 0) return { ok: false, output: bundled.errors }
 
     const { binaryArgs = [] } = options
-    // 5 MiB just in case, timeout is fallback if timeout in script hangs, 50x as it can be adjusted per-script inside them
+    // Timeout is fallback if timeout in script hangs, 50x as it can be adjusted per-script inside them
     // Do we want to extract timeouts from script code instead? Also, hermes might be slower, so makes sense to increase
-    const execOpts = { maxBuffer: 5 * 1024 * 1024, timeout: (jestConfig?.testTimeout || 5000) * 50 }
+    const timeout = (jestConfig?.testTimeout || 5000) * 50
     try {
       const fullArgs = [...binaryArgs, ...args, file]
-      const { code = 0, stdout, stderr } = await execFile(options.binary, fullArgs, execOpts)
+      const { code = 0, stdout, stderr } = await launch(options.binary, fullArgs, { timeout }, true)
       return { ok: code === 0, output: [stdout, stderr] }
     } catch (err) {
       const { code, stdout = '', stderr = '', signal, killed } = err
@@ -505,7 +511,6 @@ if (options.pure) {
   process.env.EXODUS_TEST_CONTEXT = options.engine
   assert(files.length > 0) // otherwise we can run recursively
   assert(!options.binaryArgs)
-  const node = spawn(options.binary, [...args, ...files], { stdio: 'inherit' })
-  const [code] = await once(node, 'close')
+  const { code } = await launch(options.binary, [...args, ...files])
   process.exitCode = code
 }
