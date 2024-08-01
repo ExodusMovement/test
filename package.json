@@ -31,7 +31,10 @@
   "exports": {
     "./jest": "./src/jest.js",
     "./node": "./src/node.js",
-    "./tape": "./src/tape.js"
+    "./tape": {
+      "import": "./src/tape.js",
+      "require": "./src/tape.cjs"
+    }
   },
   "prettier": "@exodus/prettier",
   "files": [
