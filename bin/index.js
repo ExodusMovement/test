@@ -436,7 +436,7 @@ if (options.pure) {
   }
 
   process.env.EXODUS_TEST_CONTEXT = 'pure'
-  console.warn(`\n${options.engine} engine is experimental and may not work an expected\n`)
+  console.warn(`${options.engine} engine is experimental and may not work an expected`)
 
   const runOne = async (inputFile) => {
     const bundled = buildFile ? await buildFile(inputFile) : undefined
