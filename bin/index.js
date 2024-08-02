@@ -384,9 +384,7 @@ if (options.bundle) {
   buildFile = (file) => bundle.build(file)
 }
 
-if (options.dropNetwork) {
-  console.warn(`--drop-network is experimental and is a test helper, not a security mechanism`)
-}
+if (options.dropNetwork) console.warn('--drop-network is a test helper, not a security mechanism')
 
 const execFile = promisify(execFileCallback)
 
