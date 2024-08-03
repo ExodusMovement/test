@@ -55,12 +55,6 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
   }
 }
 
-function deserializeBody(body, bodyType) {
-  if (bodyType === 'text') return body
-  if (bodyType === 'json') return prettyJSON(body)
-  throw new Error('Unexpected bodyType in fetch recording log')
-}
-
 function serializeBody(body) {
   if (!body || typeof body === 'string') return body
   // if (Object.getPrototypeOf(body) === ArrayBuffer.prototype) return [...new Uint8Array(x)] // suboptimal?
@@ -119,6 +113,12 @@ const serializeResponse = async (resource, options = {}, response) => {
   }
 }
 
+function deserializeResponceBody(body, bodyType) {
+  if (bodyType === 'text') return body
+  if (bodyType === 'json') return prettyJSON(body)
+  throw new Error('Unexpected bodyType in fetch recording log')
+}
+
 let log
 
 export function fetchRecord() {
@@ -154,7 +154,7 @@ export function fetchReplay() {
 
     const { status, statusText, ok, url, redirected, type } = entry
     const props = { status, statusText, ok, url, redirected, type }
-    const body = deserializeBody(entry.body, entry.bodyType) // To support clone(), we don't want to actually return original object refs
+    const body = deserializeResponceBody(entry.body, entry.bodyType) // To support clone(), we don't want to actually return original object refs
     const res = {
       ...props,
       headers: getHeaders(),
