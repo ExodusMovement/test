@@ -69,7 +69,12 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
 
 function serializeBody(body) {
   if (!body || typeof body === 'string') return body
-  // if (Object.getPrototypeOf(body) === ArrayBuffer.prototype) return [...new Uint8Array(x)] // suboptimal?
+  const proto = Object.getPrototypeOf(body)
+  const wrap = (type, data, sub = '') => ({ type, [`data${sub}`]: data })
+  const { Buffer } = globalThis
+  if (proto === Buffer?.prototype) return wrap('Buffer', body.toString('base64'), '.base64')
+  if (proto === ArrayBuffer.prototype) return wrap('ArrayBuffer', [...new Uint8Array(body)])
+  if (proto === Uint8Array.prototype) return wrap('Uint8Array', [...body])
   throw new Error('Unsupported body type for fetch recording')
 }
 
