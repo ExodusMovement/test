@@ -97,17 +97,24 @@ const serializeRequest = (resource, options = {}) => {
   }
 }
 
-const serializeResponse = async (resource, options = {}, response) => {
-  if (response.type !== 'basic') throw new Error('Can not replay')
-  let bodyProperties
+async function serializeResponseBody(response) {
   try {
     if (response.headers.get('content-type').trim().split(';')[0] === 'application/json') {
-      bodyProperties = { bodyType: 'json', body: await response.clone().json() }
+      return { bodyType: 'json', body: await response.clone().json() }
     }
   } catch {}
 
-  if (!bodyProperties) bodyProperties = { bodyType: 'text', body: await response.clone().text() }
+  return { bodyType: 'text', body: await response.clone().text() }
+}
 
+function deserializeResponseBody(body, bodyType) {
+  if (bodyType === 'text') return body
+  if (bodyType === 'json') return prettyJSON(body)
+  throw new Error('Unexpected bodyType in fetch recording log')
+}
+
+const serializeResponse = async (resource, options = {}, response) => {
+  if (response.type !== 'basic') throw new Error('Can not record fetch response')
   return {
     request: serializeRequest(resource, options),
     status: response.status,
@@ -117,14 +124,8 @@ const serializeResponse = async (resource, options = {}, response) => {
     url: response.url,
     redirected: response.redirected,
     type: response.type,
-    ...bodyProperties,
+    ...(await serializeResponseBody(response)),
   }
-}
-
-function deserializeResponseBody(body, bodyType) {
-  if (bodyType === 'text') return body
-  if (bodyType === 'json') return prettyJSON(body)
-  throw new Error('Unexpected bodyType in fetch recording log')
 }
 
 let log
