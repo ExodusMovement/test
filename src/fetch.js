@@ -29,7 +29,8 @@ function prettyJSON(data) {
 if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
   // TODO: implement readFetchLog
 } else {
-  const { existsSync, readFileSync, writeFileSync, mkdirSync } = await import('node:fs')
+  const fsSync = await import('node:fs')
+  const { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, rmdirSync } = fsSync
   const { dirname, basename, normalize, join: pathJoin } = await import('node:path')
   const files = process.argv.slice(1)
   const baseFile = files.length === 1 && existsSync(files[0]) ? normalize(files[0]) : undefined
@@ -48,10 +49,18 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
     }
   }
 
-  writeFetchLog = (data) => {
+  writeFetchLog = (entries) => {
     const file = resolveRecording()
-    mkdirSync(dirname(file), { recursive: true })
-    writeFileSync(file, data)
+    if (entries.length > 0) {
+      mkdirSync(dirname(file), { recursive: true })
+      writeFileSync(file, prettyJSON(entries))
+    } else {
+      try {
+        rmSync(file)
+        rmdirSync(dirname(file))
+        rmdirSync(dirname(dirname(file)))
+      } catch {}
+    }
   }
 }
 
@@ -124,7 +133,7 @@ let log
 export function fetchRecord() {
   if (log) throw new Error('Can not record again: already recording!')
   log = []
-  process.on('exit', () => writeFetchLog(prettyJSON(log)))
+  process.on('exit', () => writeFetchLog(log))
   const realFetch = globalThis.fetch // can not save earlier as we want an overriden version if users overrides it in setup
   globalThis.fetch = async function fetch(resource, options) {
     const res = await realFetch(resource, options)
