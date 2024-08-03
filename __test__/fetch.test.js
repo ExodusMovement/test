@@ -1,7 +1,7 @@
 jest.exodus.mock.fetchReplay()
 // jest.exodus.mock.fetchRecord()
 
-describe('fetch replay tests', () => {
+describe('fetch replay', () => {
   test('https://example.com', async () => {
     const res = await fetch('https://example.com')
     expect(res.status).toBe(200)
