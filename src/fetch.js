@@ -80,16 +80,17 @@ function serializeHeaders(headers) {
 }
 
 const serializeRequest = (resource, options = {}) => {
-  for (const [key, value] of Object.entries(options)) {
-    if (key === 'body' || key === 'headers') continue
-    if (!value || typeof value === 'string' || typeof value === 'number') continue
+  const serializable = Object.entries(options).filter(([key, value]) => {
+    if (key === 'body' || key === 'headers') return false // included directly
+    if (key === 'signal') return false // ignored
+    if (!value || typeof value === 'string' || typeof value === 'number') return true
     throw new Error(`Can not process option ${key} with value type ${typeof value}`)
-  }
+  })
 
   return {
     resource: `${resource}`,
     options: {
-      ...options,
+      ...Object.fromEntries(serializable),
       body: serializeBody(options.body),
       headers: serializeHeaders(options.headers),
     },
