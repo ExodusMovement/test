@@ -84,6 +84,16 @@ function serializeHeaders(headers) {
   return [...headers]
 }
 
+const sortHeaders = (headers) => {
+  if (!headers) return headers
+  const clone = [...headers]
+  return headers.sort((a, b) => {
+    if (a[0] < b[0]) return -1
+    if (a[0] > b[0]) return 1
+    return clone.indexOf(a) - clone.indexOf(b)
+  })
+}
+
 const serializeRequest = (resource, options = {}) => {
   const serializable = Object.entries(options).filter(([key, value]) => {
     if (key === 'body' || key === 'headers') return false // included directly
@@ -97,7 +107,7 @@ const serializeRequest = (resource, options = {}) => {
     options: {
       ...Object.fromEntries(serializable),
       body: serializeBody(options.body),
-      headers: serializeHeaders(options.headers),
+      headers: sortHeaders(serializeHeaders(options.headers)),
     },
   }
 }
