@@ -83,7 +83,7 @@ const serializeRequest = (resource, options = {}) => {
   const serializable = Object.entries(options).filter(([key, value]) => {
     if (key === 'body' || key === 'headers') return false // included directly
     if (key === 'signal') return false // ignored
-    if (!value || typeof value === 'string' || typeof value === 'number') return true
+    if (!value || ['string', 'number', 'boolean'].includes(typeof value)) return true
     throw new Error(`Can not process option ${key} with value type ${typeof value}`)
   })
 
@@ -107,11 +107,6 @@ const serializeResponse = async (resource, options = {}, response) => {
   } catch {}
 
   if (!bodyProperties) bodyProperties = { bodyType: 'text', body: await response.clone().text() }
-  for (const [key, value] of Object.entries(options)) {
-    if (key === 'body' || key === 'headers') continue
-    if (!value || typeof value === 'string' || typeof value === 'number') continue
-    throw new Error(`Can not process option ${key} with value type ${typeof value}`)
-  }
 
   return {
     request: serializeRequest(resource, options),
