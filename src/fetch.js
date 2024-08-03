@@ -113,7 +113,7 @@ const serializeResponse = async (resource, options = {}, response) => {
   }
 }
 
-function deserializeResponceBody(body, bodyType) {
+function deserializeResponseBody(body, bodyType) {
   if (bodyType === 'text') return body
   if (bodyType === 'json') return prettyJSON(body)
   throw new Error('Unexpected bodyType in fetch recording log')
@@ -166,7 +166,7 @@ export function fetchReplay() {
       } catch {}
     }
 
-    const body = deserializeResponceBody(entry.body, entry.bodyType) // To support clone(), we don't want to actually return original object refs
+    const body = deserializeResponseBody(entry.body, entry.bodyType) // To support clone(), we don't want to actually return original object refs
     const res = {
       ...props,
       headers: getHeaders(),
