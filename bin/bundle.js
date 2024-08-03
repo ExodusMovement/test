@@ -12,13 +12,10 @@ const require = createRequire(import.meta.url)
 const resolveRequire = (query) => require.resolve(query)
 const resolveImport = import.meta.resolve && ((query) => fileURLToPath(import.meta.resolve(query)))
 
-const readSnapshots = async (files) => {
+const readSnapshots = async (files, resolvers) => {
   const snapshots = []
   for (const file of files) {
-    for (const resolver of [
-      (dir, name) => [dir, `${name}.snapshot`], // node:test
-      (dir, name) => [dir, '__snapshots__', `${name}.snap`], // jest
-    ]) {
+    for (const resolver of resolvers) {
       const snapshotFile = join(...resolver(dirname(file), basename(file)))
       try {
         snapshots.push([snapshotFile, await readFile(snapshotFile, 'utf8')])
@@ -160,7 +157,13 @@ export const build = async (...files) => {
 
   const filename = files.length === 1 ? `${files[0]}-${uuid().slice(0, 8)}` : `bundle-${uuid()}`
   const outfile = `${join(options.outdir, filename)}.js`
-  const EXODUS_TEST_SNAPSHOTS = await readSnapshots(files)
+  const EXODUS_TEST_SNAPSHOTS = await readSnapshots(files, [
+    (dir, name) => [dir, `${name}.snapshot`], // node:test
+    (dir, name) => [dir, '__snapshots__', `${name}.snap`], // jest
+  ])
+  const EXODUS_TEST_RECORDINGS = await readSnapshots(files, [
+    (dir, name) => [dir, '__recordings__', 'fetch', `${name}.json`],
+  ])
   const buildWrap = async (opts) => esbuild.build(opts).catch((err) => err)
   let main = input.join(';\n')
   if (['jsc', 'hermes'].includes(options.platform)) {
@@ -208,6 +211,7 @@ export const build = async (...files) => {
       'process.versions.node': stringify('22.5.1'), // see line above
       EXODUS_TEST_FILES: stringify(files.map((f) => [dirname(f), basename(f)])),
       EXODUS_TEST_SNAPSHOTS: stringify(EXODUS_TEST_SNAPSHOTS),
+      EXODUS_TEST_RECORDINGS: stringify(EXODUS_TEST_RECORDINGS),
       EXODUS_TEST_FSFILES: stringify(fsfiles), // TODO: can we safely use relative paths?
     },
     alias: {

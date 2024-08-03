@@ -29,15 +29,21 @@ function prettyJSON(data, { sort = false } = {}) {
   return text.replaceAll(new RegExp(`"PRETTY-${token}-(\\d+)"`, 'gu'), (_, i) => objects[Number(i)])
 }
 
+const recordingResolver = (dir, name) => [dir, '__recordings__', 'fetch', `${name}.json`]
 if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
-  // TODO: implement readFetchLog
+  // eslint-disable-next-line no-undef
+  const files = EXODUS_TEST_FILES
+  const baseFile = files.length === 1 ? files[0] : undefined
+  // eslint-disable-next-line no-undef
+  const map = typeof EXODUS_TEST_RECORDINGS !== 'undefined' && new Map(EXODUS_TEST_RECORDINGS)
+  const resolveRecording = (f) => recordingResolver(f[0], f[1]).join('/')
+  readFetchLog = () => (baseFile ? map.get(resolveRecording(baseFile)) : null)
 } else {
   const fsSync = await import('node:fs')
   const { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, rmdirSync } = fsSync
   const { dirname, basename, normalize, join: pathJoin } = await import('node:path')
   const files = process.argv.slice(1)
   const baseFile = files.length === 1 && existsSync(files[0]) ? normalize(files[0]) : undefined
-  const recordingResolver = (dir, name) => [dir, '__recordings__', 'fetch', `${name}.json`]
   const resolveRecording = () => {
     if (!baseFile) throw new Error('Can not resolve recordings location')
     return pathJoin(...recordingResolver(dirname(baseFile), basename(baseFile)))
@@ -146,7 +152,8 @@ const serializeResponse = async (resource, options = {}, response) => {
 let log
 
 export function fetchRecord() {
-  if (log) throw new Error('Can not record again: already recording!')
+  if (log) throw new Error('Can not record again: already recording or replaying!')
+  if (!writeFetchLog) throw new Error('Writing fetch log is not supported on this engine')
   log = []
   process.on('exit', () => writeFetchLog(log))
   const realFetch = globalThis.fetch // can not save earlier as we want an overriden version if users overrides it in setup
@@ -160,10 +167,9 @@ export function fetchRecord() {
 }
 
 export function fetchReplay() {
-  if (log) throw new Error('Can not replay: already recording!')
-  // Re-initialized from start on each call
+  if (log) throw new Error('Can not replay: already recording or replaying!')
   if (!readFetchLog) throw new Error('Replaying fetch is not supported in this engine')
-  const data = readFetchLog()
+  const data = readFetchLog() // Re-initialized from start on each call
   if (typeof data !== 'string') throw new Error('Can not read ')
   log = JSON.parse(data)
   for (const entry of log) entry._request = prettyJSON(entry.request, { sort: true })
