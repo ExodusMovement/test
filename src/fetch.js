@@ -4,18 +4,18 @@ const isPlainObject = (x) => x && [null, Object.prototype].includes(Object.getPr
 
 // For pretty recordings formatting
 function prettyJSON(data) {
-  if (!globalThis.crypto?.randomUUID) return JSON.stringify(data, undefined, 2)
-  const token = globalThis.crypto?.randomUUID()
+  const token = globalThis.crypto?.randomUUID?.()
   const objects = []
-  if (!token) return JSON.stringify(data, undefined, 2)
   const replacer = (key, value) => {
     if (value && (Array.isArray(value) || isPlainObject(value))) {
       if (isPlainObject(value)) value = Object.fromEntries(Object.entries(value).sort()) // be stable
-      const subtext = JSON.stringify(value, null, 1).replaceAll(/\n\s*/gu, ' ')
-      const depth = 6 // best guess: '  "": '
-      if (key.length + subtext.length + depth <= 100) {
-        objects.push(subtext)
-        return `PRETTY-${token}-${objects.length - 1}`
+      if (token) {
+        const subtext = JSON.stringify(value, null, 1).replaceAll(/\n\s*/gu, ' ')
+        const depth = 6 // best guess: '  "": '
+        if (key.length + subtext.length + depth <= 100) {
+          objects.push(subtext)
+          return `PRETTY-${token}-${objects.length - 1}`
+        }
       }
     }
 
