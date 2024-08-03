@@ -121,7 +121,7 @@ const serializeResponse = async (resource, options = {}, response) => {
 
 let log
 
-export async function fetchRecord() {
+export function fetchRecord() {
   if (log) throw new Error('Can not record again: already recording!')
   log = []
   process.on('exit', () => writeFetchLog(prettyJSON(log)))
@@ -135,7 +135,7 @@ export async function fetchRecord() {
   return globalThis.fetch
 }
 
-export async function fetchReplay() {
+export function fetchReplay() {
   if (log) throw new Error('Can not replay: already recording!')
   // Re-initialized from start on each call
   if (!readFetchLog) throw new Error('Replaying fetch is not supported in this engine')
