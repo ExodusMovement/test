@@ -10,7 +10,10 @@ function prettyJSON(data, { sort = false } = {}) {
     if (value && (Array.isArray(value) || isPlainObject(value))) {
       if (sort && isPlainObject(value)) value = Object.fromEntries(Object.entries(value).sort()) // be stable
       if (token) {
-        const subtext = JSON.stringify(value, null, 1).replaceAll(/\n\s*/gu, ' ')
+        const subtext = JSON.stringify(value, null, 1)
+          .replaceAll(/\[\n\s*/gu, '[')
+          .replaceAll(/\n\s*\]/gu, ']')
+          .replaceAll(/\n\s*/gu, ' ')
         const depth = 6 // best guess: '  "": '
         if (key.length + subtext.length + depth <= 100) {
           objects.push(subtext)
@@ -53,7 +56,7 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
     const file = resolveRecording()
     if (entries.length > 0) {
       mkdirSync(dirname(file), { recursive: true })
-      writeFileSync(file, prettyJSON(entries))
+      writeFileSync(file, `${prettyJSON(entries)}\n`)
     } else {
       try {
         rmSync(file)
