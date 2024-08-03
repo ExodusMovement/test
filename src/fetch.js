@@ -131,6 +131,8 @@ export async function fetchRecord() {
     log.push(await serializeResponse(resource, options, res))
     return res
   }
+
+  return globalThis.fetch
 }
 
 export async function fetchReplay() {
@@ -165,4 +167,6 @@ export async function fetchReplay() {
     }
     return res
   }
+
+  return globalThis.fetch
 }
