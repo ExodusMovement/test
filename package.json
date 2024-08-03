@@ -65,6 +65,7 @@
     "src/engine.node.cjs",
     "src/engine.pure.cjs",
     "src/engine.select.cjs",
+    "src/fetch.js",
     "src/jest.js",
     "src/jest.config.js",
     "src/jest.config.fs.js",
@@ -82,13 +83,14 @@
   ],
   "scripts": {
     "test": "npm run test:jest",
-    "test:all": "npm run test:jest && npm run test:tape && npm run test:native && npm run test:pure && npm run test:typescript",
+    "test:all": "npm run test:jest && npm run test:tape && npm run test:native && npm run test:pure && npm run test:typescript && npm run test:fetch",
     "test:native": "EXODUS_TEST_IGNORE='{**/typescript/**,**/jest-repo/**/user.test.js}' ./bin/index.js --jest '__test__/**/*.test.{js,cjs,mjs}'",
     "test:typescript": "./bin/index.js --jest --typescript __test__/typescript.test.ts",
     "test:jest": "./bin/index.js --jest --esbuild",
     "test:tape": "./bin/index.js --esbuild '__test__/tape/test/*.js' __test__/tape.test.js",
     "test:pure": "EXODUS_TEST_ENGINE=node:pure npm run test",
     "test:bun:pure": "EXODUS_TEST_ENGINE=bun:pure npm run test",
+    "test:fetch": "./bin/index.js --jest --drop-network --engine node:pure __test__/fetch.test.js",
     "coverage": "./bin/index.js --jest --esbuild --coverage",
     "lint": "prettier --list-different . && eslint .",
     "lint:fix": "prettier --write . && eslint --fix ."

@@ -5,6 +5,7 @@ import { jestFunctionMocks } from './jest.fn.js'
 import { jestModuleMocks } from './jest.mock.js'
 import * as jestTimers from './jest.timers.js'
 import './jest.snapshot.js'
+import { fetchReplay, fetchRecord } from './fetch.js'
 import { createCallerLocationHook, insideEsbuild } from './dark.cjs'
 import { haveValidTimers } from './version.js'
 import { expect } from 'expect'
@@ -192,6 +193,14 @@ export const jest = {
       esmInterop: Boolean(insideEsbuild && !isBundle), // loading/using ESM as CJS, ESM mocks creation without a mocker function
       esmNamedBuiltinMocks: Boolean(mock.module || (insideEsbuild && !isBundle)), // support for named ESM imports from builtin module mocks
       concurrency: node.engine !== 'pure', // pure engine doesn't support concurrency
+    },
+    mock: {
+      fetchRecord,
+      fetchReplay,
+      fetchNoop: () => {
+        globalThis.fetch = jest.fn()
+        return globalThis.fetch
+      },
     },
   },
   setTimeout: (x) => {
