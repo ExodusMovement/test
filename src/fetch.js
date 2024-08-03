@@ -3,12 +3,12 @@ let readFetchLog, writeFetchLog
 const isPlainObject = (x) => x && [null, Object.prototype].includes(Object.getPrototypeOf(x))
 
 // For pretty recordings formatting
-function prettyJSON(data) {
+function prettyJSON(data, { sort = false } = {}) {
   const token = globalThis.crypto?.randomUUID?.()
   const objects = []
   const replacer = (key, value) => {
     if (value && (Array.isArray(value) || isPlainObject(value))) {
-      if (isPlainObject(value)) value = Object.fromEntries(Object.entries(value).sort()) // be stable
+      if (sort && isPlainObject(value)) value = Object.fromEntries(Object.entries(value).sort()) // be stable
       if (token) {
         const subtext = JSON.stringify(value, null, 1).replaceAll(/\n\s*/gu, ' ')
         const depth = 6 // best guess: '  "": '
@@ -151,9 +151,9 @@ export function fetchReplay() {
   const data = readFetchLog()
   if (typeof data !== 'string') throw new Error('Can not read ')
   log = JSON.parse(data)
-  for (const entry of log) entry._request = prettyJSON(entry.request)
+  for (const entry of log) entry._request = prettyJSON(entry.request, { sort: true })
   globalThis.fetch = async (resource, options = {}) => {
-    const request = prettyJSON(serializeRequest(resource, options))
+    const request = prettyJSON(serializeRequest(resource, options), { sort: true })
     const id = log.findIndex((entry) => entry._request === request)
     if (id < 0) throw new Error(`Request to ${resource} not found, ${log.length} more entries left`)
     const [entry] = log.splice(id, 1)
