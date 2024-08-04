@@ -213,15 +213,8 @@ export function fetchReplay() {
     }
 
     const body = deserializeResponseBody(entry.body, entry.bodyType) // To support clone(), we don't want to actually return original object refs
-    const res = {
-      ...props,
-      text: async () => body,
-      json: async () => JSON.parse(body),
-      clone: () => ({
-        ...res,
-        headers: getHeaders(),
-      }),
-    }
+    const res = { ...props, text: async () => body, json: async () => JSON.parse(body) }
+    res.clone = () => ({ ...res, headers: getHeaders() })
     return res
   }
 
