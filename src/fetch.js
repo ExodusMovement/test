@@ -1,9 +1,9 @@
-let readFetchLog, writeFetchLog
+let readRecording, writeRecording, log
 
 const isPlainObject = (x) => x && [null, Object.prototype].includes(Object.getPrototypeOf(x))
 
 // For pretty recordings formatting
-function prettyJSON(data, { sort = false } = {}) {
+export function prettyJSON(data, { sort = false } = {}) {
   const token = globalThis.crypto?.randomUUID?.()
   const objects = []
   const replacer = (key, value) => {
@@ -37,21 +37,21 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
   const baseFile = files.length === 1 ? files[0] : undefined
   // eslint-disable-next-line no-undef
   const map = typeof EXODUS_TEST_RECORDINGS !== 'undefined' && new Map(EXODUS_TEST_RECORDINGS)
-  const resolveRecording = (f) => recordingResolver(f[0], f[1]).join('/')
-  readFetchLog = () => (baseFile ? map.get(resolveRecording(baseFile)) : null)
+  const resolveRecording = (resolver, f) => resolver(f[0], f[1]).join('/')
+  readRecording = (resolver) => (baseFile ? map.get(resolveRecording(resolver, baseFile)) : null)
 } else {
   const fsSync = await import('node:fs')
   const { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, rmdirSync } = fsSync
   const { dirname, basename, normalize, join: pathJoin } = await import('node:path')
   const files = process.argv.slice(1)
   const baseFile = files.length === 1 && existsSync(files[0]) ? normalize(files[0]) : undefined
-  const resolveRecording = () => {
+  const resolveRecording = (resolver) => {
     if (!baseFile) throw new Error('Can not resolve recordings location')
-    return pathJoin(...recordingResolver(dirname(baseFile), basename(baseFile)))
+    return pathJoin(...resolver(dirname(baseFile), basename(baseFile)))
   }
 
-  readFetchLog = () => {
-    const file = resolveRecording()
+  readRecording = (resolver) => {
+    const file = resolveRecording(resolver)
     try {
       return readFileSync(file, 'utf8')
     } catch {
@@ -59,8 +59,8 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
     }
   }
 
-  writeFetchLog = (entries) => {
-    const file = resolveRecording()
+  writeRecording = (resolver, entries) => {
+    const file = resolveRecording(resolver)
     if (entries.length > 0) {
       mkdirSync(dirname(file), { recursive: true })
       writeFileSync(file, `${prettyJSON(entries)}\n`)
@@ -73,6 +73,8 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
     }
   }
 }
+
+export { readRecording, writeRecording }
 
 function serializeBody(body) {
   if (!body || typeof body === 'string') return body
@@ -150,13 +152,11 @@ const serializeResponse = async (resource, options = {}, response) => {
   }
 }
 
-let log
-
 export function fetchRecord() {
   if (log) throw new Error('Can not record again: already recording or replaying!')
-  if (!writeFetchLog) throw new Error('Writing fetch log is not supported on this engine')
+  if (!writeRecording) throw new Error('Writing fetch log is not supported on this engine')
   log = []
-  process.on('exit', () => writeFetchLog(log))
+  process.on('exit', () => writeRecording(recordingResolver, log))
   const realFetch = globalThis.fetch // can not save earlier as we want an overriden version if users overrides it in setup
   globalThis.fetch = async function fetch(resource, options) {
     const res = await realFetch(resource, options)
@@ -187,8 +187,8 @@ function makeResponse({ bodyType, body }, { status, statusText, headers, ok, ...
 
 export function fetchReplay() {
   if (log) throw new Error('Can not replay: already recording or replaying!')
-  if (!readFetchLog) throw new Error('Replaying fetch is not supported in this engine')
-  const data = readFetchLog() // Re-initialized from start on each call
+  if (!readRecording) throw new Error('Replaying fetch is not supported in this engine')
+  const data = readRecording(recordingResolver) // Re-initialized from start on each call
   if (typeof data !== 'string') throw new Error('Can not read fetch recording')
   log = JSON.parse(data)
   for (const entry of log) entry._request = prettyJSON(entry.request, { sort: true })
