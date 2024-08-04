@@ -78,6 +78,7 @@
     "src/tape.js",
     "src/tape.cjs",
     "src/version.js",
+    "src/websocket.js",
     "!__tests__",
     "CHANGELOG.md"
   ],
