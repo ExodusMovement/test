@@ -206,11 +206,9 @@ export function fetchReplay() {
     const props = { status, statusText, ok, url, redirected, type, headers: getHeaders() }
 
     // Try to return a native Response
-    if (typeof Response !== 'undefined') {
-      try {
-        return makeResponse(entry, props)
-      } catch {} // passthrough and return a plain object
-    }
+    try {
+      if (typeof Response !== 'undefined') return makeResponse(entry, props)
+    } catch {} // passthrough and return a plain object
 
     const body = deserializeResponseBody(entry.body, entry.bodyType) // To support clone(), we don't want to actually return original object refs
     const res = { ...props, text: async () => body, json: async () => JSON.parse(body) }
