@@ -6,6 +6,8 @@ let log, WebSocketImplementation
 
 const recordingResolver = (dir, name) => [dir, '__recordings__', 'websocket', `${name}.json`]
 
+const BINARY_TYPES = new Set(['blob', 'arraybuffer', 'nodebuffer'])
+
 class RecordWebSocket {
   onopen
   onmessage
@@ -15,13 +17,16 @@ class RecordWebSocket {
   #ws
   #recording
   #start
+  #binaryType
 
   constructor(url, ...rest) {
     if (rest.length > 0) throw new Error('Extra parameters to WebSocket are not supported')
     this.#start = Date.now()
-    this.#recording = { url: `${url}`, log: [] }
-    log.push(this.#recording)
     this.#ws = new WebSocketImplementation(url)
+    this.#binaryType = this.#ws.binaryType
+    if (!BINARY_TYPES.has(this.#binaryType)) throw new Error('Unexpected binaryType')
+    this.#recording = { url: `${url}`, binaryType: this.#binaryType, log: [] }
+    log.push(this.#recording)
     if (this.#ws.url !== this.#recording.url) throw new Error('Unexpected url mismatch')
     this.#ws.onopen = (event, ...rest) => {
       if (rest.length > 0) throw new Error('Unexpected rest args')
@@ -65,7 +70,14 @@ class RecordWebSocket {
   }
 
   get binaryType() {
-    throw new Error('binaryType support is not implemented yet')
+    if (this.#binaryType !== this.#ws.binaryType) throw new Error('Unexpected binaryType mismatch')
+    return this.#ws.binaryType
+  }
+
+  set binaryType(value) {
+    if (!BINARY_TYPES.has(value)) throw new Error('Unexpected set binaryType value')
+    this.#log('set binaryType', { value })
+    this.#ws.binaryType = this.#binaryType = value
   }
 
   get bufferedAmount() {
@@ -91,7 +103,6 @@ class RecordWebSocket {
 
   #log(type, allData) {
     const data = Object.fromEntries(Object.entries(allData).filter(([_, v]) => v !== undefined))
-    console.log(data)
     this.#recording.log.push({ type, at: Date.now() - this.#start, ...data })
   }
 
@@ -107,7 +118,8 @@ class RecordWebSocket {
     return { data, origin, code, reason, wasClean }
   }
 
-  #serializeError(_error) {
+  #serializeError(error) {
+    console.log(error)
     throw new Error('Recording errors is not supported yet')
   }
 }
