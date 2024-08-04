@@ -163,6 +163,7 @@ export const build = async (...files) => {
   ])
   const EXODUS_TEST_RECORDINGS = await readSnapshots(files, [
     (dir, name) => [dir, '__recordings__', 'fetch', `${name}.json`],
+    (dir, name) => [dir, '__recordings__', 'websocket', `${name}.json`],
   ])
   const buildWrap = async (opts) => esbuild.build(opts).catch((err) => err)
   let main = input.join(';\n')
