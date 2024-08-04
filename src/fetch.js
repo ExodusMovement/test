@@ -198,20 +198,17 @@ export function fetchReplay() {
     const id = log.findIndex((entry) => entry._request === request)
     if (id < 0) throw new Error(`Request to ${resource} not found, ${log.length} more entries left`)
     const [entry] = log.splice(id, 1)
-    const getHeaders = () => {
-      return typeof Headers === 'undefined' ? [...entry.headers] : new Headers(entry.headers || [])
-    }
-
-    const { status, statusText, ok, url, redirected, type } = entry
+    const { status, statusText, ok, url, redirected, type, headers = [], body, bodyType } = entry
+    const getHeaders = () => (typeof Headers === 'undefined' ? [...headers] : new Headers(headers))
     const props = { status, statusText, ok, url, redirected, type, headers: getHeaders() }
 
     // Try to return a native Response
     try {
-      if (typeof Response !== 'undefined') return makeResponse(entry, props)
+      if (typeof Response !== 'undefined') return makeResponse({ body, bodyType }, props)
     } catch {} // passthrough and return a plain object
 
-    const body = deserializeResponseBody(entry.body, entry.bodyType) // To support clone(), we don't want to actually return original object refs
-    const res = { ...props, text: async () => body, json: async () => JSON.parse(body) }
+    const bodyText = deserializeResponseBody(body, bodyType) // To support clone(), we don't want to actually return original object refs
+    const res = { ...props, text: async () => bodyText, json: async () => JSON.parse(bodyText) }
     res.clone = () => ({ ...res, headers: getHeaders() })
     return res
   }
