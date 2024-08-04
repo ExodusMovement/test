@@ -26,6 +26,7 @@ function prettyJSON(data, { sort = false } = {}) {
   }
 
   const text = JSON.stringify(data, replacer, 2)
+  if (!token || objects.length === 0) return text
   return text.replaceAll(new RegExp(`"PRETTY-${token}-(\\d+)"`, 'gu'), (_, i) => objects[Number(i)])
 }
 
