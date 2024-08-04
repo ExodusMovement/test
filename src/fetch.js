@@ -166,6 +166,25 @@ export function fetchRecord() {
   return globalThis.fetch
 }
 
+function makeResponseBase(bodyType, body, init) {
+  if (bodyType === 'json' && Response.json) return Response.json(body, init)
+  if (bodyType === 'text' && Response.text) return Response.text(body, init)
+  if (bodyType === 'json') return new Response(prettyJSON(body), init)
+  if (bodyType === 'text') return new Response(body, init)
+  throw new Error('Unexpected bodyType')
+}
+
+function makeResponse({ bodyType, body }, { status, statusText, headers, ok, ...extra }) {
+  // init supports only { status, statusText, headers } per spec, we have to restore the rest manually
+  const response = makeResponseBase(bodyType, body, { status, statusText, headers })
+  if (response.ok !== ok) throw new Error('Unexpected: ok mismatch')
+  // We have { url, redirected, type } to set here
+  const wrapDescriptor = ([name, value]) => [name, { value, enumerable: true, configurable: false }]
+  const descriptors = Object.fromEntries(Object.entries(extra).map((el) => wrapDescriptor(el)))
+  Object.defineProperties(response, descriptors)
+  return response
+}
+
 export function fetchReplay() {
   if (log) throw new Error('Can not replay: already recording or replaying!')
   if (!readFetchLog) throw new Error('Replaying fetch is not supported in this engine')
@@ -188,11 +207,8 @@ export function fetchReplay() {
     // Try to return a native Response
     if (typeof Response !== 'undefined') {
       try {
-        if (entry.bodyType === 'json' && Response.json) return Response.json(entry.body, props)
-        if (entry.bodyType === 'text' && Response.text) return Response.text(entry.body, props)
-        if (entry.bodyType === 'json') return new Response(prettyJSON(entry.body), props)
-        if (entry.bodyType === 'text') return new Response(entry.body, props)
-      } catch {}
+        return makeResponse(entry, props)
+      } catch {} // passthrough and return a plain object
     }
 
     const body = deserializeResponseBody(entry.body, entry.bodyType) // To support clone(), we don't want to actually return original object refs
