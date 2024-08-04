@@ -3,6 +3,7 @@ let readRecordingRaw, writeRecording, log
 const isPlainObject = (x) => x && [null, Object.prototype].includes(Object.getPrototypeOf(x))
 
 // For pretty recordings formatting
+const JSON_LINE_WIDTH = 120
 export function prettyJSON(data, { sort = false } = {}) {
   const token = globalThis.crypto?.randomUUID?.()
   const objects = []
@@ -15,7 +16,7 @@ export function prettyJSON(data, { sort = false } = {}) {
           .replaceAll(/\n\s*\]/gu, ']')
           .replaceAll(/\n\s*/gu, ' ')
         const depth = 6 // best guess: '  "": '
-        if (key.length + subtext.length + depth <= 100) {
+        if (key.length + subtext.length + depth <= JSON_LINE_WIDTH) {
           objects.push(subtext)
           return `PRETTY-${token}-${objects.length - 1}`
         }
@@ -53,6 +54,10 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
   readRecordingRaw = (resolver) => {
     const file = resolveRecording(resolver)
     try {
+      if (process.env.EXODUS_TEST_NORMALIZE_RECORDINGS) {
+        writeRecording(resolver, JSON.parse(readFileSync(file, 'utf8')))
+      }
+
       return readFileSync(file, 'utf8')
     } catch {
       throw new Error('Fetch log recording does not exist')
