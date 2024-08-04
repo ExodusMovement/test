@@ -1,4 +1,4 @@
-let readRecording, writeRecording, log
+let readRecordingRaw, writeRecording, log
 
 const isPlainObject = (x) => x && [null, Object.prototype].includes(Object.getPrototypeOf(x))
 
@@ -38,7 +38,7 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
   // eslint-disable-next-line no-undef
   const map = typeof EXODUS_TEST_RECORDINGS !== 'undefined' && new Map(EXODUS_TEST_RECORDINGS)
   const resolveRecording = (resolver, f) => resolver(f[0], f[1]).join('/')
-  readRecording = (resolver) => (baseFile ? map.get(resolveRecording(resolver, baseFile)) : null)
+  readRecordingRaw = (resolver) => (baseFile ? map.get(resolveRecording(resolver, baseFile)) : null)
 } else {
   const fsSync = await import('node:fs')
   const { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, rmdirSync } = fsSync
@@ -50,7 +50,7 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
     return pathJoin(...resolver(dirname(baseFile), basename(baseFile)))
   }
 
-  readRecording = (resolver) => {
+  readRecordingRaw = (resolver) => {
     const file = resolveRecording(resolver)
     try {
       return readFileSync(file, 'utf8')
@@ -72,6 +72,13 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
       } catch {}
     }
   }
+}
+
+function readRecording(resolver) {
+  if (!readRecordingRaw) throw new Error('Replaying recordings is not supported in this engine')
+  const data = readRecordingRaw(resolver)
+  if (typeof data !== 'string') throw new Error('Can not read recording')
+  return JSON.parse(data)
 }
 
 export { readRecording, writeRecording }
@@ -187,10 +194,7 @@ function makeResponse({ bodyType, body }, { status, statusText, headers, ok, ...
 
 export function fetchReplay() {
   if (log) throw new Error('Can not replay: already recording or replaying!')
-  if (!readRecording) throw new Error('Replaying fetch is not supported in this engine')
-  const data = readRecording(recordingResolver) // Re-initialized from start on each call
-  if (typeof data !== 'string') throw new Error('Can not read fetch recording')
-  log = JSON.parse(data)
+  log = readRecording(recordingResolver) // Re-initialized from start on each call
   for (const entry of log) entry._request = prettyJSON(entry.request, { sort: true })
   globalThis.fetch = async (resource, options = {}) => {
     const request = prettyJSON(serializeRequest(resource, options), { sort: true })
