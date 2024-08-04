@@ -189,7 +189,7 @@ export function fetchReplay() {
   if (log) throw new Error('Can not replay: already recording or replaying!')
   if (!readFetchLog) throw new Error('Replaying fetch is not supported in this engine')
   const data = readFetchLog() // Re-initialized from start on each call
-  if (typeof data !== 'string') throw new Error('Can not read ')
+  if (typeof data !== 'string') throw new Error('Can not read fetch recording')
   log = JSON.parse(data)
   for (const entry of log) entry._request = prettyJSON(entry.request, { sort: true })
   globalThis.fetch = async (resource, options = {}) => {
