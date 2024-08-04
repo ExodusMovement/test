@@ -183,23 +183,21 @@ export function fetchReplay() {
     }
 
     const { status, statusText, ok, url, redirected, type } = entry
-    const props = { status, statusText, ok, url, redirected, type }
+    const props = { status, statusText, ok, url, redirected, type, headers: getHeaders() }
 
     // Try to return a native Response
     if (typeof Response !== 'undefined') {
-      const init = { ...props, headers: getHeaders() }
       try {
-        if (entry.bodyType === 'json' && Response.json) return Response.json(entry.body, init)
-        if (entry.bodyType === 'text' && Response.text) return Response.text(entry.body, init)
-        if (entry.bodyType === 'json') return new Response(prettyJSON(entry.body), init)
-        if (entry.bodyType === 'text') return new Response(entry.body, init)
+        if (entry.bodyType === 'json' && Response.json) return Response.json(entry.body, props)
+        if (entry.bodyType === 'text' && Response.text) return Response.text(entry.body, props)
+        if (entry.bodyType === 'json') return new Response(prettyJSON(entry.body), props)
+        if (entry.bodyType === 'text') return new Response(entry.body, props)
       } catch {}
     }
 
     const body = deserializeResponseBody(entry.body, entry.bodyType) // To support clone(), we don't want to actually return original object refs
     const res = {
       ...props,
-      headers: getHeaders(),
       text: async () => body,
       json: async () => JSON.parse(body),
       clone: () => ({
