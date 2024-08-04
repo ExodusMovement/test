@@ -179,7 +179,7 @@ function makeResponse({ bodyType, body }, { status, statusText, headers, ok, ...
   const response = makeResponseBase(bodyType, body, { status, statusText, headers })
   if (response.ok !== ok) throw new Error('Unexpected: ok mismatch')
   // We have { url, redirected, type } to set here
-  const wrapDescriptor = ([name, value]) => [name, { value, enumerable: true, configurable: false }]
+  const wrapDescriptor = ([name, value]) => [name, { get: () => value, enumerable: true }]
   const descriptors = Object.fromEntries(Object.entries(extra).map((el) => wrapDescriptor(el)))
   Object.defineProperties(response, descriptors)
   return response
