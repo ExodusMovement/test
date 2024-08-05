@@ -70,3 +70,28 @@ test('javascript.info /demo/hello', async () => {
   expect(listenerMessagesBefore).toEqual(messages)
   expect(listenerMessagesAfter).toEqual(messages)
 })
+
+test('connection error', async () => {
+  const socket = new WebSocket('wss://localhost:1/')
+  expect(socket.extensions).toBe('')
+  expect(socket.protocol).toBe('')
+  expect(socket.readyState).toBe(WebSocket.CONNECTING)
+
+  const messages = []
+  socket.onmessage = (event) => messages.push(event.data)
+
+  const errorEvent = await new Promise((resolve, reject) => {
+    // Swapped on a purpose!
+    socket.onopen = reject
+    socket.onerror = resolve
+  })
+
+  expect(errorEvent.type).toBe('error')
+  expect(errorEvent.error).toBeTruthy()
+  expect(errorEvent.error instanceof Error).toBe(true)
+  expect(errorEvent.error.message).toBeString()
+
+  expect(socket.protocol).toBe('')
+  expect(messages.length).toBe(0)
+  expect(messages).toEqual([])
+})

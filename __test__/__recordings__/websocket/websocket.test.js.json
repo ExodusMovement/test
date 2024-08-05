@@ -20,5 +20,14 @@
       { "type": "get protocol", "at": 661, "value": "test" },
       { "type": "get readyState", "at": 661, "value": 3 }
     ]
+  }, {
+    "url": "wss://localhost:1/",
+    "binaryType": "blob",
+    "log": [
+      { "type": "get protocol", "at": 0, "value": "" },
+      { "type": "get readyState", "at": 1, "value": 0 },
+      { "type": "error", "at": 2, "error": { "message": "Received network error or non-101 status code." } },
+      { "type": "get protocol", "at": 2, "value": "" }
+    ]
   }
 ]

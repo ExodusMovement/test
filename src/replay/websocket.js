@@ -23,19 +23,26 @@ const throwLater = (error) => {
 }
 
 function makeEvent(type, data) {
+  const init = { ...data }
+  if (init.error) {
+    const { message, ...errorRest } = init.error
+    init.error = new Error(message)
+    Object.assign(init.error, errorRest)
+  }
+
   try {
     try {
-      if (type === 'message') return new MessageEvent(type, data)
+      if (type === 'message') return new MessageEvent(type, init)
       // if (type === 'close') // CloseEvent is not a global
       // if (type === 'error') // ErrorEvent is not a global
     } catch {}
 
     const event = new Event(type)
-    Object.assign(event, data)
+    Object.assign(event, init)
     return event
   } catch {}
 
-  return { type, ...data } // fallback
+  return { type, ...init } // fallback
 }
 
 const EventTargetClass =
@@ -182,16 +189,17 @@ class RecordWebSocket extends BaseWebSocket {
     return serialized
   }
 
-  #serializeEvent(expectedType, event) {
-    const { type, data, origin, code, reason, wasClean, defaultPrevented, cancelable } = event
-    if (!EVENT_TYPES.has(type) || expectedType !== type) throw new Error('Unexpected event type')
+  #serializeEvent(type, event) {
+    if (!EVENT_TYPES.has(type) || type !== event.type) throw new Error('Unexpected event type')
+    const { data, origin, code, reason, wasClean, defaultPrevented, cancelable } = event
     if (cancelable || defaultPrevented) throw new Error('Unexpected cancelable / defaultPrevented')
+    if (data !== undefined && typeof data !== 'string') throw new Error('Unsupported data type')
     if (type === 'error') {
-      console.log(event, event.error)
-      throw new Error('Recording errors is not supported yet')
+      const { message, code, errno } = event.error
+      return { data, origin, code, reason, wasClean, error: { message, code, errno } }
     }
 
-    if (data !== undefined && typeof data !== 'string') throw new Error('Unsupported data type')
+    if (event.error) throw new Error('Unexpected error')
     return { data, origin, code, reason, wasClean }
   }
 }
@@ -229,7 +237,6 @@ class ReplayWebSocket extends BaseWebSocket {
     if (this.#recording.log.length === 0 || USER_CALLED.has(this.#head.type)) return
     const { type, at, ...data } = this.#head
     if (!EVENT_TYPES.has(type)) throw new Error('Unexpected event type in log')
-    if (type === 'error') throw new Error('Replaying errors is not supported yet')
     this.#recording.log.shift()
     this.#nextTick(at)
     this.dispatchEvent(makeEvent(type, data))
