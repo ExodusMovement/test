@@ -236,7 +236,7 @@ class ReplayWebSocket {
   }
 }
 
-export function webSocketRecord(options = {}) {
+export function websocketRecord(options = {}) {
   if (log) throw new Error('Can not replay: already recording or replaying!')
   if (!writeRecording) throw new Error('Writing WebSocket log is not supported on this engine')
   log = []
@@ -247,7 +247,7 @@ export function webSocketRecord(options = {}) {
   return WebSocket
 }
 
-export function webSocketReplay({ interval = 0 } = {}) {
+export function websocketReplay({ interval = 0 } = {}) {
   if (log) throw new Error('Can not replay: already recording or replaying!')
   log = readRecording(recordingResolver) // Re-initialized from start on each call
   replayInterval = interval

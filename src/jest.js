@@ -6,7 +6,7 @@ import { jestModuleMocks } from './jest.mock.js'
 import * as jestTimers from './jest.timers.js'
 import './jest.snapshot.js'
 import { fetchReplay, fetchRecord } from './fetch.js'
-import { webSocketRecord, webSocketReplay } from './websocket.js'
+import { websocketRecord, websocketReplay } from './websocket.js'
 import { createCallerLocationHook, insideEsbuild } from './dark.cjs'
 import { haveValidTimers } from './version.js'
 import { expect } from 'expect'
@@ -202,8 +202,8 @@ export const jest = {
         globalThis.fetch = jest.fn()
         return globalThis.fetch
       },
-      webSocketRecord,
-      webSocketReplay,
+      websocketRecord,
+      websocketReplay,
     },
   },
   setTimeout: (x) => {
