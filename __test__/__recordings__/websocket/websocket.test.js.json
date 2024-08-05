@@ -13,12 +13,7 @@
       { "type": "send()", "at": 427, "data": "Hi there" },
       { "type": "get bufferedAmount", "at": 427, "value": 8 },
       { "type": "get bufferedAmount", "at": 427, "value": 8 },
-      {
-        "type": "message",
-        "at": 543,
-        "data": "Hello from server, there!",
-        "origin": "wss://javascript.info"
-      },
+      { "type": "message", "at": 543, "data": "Hello from server, there!", "origin": "wss://javascript.info" },
       { "type": "close()", "at": 543 },
       { "type": "get readyState", "at": 543, "value": 2 },
       { "type": "close", "at": 661, "code": 1005, "reason": "", "wasClean": true },
