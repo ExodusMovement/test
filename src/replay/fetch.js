@@ -1,32 +1,29 @@
 import { isPlainObject, prettyJSON, keySortedJSON } from './utils.js'
 
-const hex = (width, arr) => [...arr].map((x) => x.toString(16).padStart(width * 2, '0')).join('')
+const hex = (bytes) => [...bytes].map((x) => x.toString(16).padStart(2, '0')).join('')
 
 async function serializeBody(body) {
   if (!body || typeof body === 'string') return body
   const proto = Object.getPrototypeOf(body)
-  const wrap = (type, data, sub = '', rest = {}) => ({ type, [`data${sub}`]: data, ...rest })
-  const wrapHex = (type, width, data) => wrap(type, hex(width, data), '.hex')
+  const wrap = (data, sub = '', r) => ({ type: body.constructor.name, [`data${sub}`]: data, ...r })
   const { Buffer, URLSearchParams, Blob, File, FormData } = globalThis // might be undefined! not cached to allow dynamic polyfills
-  if (proto === Buffer?.prototype) return wrap('Buffer', body.toString('base64'), '.base64')
-  if (proto === URLSearchParams?.prototype) return wrap('URLSearchParams', `${body}`)
-  if (proto === ArrayBuffer.prototype) return wrapHex('ArrayBuffer', 1, new Uint8Array(body))
-  if (proto === Uint8Array.prototype) return wrapHex('Uint8Array', 1, body)
-  if (proto === Uint16Array.prototype) return wrapHex('Uint16Array', 2, body)
-  if (proto === Uint32Array.prototype) return wrapHex('Uint32Array', 4, body)
-  if (proto === Blob?.prototype) {
-    const { size, type } = body
-    return wrap('Blob', hex(1, await body.bytes()), '.hex', { meta: { size, type } })
+  if (proto === URLSearchParams?.prototype) return wrap(`${body}`)
+  if (proto === Buffer?.prototype) return wrap(body.toString('base64'), '.base64')
+  if (proto === Uint8Array.prototype) return wrap(hex(body), '.hex')
+
+  const TypedArray = Object.getPrototypeOf(Uint8Array)
+  if (body instanceof TypedArray || proto === DataView.prototype) {
+    return wrap(hex(new Uint8Array(body.buffer, body.byteOffset, body.byteLength)), '.hex')
   }
 
-  if (proto === File?.prototype) {
-    const { size, type, name } = body
-    return wrap('File', hex(1, await body.bytes()), '.hex', { meta: { size, type, name } })
+  if ([Blob?.prototype, File?.prototype].includes(proto)) {
+    const meta = { size: body.size, type: body.type }
+    if (body.name !== undefined) meta.name = body.name
+    return wrap(hex(await body.bytes()), '.hex', { meta })
   }
 
   if (proto === FormData?.prototype) {
-    const data = await Promise.all([...body].map(async ([k, v]) => [k, await serializeBody(v)]))
-    return wrap('FormData', data)
+    return wrap(await Promise.all([...body].map(async ([k, v]) => [k, await serializeBody(v)])))
   }
 
   throw new Error('Unsupported body type for fetch recording')
