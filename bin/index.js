@@ -348,9 +348,16 @@ if (tsTests.length > 0 && !options.esbuild && !options.typescript) {
 }
 
 if (!Object.hasOwn(process.env, 'NODE_ENV')) process.env.NODE_ENV = 'test'
-process.env.EXODUS_TEST_PLATFORM = options.binary // e.g. 'hermes', 'node'
-process.env.EXODUS_TEST_ENGINE = options.engine // e.g. 'hermes:bundle', 'node:bundle', 'node:test', 'node:pure'
-process.env.EXODUS_TEST_ONLY = options.only ? '1' : ''
+
+const setEnv = (name, value) => {
+  const env = process.env[name]
+  if (env && env !== value) throw new Error(`env conflict: ${name}="${env}", effective: "${value}"`)
+  process.env[name] = value
+}
+
+setEnv('EXODUS_TEST_PLATFORM', options.binary) // e.g. 'hermes', 'node'
+setEnv('EXODUS_TEST_ENGINE', options.engine) // e.g. 'hermes:bundle', 'node:bundle', 'node:test', 'node:pure'
+setEnv('EXODUS_TEST_ONLY', options.only ? '1' : '')
 
 const c8 = resolveRequire('c8/bin/c8.js')
 if (resolveImport) assert.equal(c8, resolveImport('c8/bin/c8.js'))
@@ -369,7 +376,7 @@ if (options.coverage) {
   }
 }
 
-process.env.EXODUS_TEST_EXECARGV = JSON.stringify(args)
+setEnv('EXODUS_TEST_EXECARGV', JSON.stringify(args))
 let buildFile
 
 if (options.bundle) {
@@ -435,7 +442,7 @@ if (options.pure) {
     }
   }
 
-  process.env.EXODUS_TEST_CONTEXT = 'pure'
+  setEnv('EXODUS_TEST_CONTEXT', 'pure')
   console.warn(`${options.engine} engine is experimental and may not work an expected`)
 
   const runOne = async (inputFile) => {
@@ -527,7 +534,7 @@ if (options.pure) {
   assert(!buildFile)
   assert(['node', c8].includes(options.binary), `Unexpected native engine: ${options.binary}`)
   assert(['node:test'].includes(options.engine))
-  process.env.EXODUS_TEST_CONTEXT = options.engine
+  setEnv('EXODUS_TEST_CONTEXT', options.engine)
   assert(files.length > 0) // otherwise we can run recursively
   assert(!options.binaryArgs)
   const { code } = await launch(options.binary, [...args, ...files])
