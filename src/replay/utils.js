@@ -1,9 +1,11 @@
 export const isPlainObject = (x) => x && [null, Object.prototype].includes(Object.getPrototypeOf(x))
 
+const flatten = (json) => json.replaceAll(/(\n\s*},)\n\s*({\n)/g, '$1 $2')
+
 // For pretty recordings formatting
 export function prettyJSON(data, { width = 120 } = {}) {
   const token = globalThis.crypto?.randomUUID?.()
-  if (!token) return JSON.stringify(data, undefined, 2)
+  if (!token) return flatten(JSON.stringify(data, undefined, 2))
   const objects = []
   const replacer = (key, value) => {
     if (value && (Array.isArray(value) || isPlainObject(value))) {
@@ -21,7 +23,7 @@ export function prettyJSON(data, { width = 120 } = {}) {
     return value
   }
 
-  const text = JSON.stringify(data, replacer, 2)
+  const text = flatten(JSON.stringify(data, replacer, 2))
   if (objects.length === 0) return text
   return text.replaceAll(new RegExp(`"PRETTY-${token}-(\\d+)"`, 'gu'), (_, i) => objects[Number(i)])
 }
