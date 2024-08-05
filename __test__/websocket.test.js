@@ -18,12 +18,28 @@ test('javascript.info /demo/hello', async () => {
   expect(socket.protocol).toBe('')
   expect(socket.readyState).toBe(WebSocket.CONNECTING)
 
+  // Attach a listener before .onmessage
+  const listenerMessagesBefore = []
+  socket.addEventListener('message', (event) => {
+    expect(listenerMessagesBefore).toEqual(messages)
+    listenerMessagesBefore.push(event.data)
+    expect(listenerMessagesBefore).not.toEqual(messages)
+  })
+
   const messages = []
   socket.onmessage = (event) => {
     messages.push(event.data)
     socket.close()
     expect(socket.readyState).toBe(WebSocket.CLOSING)
   }
+
+  // Attach a listener after .onmessage
+  const listenerMessagesAfter = []
+  socket.addEventListener('message', (event) => {
+    expect(listenerMessagesAfter).not.toEqual(messages)
+    listenerMessagesAfter.push(event.data)
+    expect(listenerMessagesAfter).toEqual(messages)
+  })
 
   await new Promise((resolve, reject) => {
     socket.onopen = resolve
@@ -33,6 +49,8 @@ test('javascript.info /demo/hello', async () => {
   expect(socket.protocol).toBe('test')
   expect(socket.readyState).toBe(WebSocket.OPEN)
   expect(messages.length).toBe(0)
+  expect(listenerMessagesBefore).toEqual(messages)
+  expect(listenerMessagesAfter).toEqual(messages)
 
   expect(socket.bufferedAmount).toBe(0)
   socket.send('Hi there')
@@ -49,4 +67,6 @@ test('javascript.info /demo/hello', async () => {
   expect(socket.readyState).toBe(WebSocket.CLOSED)
   expect(messages.length).toBe(1)
   expect(messages).toEqual(['Hello from server, there!'])
+  expect(listenerMessagesBefore).toEqual(messages)
+  expect(listenerMessagesAfter).toEqual(messages)
 })

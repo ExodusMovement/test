@@ -4,33 +4,94 @@ import { readRecording, writeRecording } from './fetch.js'
 
 let log, WebSocketImplementation, replayInterval
 
-const { setTimeout, clearTimeout } = globalThis
+const { setImmediate, setTimeout, clearTimeout } = globalThis
 const BINARY_TYPES = new Set(['blob', 'arraybuffer', 'nodebuffer'])
+const EVENT_TYPES = new Set(['open', 'message', 'close', 'error'])
 const recordingResolver = (dir, name) => [dir, '__recordings__', 'websocket', `${name}.json`]
 const noUndef = (obj) => Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined))
 
-class BaseWebSocket {
+const throwLater = (error) => {
+  // TODO: recheck method/timing, perhaps polyfill setImmediate on Hermes?
+  const thrower = () => {
+    throw error
+  }
+
+  return setImmediate ? setImmediate(thrower) : Promise.resolve().then(thrower)
+}
+
+function makeEvent(type, data) {
+  try {
+    try {
+      if (type === 'message') return new MessageEvent(type, data)
+      // if (type === 'close') // CloseEvent is not a global
+      // if (type === 'error') // ErrorEvent is not a global
+    } catch {}
+
+    const event = new Event(type)
+    Object.assign(event, data)
+    return event
+  } catch {}
+
+  return { type, ...data } // fallback
+}
+
+const EventTargetClass =
+  globalThis.EventTarget ||
+  class EventTarget {
+    #listeners = new Map()
+
+    #getListeners(type) {
+      if (!this.#listeners.has(type)) this.#listeners.set(type, [])
+      return this.#listeners.get(type)
+    }
+
+    addEventListener(type, fn, ...r) {
+      if (!type || !fn) throw new Error('The "type" and "listener" arguments must be specified')
+      if (r.length > 0) throw new Error('Extra parameters to addEventListener are not supported')
+      this.#getListeners(type).push(fn)
+    }
+
+    removeEventListener(type, fn, ...r) {
+      if (!type || !fn) throw new Error('The "type" and "listener" arguments must be specified')
+      if (r.length > 0) throw new Error('Extra parameters to removeEventListener are not supported')
+      const listeners = this.#getListeners(type)
+      const id = listeners.indexOf(fn)
+      if (id >= 0) listeners.splice(id, 1) // TODO: recheck if we should remove just one
+    }
+
+    dispatchEvent(event) {
+      for (const listener of this.#getListeners(event.type)) {
+        try {
+          listener.call(this, event)
+        } catch (error) {
+          throwLater(error)
+        }
+      }
+    }
+  }
+
+class BaseWebSocket extends EventTargetClass {
   static CONNECTING = 0
   static OPEN = 1
   static CLOSING = 2
   static CLOSED = 3
 
-  onopen
-  onmessage
-  onclose
-  onerror
-
   constructor(_url, protocols, ...rest) {
+    super()
     if (rest.length > 0) throw new Error('Extra parameters to WebSocket are not supported')
     if (protocols !== undefined && !Array.isArray(protocols)) throw new Error('Invalid protocols')
-  }
 
-  addEventListener() {
-    throw new Error('addEventListener() is not supported yet')
-  }
-
-  removeEventListener() {
-    throw new Error('removeEventListener() is not supported yet')
+    for (const type of EVENT_TYPES) {
+      let current
+      Object.defineProperty(this, `on${type}`, {
+        get: () => current,
+        set(value) {
+          if (current) this.removeEventListener(type, current)
+          current = value
+          this.addEventListener(type, current)
+        },
+      })
+    }
   }
 
   get extensions() {
@@ -53,28 +114,12 @@ class RecordWebSocket extends BaseWebSocket {
     this.#recording = { url: `${url}`, protocols, binaryType: this.#binaryType, log: [] }
     log.push(this.#recording)
     if (this.#ws.url !== this.#recording.url) throw new Error('Unexpected url mismatch')
-    this.#ws.onopen = (event, ...rest) => {
-      if (rest.length > 0) throw new Error('Unexpected rest args')
-      this.#logEvent('open', event)
-      if (this.onopen) this.onopen(event)
-    }
-
-    this.#ws.onmessage = (event, ...rest) => {
-      if (rest.length > 0) throw new Error('Unexpected rest args')
-      this.#logEvent('message', event)
-      if (this.onmessage) this.onmessage(event)
-    }
-
-    this.#ws.onclose = (event, ...rest) => {
-      if (rest.length > 0) throw new Error('Unexpected rest args')
-      this.#logEvent('close', event)
-      if (this.onclose) this.onclose(event)
-    }
-
-    this.#ws.onerror = (error, ...rest) => {
-      if (rest.length > 0) throw new Error('Unexpected rest args')
-      this.#log('error', { error: this.#serializeError(error) })
-      if (this.onerror) this.onerror(error)
+    for (const type of EVENT_TYPES) {
+      this.#ws[`on${type}`] = (event, ...rest) => {
+        if (rest.length > 0) throw new Error('Unexpected rest args')
+        const data = this.#logEvent(type, event)
+        this.dispatchEvent(makeEvent(type, data))
+      }
     }
   }
 
@@ -129,20 +174,22 @@ class RecordWebSocket extends BaseWebSocket {
   }
 
   #logEvent(type, event) {
-    this.#log(type, this.#serializeEvent(type, event))
+    const serialized = this.#serializeEvent(type, event)
+    this.#log(type, serialized)
+    return serialized
   }
 
   #serializeEvent(expectedType, event) {
     const { type, data, origin, code, reason, wasClean, defaultPrevented, cancelable } = event
-    if (expectedType !== type) throw new Error('Unexpected event type')
+    if (!EVENT_TYPES.has(type) || expectedType !== type) throw new Error('Unexpected event type')
     if (cancelable || defaultPrevented) throw new Error('Unexpected cancelable / defaultPrevented')
+    if (type === 'error') {
+      console.log(event, event.error)
+      throw new Error('Recording errors is not supported yet')
+    }
+
     if (data !== undefined && typeof data !== 'string') throw new Error('Unsupported data type')
     return { data, origin, code, reason, wasClean }
-  }
-
-  #serializeError(error) {
-    console.log(error)
-    throw new Error('Recording errors is not supported yet')
   }
 }
 
@@ -185,21 +232,11 @@ class ReplayWebSocket extends BaseWebSocket {
     clearTimeout(this.#timeout)
     if (this.#recording.log.length === 0 || USER_CALLED.has(this.#head.type)) return
     const { type, at, ...data } = this.#head
-    switch (type) {
-      case 'open':
-      case 'message':
-      case 'close':
-        break
-      case 'error':
-        throw new Error('Replaying errors is not supported yet')
-      default:
-        throw new Error('Unexpected event type in log')
-    }
-
+    if (!EVENT_TYPES.has(type)) throw new Error('Unexpected event type in log')
+    if (type === 'error') throw new Error('Replaying errors is not supported yet')
     this.#recording.log.shift()
     this.#nextTick(at)
-    const method = `on${type}`
-    if (this[method]) this[method]({ type, ...data }) // TODO: proper events
+    this.dispatchEvent(makeEvent(type, data))
   }
 
   #expect(type, rawData, defaults = {}, rest = []) {
