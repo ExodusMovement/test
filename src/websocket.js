@@ -31,14 +31,6 @@ class RecordWebSocket {
     if (this.#ws.url !== this.#recording.url) throw new Error('Unexpected url mismatch')
     this.#ws.onopen = (event, ...rest) => {
       if (rest.length > 0) throw new Error('Unexpected rest args')
-      if (this.#ws.protocol) {
-        this.#recording.protocol = this.#ws.protocol
-        // Keep log last in keys for readability
-        const recordingLog = this.#recording.log
-        delete this.#recording.log
-        this.#recording.log = recordingLog
-      }
-
       this.#logEvent('open', event)
       if (this.onopen) this.onopen(event)
     }
@@ -95,25 +87,25 @@ class RecordWebSocket {
     return value
   }
 
-  get extensions() {
-    return ''
-  }
-
   get protocol() {
-    if (this.#ws.protocol !== (this.#recording.protocol ?? '')) {
-      throw new Error('Unexpected protocol mismatch')
-    }
-
-    return this.#recording.protocol ?? ''
+    const value = this.#ws.protocol
+    this.#log('get protocol', { value })
+    return value
   }
 
   get readyState() {
-    throw new Error('readyState support is not implemented yet')
+    const value = this.#ws.readyState
+    this.#log('get readyState', { value })
+    return value
   }
 
   get url() {
     if (this.#ws.url !== this.#recording.url) throw new Error('Unexpected url mismatch')
     return this.#recording.url
+  }
+
+  get extensions() {
+    return ''
   }
 
   #log(type, data) {
@@ -138,7 +130,14 @@ class RecordWebSocket {
   }
 }
 
-const USER_CALLED = new Set(['send()', 'close()', 'set binaryType', 'get bufferedAmount'])
+const USER_CALLED = new Set([
+  'send()',
+  'close()',
+  'set binaryType',
+  'get bufferedAmount',
+  'get readyState',
+  'get protocol',
+])
 
 class ReplayWebSocket {
   onopen
@@ -148,7 +147,6 @@ class ReplayWebSocket {
 
   #recording
   #binaryType
-  #protocol = ''
   #timeout
 
   constructor(url, protocols, ...rest) {
@@ -179,8 +177,6 @@ class ReplayWebSocket {
     const { type, at, ...data } = this.#head
     switch (type) {
       case 'open':
-        this.#protocol = this.#recording.protocol || ''
-        break
       case 'message':
       case 'close':
         break
@@ -240,20 +236,24 @@ class ReplayWebSocket {
     return value
   }
 
-  get extensions() {
-    return ''
-  }
-
   get protocol() {
-    return this.#protocol
+    const { value } = this.#head
+    this.#expect('get protocol', { value })
+    return value
   }
 
   get readyState() {
-    throw new Error('readyState support is not implemented yet')
+    const { value } = this.#head
+    this.#expect('get readyState', { value })
+    return value
   }
 
   get url() {
     return this.#recording.url
+  }
+
+  get extensions() {
+    return ''
   }
 }
 
