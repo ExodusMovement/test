@@ -4,6 +4,10 @@ For offline testing
 
 These implementations are not specific to `@exodus/test` and can be used separately
 
+Zero-dependencies and bundleable
+
+Replayers can run in V8 / JavaScriptCore / Hermes even with no network API implemented at all
+
 ```js
 import { fetchRecorder, fetchReplayer, WebSocketRecorder, WebSocketReplayer, prettyJSON } from ...
 ```
