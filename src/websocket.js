@@ -90,7 +90,9 @@ class RecordWebSocket {
   }
 
   get bufferedAmount() {
-    throw new Error('bufferedAmount support is not implemented yet')
+    const value = this.#ws.bufferedAmount
+    this.#log('get bufferedAmount', { value })
+    return value
   }
 
   get extensions() {
@@ -136,6 +138,8 @@ class RecordWebSocket {
   }
 }
 
+const USER_CALLED = new Set(['send()', 'close()', 'set binaryType', 'get bufferedAmount'])
+
 class ReplayWebSocket {
   onopen
   onmessage
@@ -165,15 +169,13 @@ class ReplayWebSocket {
 
   #nextTick(baseAt = 0) {
     clearTimeout(this.#timeout)
-    if (this.#recording.log.length === 0) return
-    if (['send()', 'close()', 'set binaryType'].includes(this.#head.type)) return
+    if (this.#recording.log.length === 0 || USER_CALLED.has(this.#head.type)) return
     this.#timeout = setTimeout(() => this.#tick(), Math.min(this.#head.at - baseAt, replayInterval))
   }
 
   #tick() {
     clearTimeout(this.#timeout)
-    if (this.#recording.log.length === 0) return
-    if (['send()', 'close()', 'set binaryType'].includes(this.#head.type)) return
+    if (this.#recording.log.length === 0 || USER_CALLED.has(this.#head.type)) return
     const { type, at, ...data } = this.#head
     switch (type) {
       case 'open':
@@ -233,7 +235,9 @@ class ReplayWebSocket {
   }
 
   get bufferedAmount() {
-    throw new Error('bufferedAmount support is not implemented yet')
+    const { value } = this.#head
+    this.#expect('get bufferedAmount', { value })
+    return value
   }
 
   get extensions() {
