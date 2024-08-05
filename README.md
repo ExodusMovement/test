@@ -1,6 +1,6 @@
 # @exodus/test
 
-A runner for `node:test`, `jest`, and `tape` test suites on top of `node:test`
+A runner for `node:test`, `jest`, and `tape` test suites on top of `node:test` (and any runtime)
 
 Most likely it will just work on your simple jest tests as as drop-in replacement
 
@@ -9,6 +9,46 @@ Comes with typescript support, optional esm/cjs interop, and also loading babel 
 Use `--coverage` to generate coverage output
 
 Default `NODE_ENV` value is "test", use `NODE_ENV=` to override (e.g. to empty)
+
+## Why?
+
+- Can run your tests on Node.js, Bun, Deno, JavaScriptCore and Hermes without extra churn
+
+- Unlike `jest`, it is fast
+
+- Unlike `node:test`, it is a drop-in replacement for `jest`
+
+  - With `expect`, support for snapshots, mocks and matchers
+
+  - `jest-when` and `jest-extended` are fully compatible and can just be used
+
+  - Snapshots are compatible with Jest and can just be used both ways
+
+  - Also compatible to `node:test`
+
+- Unlike `bun:test`, it runs all test files in isolated contexts
+
+  Bun leaks globals / side effects between test files and has incompatible `test()` lifecycle / order
+
+- Can use Jest config
+
+- Native coverage support (enable via `--coverage`)
+
+- Can record / replay `fetch` and `WebSocket` sessions. And run them on all runtimes (including Hermes)
+
+- Automatic polyfills for JavaScriptCore / Hermes, including crypto
+
+- Hanging tests error by default (unlike `jest`)
+
+- Native ESM out of the box
+
+- Esbuild on the fly for babelified ESM interop (enable via `--esbuild`)
+
+- TypeScript support in both transform (enable via `--esbuild`) and typestrip (via `--typescript`) modes
+
+- Babel support, picks up your Babel config (enable via `--babel`)
+
+- `--drop-network` support for guaranteed offline testing
 
 ## Library
 
