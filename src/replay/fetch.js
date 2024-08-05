@@ -7,7 +7,7 @@ async function serializeBody(body) {
   const proto = Object.getPrototypeOf(body)
   const wrap = (type, data, sub = '', rest = {}) => ({ type, [`data${sub}`]: data, ...rest })
   const wrapHex = (type, width, data) => wrap(type, hex(width, data), '.hex')
-  const { Buffer, URLSearchParams, Blob } = globalThis // might be undefined! not cached to allow dynamic polyfills
+  const { Buffer, URLSearchParams, Blob, File, FormData } = globalThis // might be undefined! not cached to allow dynamic polyfills
   if (proto === Buffer?.prototype) return wrap('Buffer', body.toString('base64'), '.base64')
   if (proto === URLSearchParams?.prototype) return wrap('URLSearchParams', `${body}`)
   if (proto === ArrayBuffer.prototype) return wrapHex('ArrayBuffer', 1, new Uint8Array(body))
@@ -17,6 +17,16 @@ async function serializeBody(body) {
   if (proto === Blob?.prototype) {
     const { size, type } = body
     return wrap('Blob', hex(1, await body.bytes()), '.hex', { meta: { size, type } })
+  }
+
+  if (proto === File?.prototype) {
+    const { size, type, name } = body
+    return wrap('File', hex(1, await body.bytes()), '.hex', { meta: { size, type, name } })
+  }
+
+  if (proto === FormData?.prototype) {
+    const data = await Promise.all([...body].map(async ([k, v]) => [k, await serializeBody(v)]))
+    return wrap('FormData', data)
   }
 
   throw new Error('Unsupported body type for fetch recording')
