@@ -51,4 +51,14 @@ describe('fetch replay', () => {
     expect(res.headers.constructor).toBe(Headers)
     expect(res.headers.get('ConTent-tYpE')).toBe('application/json; charset=utf-8')
   })
+
+  test('https://example.com/404', async () => {
+    const res = await fetch('https://example.com/404')
+    expect(res.status).toBe(404)
+    expect(res.ok).toBe(false)
+    expect(res.url).toBe('https://example.com/404')
+    expect(res.type).toBe('basic')
+    await expect(res.clone().json()).rejects.toThrow(JSON_ERROR_REGEX)
+    expect(await res.text()).toMatch(/This domain is for use in illustrative examples in documents/) // same text
+  })
 })
