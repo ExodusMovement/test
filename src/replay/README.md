@@ -62,5 +62,5 @@ The output is parse-able with `JSON.parse()`
 
 For simplicity, fitting into `width` is not guaranteed, but the output is stable between runs
 
-Optionally, sort object keys: `sortKeys = true` (default to false) <- this will mutate responses!
+Optionally, sort object keys: `sortKeys = true` (default to false) <- this will mutate responses!\
 `sortKeys` support is added mostly not for logs, but for formatting e.g. request options.
