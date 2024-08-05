@@ -91,7 +91,7 @@
     "test:tape": "./bin/index.js --esbuild '__test__/tape/test/*.js' __test__/tape.test.js",
     "test:pure": "EXODUS_TEST_ENGINE=node:pure npm run test",
     "test:bun:pure": "EXODUS_TEST_ENGINE=bun:pure npm run test",
-    "test:fetch": "./bin/index.js --jest --drop-network --engine node:pure __test__/fetch.test.js",
+    "test:fetch": "./bin/index.js --jest --drop-network --engine node:pure __test__/fetch.test.js __test__/websocket.test.js",
     "coverage": "./bin/index.js --jest --esbuild --coverage",
     "lint": "prettier --list-different . && eslint .",
     "lint:fix": "prettier --write . && eslint --fix ."
