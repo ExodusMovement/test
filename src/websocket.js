@@ -9,19 +9,43 @@ const BINARY_TYPES = new Set(['blob', 'arraybuffer', 'nodebuffer'])
 const recordingResolver = (dir, name) => [dir, '__recordings__', 'websocket', `${name}.json`]
 const noUndef = (obj) => Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined))
 
-class RecordWebSocket {
+class BaseWebSocket {
+  static CONNECTING = 0
+  static OPEN = 1
+  static CLOSING = 2
+  static CLOSED = 3
+
   onopen
   onmessage
   onclose
   onerror
 
+  constructor(_url, protocols, ...rest) {
+    if (rest.length > 0) throw new Error('Extra parameters to WebSocket are not supported')
+    if (protocols !== undefined && !Array.isArray(protocols)) throw new Error('Invalid protocols')
+  }
+
+  addEventListener() {
+    throw new Error('addEventListener() is not supported yet')
+  }
+
+  removeEventListener() {
+    throw new Error('removeEventListener() is not supported yet')
+  }
+
+  get extensions() {
+    return ''
+  }
+}
+
+class RecordWebSocket extends BaseWebSocket {
   #ws
   #recording
   #start
   #binaryType
 
   constructor(url, protocols, ...rest) {
-    if (rest.length > 0) throw new Error('Extra parameters to WebSocket are not supported')
+    super(url, protocols, ...rest)
     this.#start = Date.now()
     this.#ws = new WebSocketImplementation(url, protocols)
     this.#binaryType = this.#ws.binaryType
@@ -66,10 +90,6 @@ class RecordWebSocket {
     this.#ws.close(code, reason)
   }
 
-  addEventListener() {
-    throw new Error('addEventListener() is not supported yet')
-  }
-
   get binaryType() {
     if (this.#binaryType !== this.#ws.binaryType) throw new Error('Unexpected binaryType mismatch')
     return this.#ws.binaryType
@@ -104,10 +124,6 @@ class RecordWebSocket {
     return this.#recording.url
   }
 
-  get extensions() {
-    return ''
-  }
-
   #log(type, data) {
     this.#recording.log.push({ type, at: Date.now() - this.#start, ...noUndef(data) })
   }
@@ -139,19 +155,13 @@ const USER_CALLED = new Set([
   'get protocol',
 ])
 
-class ReplayWebSocket {
-  onopen
-  onmessage
-  onclose
-  onerror
-
+class ReplayWebSocket extends BaseWebSocket {
   #recording
   #binaryType
   #timeout
 
   constructor(url, protocols, ...rest) {
-    if (rest.length > 0) throw new Error('Extra parameters to WebSocket are not supported')
-    if (protocols !== undefined && !Array.isArray(protocols)) throw new Error('Invalid protocols')
+    super(url, protocols, ...rest)
     const tokey = (x) => JSON.stringify(x)
     const id = log.findIndex((x) => x.url === `${url}` && tokey(protocols) === tokey(x.protocols))
     if (id < 0) throw new Error(`Request to ${url} not found, ${log.length} more entries left`)
@@ -217,10 +227,6 @@ class ReplayWebSocket {
     this.#expect('close()', { code, reason }, { code: 1000, reason: '' }, rest)
   }
 
-  addEventListener() {
-    throw new Error('addEventListener() is not supported yet')
-  }
-
   get binaryType() {
     return this.#binaryType
   }
@@ -250,10 +256,6 @@ class ReplayWebSocket {
 
   get url() {
     return this.#recording.url
-  }
-
-  get extensions() {
-    return ''
   }
 }
 
