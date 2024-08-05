@@ -5,4 +5,6 @@ __test__/tape/
 __test__/jest/jest-repo/
 __test__/jest-extended/
 __test__/jest-when/when.test.cjs
+__snapshots__
+__recordings__
 tempout.*
