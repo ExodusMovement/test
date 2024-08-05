@@ -7,6 +7,14 @@ let log, WebSocketImplementation, replayInterval
 const { setImmediate, setTimeout, clearTimeout } = globalThis
 const BINARY_TYPES = new Set(['blob', 'arraybuffer', 'nodebuffer'])
 const EVENT_TYPES = new Set(['open', 'message', 'close', 'error'])
+const USER_CALLED = new Set([
+  'send()',
+  'close()',
+  'set binaryType',
+  'get bufferedAmount',
+  'get readyState',
+  'get protocol',
+])
 const recordingResolver = (dir, name) => [dir, '__recordings__', 'websocket', `${name}.json`]
 const noUndef = (obj) => Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined))
 
@@ -192,15 +200,6 @@ class RecordWebSocket extends BaseWebSocket {
     return { data, origin, code, reason, wasClean }
   }
 }
-
-const USER_CALLED = new Set([
-  'send()',
-  'close()',
-  'set binaryType',
-  'get bufferedAmount',
-  'get readyState',
-  'get protocol',
-])
 
 class ReplayWebSocket extends BaseWebSocket {
   #recording
