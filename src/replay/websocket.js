@@ -1,9 +1,5 @@
 /* eslint-disable unicorn/prefer-add-event-listener */
 
-import { readRecording, writeRecording } from './fetch.js'
-
-let log, WebSocketImplementation, replayInterval
-
 const { setImmediate, setTimeout, clearTimeout } = globalThis
 const BINARY_TYPES = new Set(['blob', 'arraybuffer', 'nodebuffer'])
 const EVENT_TYPES = new Set(['open', 'message', 'close', 'error'])
@@ -15,7 +11,6 @@ const USER_CALLED = new Set([
   'get readyState',
   'get protocol',
 ])
-const recordingResolver = (dir, name) => [dir, '__recordings__', 'websocket', `${name}.json`]
 const noUndef = (obj) => Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined))
 
 const throwLater = (error) => {
@@ -113,7 +108,7 @@ class RecordWebSocket extends BaseWebSocket {
   #start
   #binaryType
 
-  constructor(url, protocols, ...rest) {
+  constructor(log, WebSocketImplementation, url, protocols, ...rest) {
     super(url, protocols, ...rest)
     this.#start = Date.now()
     this.#ws = new WebSocketImplementation(url, protocols)
@@ -205,12 +200,14 @@ class ReplayWebSocket extends BaseWebSocket {
   #recording
   #binaryType
   #timeout
+  #interval
 
-  constructor(url, protocols, ...rest) {
+  constructor(log, interval, url, protocols, ...rest) {
     super(url, protocols, ...rest)
     const tokey = (x) => JSON.stringify(x)
     const id = log.findIndex((x) => x.url === `${url}` && tokey(protocols) === tokey(x.protocols))
     if (id < 0) throw new Error(`Request to ${url} not found, ${log.length} more entries left`)
+    this.#interval = interval
     this.#recording = log.splice(id, 1)[0]
     this.#binaryType = this.#recording.binaryType || BINARY_TYPES[0]
     this.#nextTick(0)
@@ -224,7 +221,7 @@ class ReplayWebSocket extends BaseWebSocket {
   #nextTick(baseAt = 0) {
     clearTimeout(this.#timeout)
     if (this.#recording.log.length === 0 || USER_CALLED.has(this.#head.type)) return
-    this.#timeout = setTimeout(() => this.#tick(), Math.min(this.#head.at - baseAt, replayInterval))
+    this.#timeout = setTimeout(() => this.#tick(), Math.min(this.#head.at - baseAt, this.#interval))
   }
 
   #tick() {
@@ -295,22 +292,20 @@ class ReplayWebSocket extends BaseWebSocket {
   }
 }
 
-export function websocketRecord(options = {}) {
-  if (log) throw new Error('Can not replay: already recording or replaying!')
-  if (!writeRecording) throw new Error('Writing WebSocket log is not supported on this engine')
-  log = []
-  WebSocketImplementation = options.WebSocket || WebSocketImplementation || globalThis.WebSocket
-  process.on('exit', () => writeRecording(recordingResolver, log))
-  const WebSocket = class WebSocket extends RecordWebSocket {}
-  globalThis.WebSocket = WebSocket
-  return WebSocket
+export function WebSocketRecorder(log, { WebSocket: realWebSocket = globalThis.WebSocket } = {}) {
+  if (!Array.isArray(log)) throw new Error('log should be passed')
+  return class WebSocket extends RecordWebSocket {
+    constructor(...args) {
+      super(log, realWebSocket, ...args) // log is not cloned as it's the output, we append to it
+    }
+  }
 }
 
-export function websocketReplay({ interval = 0 } = {}) {
-  if (log) throw new Error('Can not replay: already recording or replaying!')
-  log = readRecording(recordingResolver) // Re-initialized from start on each call
-  replayInterval = interval
-  const WebSocket = class WebSocket extends ReplayWebSocket {}
-  globalThis.WebSocket = WebSocket
-  return WebSocket
+export function WebSocketReplayer(log, { interval = 0 } = {}) {
+  if (!Array.isArray(log)) throw new Error('log should be passed')
+  return class WebSocket extends ReplayWebSocket {
+    constructor(...args) {
+      super([...log], interval, ...args) // log is cloned as we mutate it
+    }
+  }
 }

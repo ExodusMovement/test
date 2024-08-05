@@ -1,92 +1,4 @@
-let readRecordingRaw, writeRecording, log
-
-const isPlainObject = (x) => x && [null, Object.prototype].includes(Object.getPrototypeOf(x))
-
-// For pretty recordings formatting
-const JSON_LINE_WIDTH = 120
-export function prettyJSON(data, { sort = false } = {}) {
-  const token = globalThis.crypto?.randomUUID?.()
-  const objects = []
-  const replacer = (key, value) => {
-    if (value && (Array.isArray(value) || isPlainObject(value))) {
-      if (sort && isPlainObject(value)) value = Object.fromEntries(Object.entries(value).sort()) // be stable
-      if (token) {
-        const subtext = JSON.stringify(value, null, 1)
-          .replaceAll(/\[\n\s*/gu, '[')
-          .replaceAll(/\n\s*\]/gu, ']')
-          .replaceAll(/\n\s*/gu, ' ')
-        const depth = 6 // best guess: '  "": '
-        if (key.length + subtext.length + depth <= JSON_LINE_WIDTH) {
-          objects.push(subtext)
-          return `PRETTY-${token}-${objects.length - 1}`
-        }
-      }
-    }
-
-    return value
-  }
-
-  const text = JSON.stringify(data, replacer, 2)
-  if (!token || objects.length === 0) return text
-  return text.replaceAll(new RegExp(`"PRETTY-${token}-(\\d+)"`, 'gu'), (_, i) => objects[Number(i)])
-}
-
-const recordingResolver = (dir, name) => [dir, '__recordings__', 'fetch', `${name}.json`]
-if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
-  // eslint-disable-next-line no-undef
-  const files = EXODUS_TEST_FILES
-  const baseFile = files.length === 1 ? files[0] : undefined
-  // eslint-disable-next-line no-undef
-  const map = typeof EXODUS_TEST_RECORDINGS !== 'undefined' && new Map(EXODUS_TEST_RECORDINGS)
-  const resolveRecording = (resolver, f) => resolver(f[0], f[1]).join('/')
-  readRecordingRaw = (resolver) => (baseFile ? map.get(resolveRecording(resolver, baseFile)) : null)
-} else {
-  const fsSync = await import('node:fs')
-  const { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, rmdirSync } = fsSync
-  const { dirname, basename, normalize, join: pathJoin } = await import('node:path')
-  const files = process.argv.slice(1)
-  const baseFile = files.length === 1 && existsSync(files[0]) ? normalize(files[0]) : undefined
-  const resolveRecording = (resolver) => {
-    if (!baseFile) throw new Error('Can not resolve recordings location')
-    return pathJoin(...resolver(dirname(baseFile), basename(baseFile)))
-  }
-
-  readRecordingRaw = (resolver) => {
-    const file = resolveRecording(resolver)
-    try {
-      if (process.env.EXODUS_TEST_NORMALIZE_RECORDINGS) {
-        writeRecording(resolver, JSON.parse(readFileSync(file, 'utf8')))
-      }
-
-      return readFileSync(file, 'utf8')
-    } catch {
-      throw new Error('Fetch log recording does not exist')
-    }
-  }
-
-  writeRecording = (resolver, entries) => {
-    const file = resolveRecording(resolver)
-    if (entries.length > 0) {
-      mkdirSync(dirname(file), { recursive: true })
-      writeFileSync(file, `${prettyJSON(entries)}\n`)
-    } else {
-      try {
-        rmSync(file)
-        rmdirSync(dirname(file))
-        rmdirSync(dirname(dirname(file)))
-      } catch {}
-    }
-  }
-}
-
-function readRecording(resolver) {
-  if (!readRecordingRaw) throw new Error('Replaying recordings is not supported in this engine')
-  const data = readRecordingRaw(resolver)
-  if (typeof data !== 'string') throw new Error('Can not read recording')
-  return JSON.parse(data)
-}
-
-export { readRecording, writeRecording }
+import { isPlainObject, prettyJSON } from './utils.js'
 
 function serializeBody(body) {
   if (!body || typeof body === 'string') return body
@@ -164,21 +76,6 @@ const serializeResponse = async (resource, options = {}, response) => {
   }
 }
 
-export function fetchRecord() {
-  if (log) throw new Error('Can not record again: already recording or replaying!')
-  if (!writeRecording) throw new Error('Writing fetch log is not supported on this engine')
-  log = []
-  process.on('exit', () => writeRecording(recordingResolver, log))
-  const realFetch = globalThis.fetch // can not save earlier as we want an overriden version if users overrides it in setup
-  globalThis.fetch = async function fetch(resource, options) {
-    const res = await realFetch(resource, options)
-    log.push(await serializeResponse(resource, options, res))
-    return res
-  }
-
-  return globalThis.fetch
-}
-
 function makeResponseBase(bodyType, body, init) {
   if (bodyType === 'json' && Response.json) return Response.json(body, init)
   if (bodyType === 'text' && Response.text) return Response.text(body, init)
@@ -197,12 +94,20 @@ function makeResponse({ bodyType, body }, { status, statusText, headers, ok, ...
   return response
 }
 
-export function fetchReplay() {
-  if (log) throw new Error('Can not replay: already recording or replaying!')
-  log = readRecording(recordingResolver) // Re-initialized from start on each call
-  for (const entry of log) entry._request = prettyJSON(entry.request, { sort: true })
-  globalThis.fetch = async (resource, options = {}) => {
-    const request = prettyJSON(serializeRequest(resource, options), { sort: true })
+export function fetchRecorder(log, { fetch: realFetch = globalThis.fetch } = {}) {
+  if (!Array.isArray(log)) throw new Error('log should be passed')
+  return async function fetch(resource, options) {
+    const res = await realFetch(resource, options)
+    log.push(await serializeResponse(resource, options, res))
+    return res
+  }
+}
+
+export function fetchReplayer(log) {
+  if (!Array.isArray(log)) throw new Error('log should be passed')
+  log = log.map((entry) => ({ _request: prettyJSON(entry.request, { sortKeys: true }), ...entry })) // cloned as we mutate it
+  return async function fetch(resource, options = {}) {
+    const request = prettyJSON(serializeRequest(resource, options), { sortKeys: true })
     const id = log.findIndex((entry) => entry._request === request)
     if (id < 0) throw new Error(`Request to ${resource} not found, ${log.length} more entries left`)
     const [entry] = log.splice(id, 1)
@@ -220,6 +125,4 @@ export function fetchReplay() {
     res.clone = () => ({ ...res, headers: getHeaders() })
     return res
   }
-
-  return globalThis.fetch
 }
