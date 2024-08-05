@@ -1,8 +1,7 @@
 export const isPlainObject = (x) => x && [null, Object.prototype].includes(Object.getPrototypeOf(x))
 
 // For pretty recordings formatting
-const JSON_LINE_WIDTH = 120
-export function prettyJSON(data, { sortKeys = false, width = JSON_LINE_WIDTH } = {}) {
+export function prettyJSON(data, { sortKeys = false, width = 120 } = {}) {
   const token = globalThis.crypto?.randomUUID?.()
   const objects = []
   const replacer = (key, value) => {
