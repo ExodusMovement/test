@@ -20,17 +20,25 @@ class RecordWebSocket {
   #start
   #binaryType
 
-  constructor(url, ...rest) {
+  constructor(url, protocols, ...rest) {
     if (rest.length > 0) throw new Error('Extra parameters to WebSocket are not supported')
     this.#start = Date.now()
-    this.#ws = new WebSocketImplementation(url)
+    this.#ws = new WebSocketImplementation(url, protocols)
     this.#binaryType = this.#ws.binaryType
     if (!BINARY_TYPES.has(this.#binaryType)) throw new Error('Unexpected binaryType')
-    this.#recording = { url: `${url}`, binaryType: this.#binaryType, log: [] }
+    this.#recording = { url: `${url}`, protocols, binaryType: this.#binaryType, log: [] }
     log.push(this.#recording)
     if (this.#ws.url !== this.#recording.url) throw new Error('Unexpected url mismatch')
     this.#ws.onopen = (event, ...rest) => {
       if (rest.length > 0) throw new Error('Unexpected rest args')
+      if (this.#ws.protocol) {
+        this.#recording.protocol = this.#ws.protocol
+        // Keep log last in keys for readability
+        const recordingLog = this.#recording.log
+        delete this.#recording.log
+        this.#recording.log = recordingLog
+      }
+
       this.#logEvent('open', event)
       if (this.onopen) this.onopen(event)
     }
@@ -86,11 +94,15 @@ class RecordWebSocket {
   }
 
   get extensions() {
-    throw new Error('extensions support is not implemented yet')
+    return ''
   }
 
   get protocol() {
-    throw new Error('protocol support is not implemented yet')
+    if (this.#ws.protocol !== (this.#recording.protocol ?? '')) {
+      throw new Error('Unexpected protocol mismatch')
+    }
+
+    return this.#recording.protocol ?? ''
   }
 
   get readyState() {
@@ -132,11 +144,14 @@ class ReplayWebSocket {
 
   #recording
   #binaryType
+  #protocol = ''
   #timeout
 
-  constructor(url, ...rest) {
+  constructor(url, protocols, ...rest) {
     if (rest.length > 0) throw new Error('Extra parameters to WebSocket are not supported')
-    const id = log.findIndex((x) => x.url === `${url}`)
+    if (protocols !== undefined && !Array.isArray(protocols)) throw new Error('Invalid protocols')
+    const tokey = (x) => JSON.stringify(x)
+    const id = log.findIndex((x) => x.url === `${url}` && tokey(protocols) === tokey(x.protocols))
     if (id < 0) throw new Error(`Request to ${url} not found, ${log.length} more entries left`)
     this.#recording = log.splice(id, 1)[0]
     this.#binaryType = this.#recording.binaryType || BINARY_TYPES[0]
@@ -162,6 +177,8 @@ class ReplayWebSocket {
     const { type, at, ...data } = this.#head
     switch (type) {
       case 'open':
+        this.#protocol = this.#recording.protocol || ''
+        break
       case 'message':
       case 'close':
         break
@@ -220,11 +237,11 @@ class ReplayWebSocket {
   }
 
   get extensions() {
-    throw new Error('extensions support is not implemented yet')
+    return ''
   }
 
   get protocol() {
-    throw new Error('protocol support is not implemented yet')
+    return this.#protocol
   }
 
   get readyState() {
