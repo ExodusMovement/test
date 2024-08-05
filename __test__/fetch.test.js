@@ -1,6 +1,8 @@
 jest.exodus.mock.fetchReplay()
 // jest.exodus.mock.fetchRecord()
 
+const JSON_ERROR_REGEX = /(not valid JSON|^JSON Parse error|^Unexpected token .* in JSON)/
+
 describe('fetch replay', () => {
   test('https://example.com', async () => {
     const res = await fetch('https://example.com')
@@ -8,7 +10,7 @@ describe('fetch replay', () => {
     expect(res.ok).toBe(true)
     expect(res.url).toBe('https://example.com/') // Normalized!
     expect(res.type).toBe('basic')
-    await expect(res.clone().json()).rejects.toThrow(/Unexpected token/)
+    await expect(res.clone().json()).rejects.toThrow(JSON_ERROR_REGEX)
     expect(await res.text()).toMatch(/This domain is for use in illustrative examples in documents/)
   })
 
