@@ -1,13 +1,24 @@
 import { isPlainObject, prettyJSON, keySortedJSON } from './utils.js'
 
-function serializeBody(body) {
+const hex = (width, arr) => [...arr].map((x) => x.toString(16).padStart(width * 2, '0')).join('')
+
+async function serializeBody(body) {
   if (!body || typeof body === 'string') return body
   const proto = Object.getPrototypeOf(body)
-  const wrap = (type, data, sub = '') => ({ type, [`data${sub}`]: data })
-  const { Buffer } = globalThis
+  const wrap = (type, data, sub = '', rest = {}) => ({ type, [`data${sub}`]: data, ...rest })
+  const wrapHex = (type, width, data) => wrap(type, hex(width, data), '.hex')
+  const { Buffer, URLSearchParams, Blob } = globalThis // might be undefined! not cached to allow dynamic polyfills
   if (proto === Buffer?.prototype) return wrap('Buffer', body.toString('base64'), '.base64')
-  if (proto === ArrayBuffer.prototype) return wrap('ArrayBuffer', [...new Uint8Array(body)])
-  if (proto === Uint8Array.prototype) return wrap('Uint8Array', [...body])
+  if (proto === URLSearchParams?.prototype) return wrap('URLSearchParams', `${body}`)
+  if (proto === ArrayBuffer.prototype) return wrapHex('ArrayBuffer', 1, new Uint8Array(body))
+  if (proto === Uint8Array.prototype) return wrapHex('Uint8Array', 1, body)
+  if (proto === Uint16Array.prototype) return wrapHex('Uint16Array', 2, body)
+  if (proto === Uint32Array.prototype) return wrapHex('Uint32Array', 4, body)
+  if (proto === Blob?.prototype) {
+    const { size, type } = body
+    return wrap('Blob', hex(1, await body.bytes()), '.hex', { meta: { size, type } })
+  }
+
   throw new Error('Unsupported body type for fetch recording')
 }
 
@@ -27,7 +38,7 @@ const sortHeaders = (headers) => {
   })
 }
 
-const serializeRequest = (resource, options = {}) => {
+const serializeRequest = async (resource, options = {}) => {
   const serializable = Object.entries(options).filter(([key, value]) => {
     if (key === 'body' || key === 'headers') return false // included directly
     if (key === 'signal') return false // ignored
@@ -39,7 +50,7 @@ const serializeRequest = (resource, options = {}) => {
     resource: `${resource}`,
     options: {
       ...Object.fromEntries(serializable),
-      body: serializeBody(options.body),
+      body: await serializeBody(options.body),
       headers: sortHeaders(serializeHeaders(options.headers)),
     },
   }
@@ -64,7 +75,7 @@ function deserializeResponseBody(body, bodyType) {
 const serializeResponse = async (resource, options = {}, response) => {
   if (response.type !== 'basic') throw new Error('Can not record fetch response')
   return {
-    request: serializeRequest(resource, options),
+    request: await serializeRequest(resource, options),
     status: response.status,
     statusText: response.statusText,
     ok: response.ok,
@@ -107,7 +118,7 @@ export function fetchReplayer(log) {
   if (!Array.isArray(log)) throw new Error('log should be passed')
   log = log.map((entry) => ({ _request: keySortedJSON(entry.request), ...entry })) // cloned as we mutate it
   return async function fetch(resource, options = {}) {
-    const request = keySortedJSON(serializeRequest(resource, options))
+    const request = keySortedJSON(await serializeRequest(resource, options))
     const id = log.findIndex((entry) => entry._request === request)
     if (id < 0) throw new Error(`Request to ${resource} not found, ${log.length} more entries left`)
     const [entry] = log.splice(id, 1)
