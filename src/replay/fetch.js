@@ -1,4 +1,4 @@
-import { isPlainObject, prettyJSON } from './utils.js'
+import { isPlainObject, prettyJSON, keySortedJSON } from './utils.js'
 
 function serializeBody(body) {
   if (!body || typeof body === 'string') return body
@@ -105,9 +105,9 @@ export function fetchRecorder(log, { fetch: realFetch = globalThis.fetch } = {})
 
 export function fetchReplayer(log) {
   if (!Array.isArray(log)) throw new Error('log should be passed')
-  log = log.map((entry) => ({ _request: prettyJSON(entry.request, { sortKeys: true }), ...entry })) // cloned as we mutate it
+  log = log.map((entry) => ({ _request: keySortedJSON(entry.request), ...entry })) // cloned as we mutate it
   return async function fetch(resource, options = {}) {
-    const request = prettyJSON(serializeRequest(resource, options), { sortKeys: true })
+    const request = keySortedJSON(serializeRequest(resource, options))
     const id = log.findIndex((entry) => entry._request === request)
     if (id < 0) throw new Error(`Request to ${resource} not found, ${log.length} more entries left`)
     const [entry] = log.splice(id, 1)

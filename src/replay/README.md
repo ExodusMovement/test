@@ -56,7 +56,7 @@ Optionally, `interval` can be used to control replay speed:
 
 - `interval = number` for delay between events of `Math.min(number, recorededDelay)`
 
-### `prettyJSON(data, { sortKeys = false, width = 120 })`
+### `prettyJSON(data, { width = 120 })`
 
 Use it to pretty-print logs: `prettyJSON(log)`
 
@@ -65,6 +65,3 @@ Like `JSON.stringify()`, but with pretty-printing for readability and ease if in
 The output is parse-able with `JSON.parse()`
 
 For simplicity, fitting into `width` is not guaranteed, but the output is stable between runs
-
-Optionally, sort object keys: `sortKeys = true` (default to false) <- this will mutate responses!\
-`sortKeys` support is added mostly not for logs, but for formatting e.g. request options.
