@@ -1,5 +1,7 @@
 /* eslint-disable unicorn/prefer-add-event-listener */
 
+import { deserializeBody, bodyMatches } from './utils.js'
+
 const { setImmediate, setTimeout, clearTimeout } = globalThis
 const EVENT_TYPES = new Set(['open', 'message', 'close', 'error'])
 const USER_CALLED = new Set([
@@ -22,8 +24,9 @@ const throwLater = (error) => {
   return setImmediate ? setImmediate(thrower) : Promise.resolve().then(thrower)
 }
 
-function makeEvent(type, data) {
-  const init = { ...data }
+function makeEvent(type, { data, ...rest } = {}) {
+  const init = { ...rest }
+  if (data !== undefined) init.data = deserializeBody(data)
   if (init.error) {
     const { message, ...errorRest } = init.error
     init.error = new Error(message)
@@ -246,7 +249,8 @@ class ReplayWebSocket extends BaseWebSocket {
     for (const k of new Set([...Object.keys(data), ...Object.keys(exp)])) {
       if (!Object.hasOwn(data, k)) throw new Error(`Unexpected WebSocket#${type} with missing ${k}`)
       if (!Object.hasOwn(exp, k)) throw new Error(`Unexpected WebSocket#${type} with extra ${k}`)
-      if (data[k] !== exp[k]) throw new Error(`Unexpected WebSocket#${type} with mismatching ${k}`)
+      const ok = k === 'data' ? bodyMatches(data[k], exp[k]) : data[k] === exp[k]
+      if (!ok) throw new Error(`Unexpected WebSocket#${type} with mismatching ${k}`)
     }
 
     this.#recording.log.shift()
