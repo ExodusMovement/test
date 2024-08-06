@@ -37,7 +37,8 @@ export const keySortedJSON = (data) =>
 const hex = (bytes) => [...bytes].map((x) => x.toString(16).padStart(2, '0')).join('')
 
 // For request body and message serialization
-export async function serializeBody(body) {
+// Returns a promise for Blob / File or FormData with Blob / File, is sync otherwise
+export function serializeBody(body) {
   if (!body || typeof body === 'string') return body
   const proto = Object.getPrototypeOf(body)
   const wrap = (data, sub = '', r) => ({ type: body.constructor.name, [`data${sub}`]: data, ...r })
@@ -55,11 +56,13 @@ export async function serializeBody(body) {
   if ([Blob?.prototype, File?.prototype].includes(proto)) {
     const meta = { size: body.size, type: body.type }
     if (body.name !== undefined) meta.name = body.name
-    return wrap(hex(await body.bytes()), '.hex', { meta })
+    return (async () => wrap(hex(await body.bytes()), '.hex', { meta }))()
   }
 
   if (proto === FormData?.prototype) {
-    return wrap(await Promise.all([...body].map(async ([k, v]) => [k, await serializeBody(v)])))
+    const entries = [...body].map(([k, v]) => [k, serializeBody(v)])
+    if (!entries.some(([_, v]) => typeof v?.then === 'function')) return wrap(entries) // can be sync then
+    return (async () => wrap(await Promise.all(entries.map(async ([k, v]) => [k, await v]))))()
   }
 
   throw new Error('Unsupported body type for recording')
