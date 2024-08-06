@@ -297,11 +297,12 @@ class ReplayWebSocket extends BaseWebSocket {
   }
 }
 
-export function WebSocketRecorder(log, { WebSocket: realWebSocket = globalThis.WebSocket } = {}) {
+export function WebSocketRecorder(log, { WebSocket: _WebSocket = globalThis.WebSocket } = {}) {
   if (!Array.isArray(log)) throw new Error('log should be passed')
+  if (!_WebSocket) throw new Error('No WebSocket implementation passed, no global WebSocket exists')
   return class WebSocket extends RecordWebSocket {
     constructor(...args) {
-      super(log, realWebSocket, ...args) // log is not cloned as it's the output, we append to it
+      super(log, _WebSocket, ...args) // log is not cloned as it's the output, we append to it
     }
   }
 }

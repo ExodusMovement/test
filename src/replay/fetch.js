@@ -83,10 +83,11 @@ function makeResponse({ bodyType, body }, { status, statusText, headers, ok, ...
   return response
 }
 
-export function fetchRecorder(log, { fetch: realFetch = globalThis.fetch } = {}) {
+export function fetchRecorder(log, { fetch: _fetch = globalThis.fetch?.bind?.(globalThis) } = {}) {
   if (!Array.isArray(log)) throw new Error('log should be passed')
+  if (!_fetch) throw new Error('No fetch implementation passed, no global fetch exists')
   return async function fetch(resource, options) {
-    const res = await realFetch(resource, options)
+    const res = await _fetch(resource, options)
     log.push(await serializeResponse(resource, options, res))
     return res
   }
