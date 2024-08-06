@@ -4,14 +4,13 @@ import { serializeBody, deserializeBody, bodyMatches } from './utils.js'
 
 const { setImmediate, setTimeout, clearTimeout } = globalThis
 const EVENT_TYPES = new Set(['open', 'message', 'close', 'error'])
+const METHODS = new Set(['send()', 'close()'])
+const GETTERS = new Set(['binaryType', 'bufferedAmount', 'readyState', 'protocol'])
+const SETTERS = new Set(['binaryType']) // must be a subset of getters, see usage
 const USER_CALLED = new Set([
-  'send()',
-  'close()',
-  'set binaryType',
-  'get binaryType',
-  'get bufferedAmount',
-  'get readyState',
-  'get protocol',
+  ...METHODS,
+  ...[...SETTERS].map((x) => `set ${x}`),
+  ...[...GETTERS].map((x) => `get ${x}`),
 ])
 const noUndef = (obj) => Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined))
 
@@ -125,6 +124,14 @@ class BaseWebSocket extends EventTargetClass {
         },
       })
     }
+
+    for (const name of GETTERS) {
+      Object.defineProperty(this, name, {
+        enumerable: true,
+        get: this._makeGetter(name),
+        set: SETTERS.has(name) ? this._makeSetter(name) : undefined,
+      })
+    }
   }
 
   get extensions() {
@@ -169,6 +176,21 @@ class RecordWebSocket extends BaseWebSocket {
     }
   }
 
+  _makeGetter(name) {
+    return () => {
+      const value = this.#ws[name]
+      this.#log(`get ${name}`, { value })
+      return value
+    }
+  }
+
+  _makeSetter(name) {
+    return (value) => {
+      this.#log(`set ${name}`, { value })
+      this.#ws[name] = value
+    }
+  }
+
   _sendSerialized(serialized, original) {
     this.#log('send()', { data: serialized })
     this.#ws.send(original)
@@ -177,35 +199,6 @@ class RecordWebSocket extends BaseWebSocket {
   close(code, reason) {
     this.#log('close()', { code, reason })
     this.#ws.close(code, reason)
-  }
-
-  get binaryType() {
-    const value = this.#ws.binaryType
-    this.#log('get binaryType', { value })
-    return value
-  }
-
-  set binaryType(value) {
-    this.#log('set binaryType', { value })
-    this.#ws.binaryType = value
-  }
-
-  get bufferedAmount() {
-    const value = this.#ws.bufferedAmount
-    this.#log('get bufferedAmount', { value })
-    return value
-  }
-
-  get protocol() {
-    const value = this.#ws.protocol
-    this.#log('get protocol', { value })
-    return value
-  }
-
-  get readyState() {
-    const value = this.#ws.readyState
-    this.#log('get readyState', { value })
-    return value
   }
 
   get url() {
@@ -291,40 +284,24 @@ class ReplayWebSocket extends BaseWebSocket {
     this.#nextTick(at)
   }
 
+  _makeGetter(name) {
+    return () => {
+      const { value } = this.#head
+      this.#expect(`get ${name}`, { value })
+      return value
+    }
+  }
+
+  _makeSetter(name) {
+    return (value) => this.#expect(`set ${name}`, { value })
+  }
+
   _sendSerialized(serialized) {
     this.#expect('send()', { data: serialized })
   }
 
   close(code, reason, ...rest) {
     this.#expect('close()', { code, reason }, { code: 1000, reason: '' }, rest)
-  }
-
-  get binaryType() {
-    const { value } = this.#head
-    this.#expect('get binaryType', { value })
-    return value
-  }
-
-  set binaryType(value) {
-    this.#expect('set binaryType', { value })
-  }
-
-  get bufferedAmount() {
-    const { value } = this.#head
-    this.#expect('get bufferedAmount', { value })
-    return value
-  }
-
-  get protocol() {
-    const { value } = this.#head
-    this.#expect('get protocol', { value })
-    return value
-  }
-
-  get readyState() {
-    const { value } = this.#head
-    this.#expect('get readyState', { value })
-    return value
   }
 
   get url() {
