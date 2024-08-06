@@ -10,6 +10,7 @@ async function serializeBody(body) {
   if (proto === URLSearchParams?.prototype) return wrap(`${body}`)
   if (proto === Buffer?.prototype) return wrap(body.toString('base64'), '.base64')
   if (proto === Uint8Array.prototype) return wrap(hex(body), '.hex')
+  if (proto === ArrayBuffer.prototype) return wrap(hex(new Uint8Array(body)), '.hex')
 
   const TypedArray = Object.getPrototypeOf(Uint8Array)
   if (body instanceof TypedArray || proto === DataView.prototype) {
