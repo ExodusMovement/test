@@ -1,6 +1,6 @@
 /* eslint-disable unicorn/prefer-add-event-listener */
 
-import { deserializeBody, bodyMatches } from './utils.js'
+import { serializeBody, deserializeBody, bodyMatches } from './utils.js'
 
 const { setImmediate, setTimeout, clearTimeout } = globalThis
 const EVENT_TYPES = new Set(['open', 'message', 'close', 'error'])
@@ -46,6 +46,26 @@ function makeEvent(type, { data, ...rest } = {}) {
   } catch {}
 
   return { type, ...init } // fallback
+}
+
+// events have to be in order, and Blobs need to be async resolved to be properly recorded
+class EventQueue {
+  #queue = []
+
+  get size() {
+    return this.#queue.length
+  }
+
+  enqueue(fn) {
+    const ready = Promise.all(this.#queue) // cloned at this point
+    const handle = async () => {
+      await ready
+      await fn()
+      this.#queue.shift()
+    }
+
+    this.#queue.push(handle())
+  }
 }
 
 const EventTargetClass =
@@ -110,6 +130,19 @@ class BaseWebSocket extends EventTargetClass {
   get extensions() {
     return ''
   }
+
+  #sendQueue = new EventQueue()
+  send(data, ...rest) {
+    if (rest.length > 0) throw new Error('Extra parameters to WebSocket#send are not supported')
+    const serialized = serializeBody(data) // might be a promise for Blobs
+
+    // fast path, direct send() call
+    const canBeSync = this.#sendQueue.size === 0 && typeof serialized?.then !== 'function'
+    if (canBeSync) return this._sendSerialized(serialized, data)
+
+    // Have to serialize in async way for Blobs, also need to delay sends if we are already have a queue
+    this.#sendQueue.enqueue(async () => this._sendSerialized(await serialized, data))
+  }
 }
 
 class RecordWebSocket extends BaseWebSocket {
@@ -124,20 +157,21 @@ class RecordWebSocket extends BaseWebSocket {
     this.#recording = { url: `${url}`, protocols, log: [] }
     log.push(this.#recording)
     if (this.#ws.url !== this.#recording.url) throw new Error('Unexpected url mismatch')
+    const eventQueue = new EventQueue()
     for (const type of EVENT_TYPES) {
       this.#ws[`on${type}`] = (event, ...rest) => {
         if (rest.length > 0) throw new Error('Unexpected rest args')
-        const data = this.#logEvent(type, event)
-        this.dispatchEvent(makeEvent(type, data))
+        eventQueue.enqueue(async () => {
+          const data = await this.#logEvent(type, event)
+          this.dispatchEvent(makeEvent(type, data))
+        })
       }
     }
   }
 
-  send(data, ...rest) {
-    if (rest.length > 0) throw new Error('Extra parameters to WebSocket#send are not supported')
-    if (data !== undefined && typeof data !== 'string') throw new Error('Unsupported data type')
-    this.#log('send()', { data })
-    this.#ws.send(data)
+  _sendSerialized(serialized, original) {
+    this.#log('send()', { data: serialized })
+    this.#ws.send(original)
   }
 
   close(code, reason) {
@@ -183,17 +217,17 @@ class RecordWebSocket extends BaseWebSocket {
     this.#recording.log.push({ type, at: Date.now() - this.#start, ...noUndef(data) })
   }
 
-  #logEvent(type, event) {
-    const serialized = this.#serializeEvent(type, event)
+  async #logEvent(type, event) {
+    const serialized = await this.#serializeEvent(type, event)
     this.#log(type, serialized)
     return serialized
   }
 
-  #serializeEvent(type, event) {
+  async #serializeEvent(type, event) {
     if (!EVENT_TYPES.has(type) || type !== event.type) throw new Error('Unexpected event type')
-    const { data, origin, code, reason, wasClean, defaultPrevented, cancelable } = event
+    const { origin, code, reason, wasClean, defaultPrevented, cancelable } = event
     if (cancelable || defaultPrevented) throw new Error('Unexpected cancelable / defaultPrevented')
-    if (data !== undefined && typeof data !== 'string') throw new Error('Unsupported data type')
+    const data = await serializeBody(event.data)
     if (type === 'error') {
       const { message, code, errno } = event.error
       return { data, origin, code, reason, wasClean, error: { message, code, errno } }
@@ -257,9 +291,8 @@ class ReplayWebSocket extends BaseWebSocket {
     this.#nextTick(at)
   }
 
-  send(data, ...rest) {
-    if (data !== undefined && typeof data !== 'string') throw new Error('Unsupported data type')
-    this.#expect('send()', { data }, {}, rest)
+  _sendSerialized(serialized) {
+    this.#expect('send()', { data: serialized })
   }
 
   close(code, reason, ...rest) {

@@ -57,7 +57,7 @@ export function serializeBody(body) {
   if ([Blob?.prototype, File?.prototype].includes(proto)) {
     const meta = { size: body.size, type: body.type }
     if (body.name !== undefined) meta.name = body.name
-    return (async () => wrap(hex(await body.bytes()), '.hex', { meta }))()
+    return (async () => wrap(hex(new Uint8Array(await body.arrayBuffer())), '.hex', { meta }))()
   }
 
   if (proto === FormData?.prototype) {
