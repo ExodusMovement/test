@@ -1,12 +1,12 @@
 /* eslint-disable unicorn/prefer-add-event-listener */
 
 const { setImmediate, setTimeout, clearTimeout } = globalThis
-const BINARY_TYPES = new Set(['blob', 'arraybuffer', 'nodebuffer'])
 const EVENT_TYPES = new Set(['open', 'message', 'close', 'error'])
 const USER_CALLED = new Set([
   'send()',
   'close()',
   'set binaryType',
+  'get binaryType',
   'get bufferedAmount',
   'get readyState',
   'get protocol',
@@ -113,15 +113,12 @@ class RecordWebSocket extends BaseWebSocket {
   #ws
   #recording
   #start
-  #binaryType
 
   constructor(log, WebSocketImplementation, url, protocols, ...rest) {
     super(url, protocols, ...rest)
     this.#start = Date.now()
     this.#ws = new WebSocketImplementation(url, protocols)
-    this.#binaryType = this.#ws.binaryType
-    if (!BINARY_TYPES.has(this.#binaryType)) throw new Error('Unexpected binaryType')
-    this.#recording = { url: `${url}`, protocols, binaryType: this.#binaryType, log: [] }
+    this.#recording = { url: `${url}`, protocols, log: [] }
     log.push(this.#recording)
     if (this.#ws.url !== this.#recording.url) throw new Error('Unexpected url mismatch')
     for (const type of EVENT_TYPES) {
@@ -146,14 +143,14 @@ class RecordWebSocket extends BaseWebSocket {
   }
 
   get binaryType() {
-    if (this.#binaryType !== this.#ws.binaryType) throw new Error('Unexpected binaryType mismatch')
-    return this.#ws.binaryType
+    const value = this.#ws.binaryType
+    this.#log('get binaryType', { value })
+    return value
   }
 
   set binaryType(value) {
-    if (!BINARY_TYPES.has(value)) throw new Error('Unexpected set binaryType value')
     this.#log('set binaryType', { value })
-    this.#ws.binaryType = this.#binaryType = value
+    this.#ws.binaryType = value
   }
 
   get bufferedAmount() {
@@ -206,7 +203,6 @@ class RecordWebSocket extends BaseWebSocket {
 
 class ReplayWebSocket extends BaseWebSocket {
   #recording
-  #binaryType
   #timeout
   #interval
 
@@ -217,7 +213,6 @@ class ReplayWebSocket extends BaseWebSocket {
     if (id < 0) throw new Error(`Request to ${url} not found, ${log.length} more entries left`)
     this.#interval = interval
     this.#recording = log.splice(id, 1)[0]
-    this.#binaryType = this.#recording.binaryType || BINARY_TYPES[0]
     this.#nextTick(0)
   }
 
@@ -268,11 +263,12 @@ class ReplayWebSocket extends BaseWebSocket {
   }
 
   get binaryType() {
-    return this.#binaryType
+    const { value } = this.#head
+    this.#expect('get binaryType', { value })
+    return value
   }
 
   set binaryType(value) {
-    if (!BINARY_TYPES.has(value)) throw new Error('Unexpected set binaryType value')
     this.#expect('set binaryType', { value })
   }
 

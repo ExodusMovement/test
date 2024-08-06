@@ -2,7 +2,6 @@
   {
     "url": "wss://javascript.info/article/websocket/demo/hello",
     "protocols": ["test"],
-    "binaryType": "blob",
     "log": [
       { "type": "get protocol", "at": 24, "value": "" },
       { "type": "get readyState", "at": 24, "value": 0 },
@@ -22,7 +21,6 @@
     ]
   }, {
     "url": "wss://localhost:1/",
-    "binaryType": "blob",
     "log": [
       { "type": "get protocol", "at": 0, "value": "" },
       { "type": "get readyState", "at": 1, "value": 0 },

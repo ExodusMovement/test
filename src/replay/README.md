@@ -121,7 +121,6 @@ For simplicity, fitting into `width` is not guaranteed, but the output is stable
 ```json
 {
   "url": "wss://javascript.info/article/websocket/demo/hello",
-  "binaryType": "blob",
   "log": [
     { "type": "get readyState", "at": 24, "value": 0 },
     { "type": "open", "at": 426 },
