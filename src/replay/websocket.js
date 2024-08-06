@@ -108,11 +108,13 @@ class BaseWebSocket extends EventTargetClass {
   static CLOSING = 2
   static CLOSED = 3
 
-  constructor(_url, protocols, ...rest) {
+  #methods
+  constructor(_url, protocols, rest, methods) {
     super()
     if (rest.length > 0) throw new Error('Extra parameters to WebSocket are not supported')
     if (protocols !== undefined && !Array.isArray(protocols)) throw new Error('Invalid protocols')
 
+    this.#methods = methods
     for (const type of EVENT_TYPES) {
       let current
       Object.defineProperty(this, `on${type}`, {
@@ -128,8 +130,8 @@ class BaseWebSocket extends EventTargetClass {
     for (const name of GETTERS) {
       Object.defineProperty(this, name, {
         enumerable: true,
-        get: this._makeGetter(name),
-        set: SETTERS.has(name) ? this._makeSetter(name) : undefined,
+        get: methods.makeGetter(name),
+        set: SETTERS.has(name) ? methods.makeSetter(name) : undefined,
       })
     }
   }
@@ -145,10 +147,10 @@ class BaseWebSocket extends EventTargetClass {
 
     // fast path, direct send() call
     const canBeSync = this.#sendQueue.size === 0 && typeof serialized?.then !== 'function'
-    if (canBeSync) return this._sendSerialized(serialized, data)
+    if (canBeSync) return this.#methods.sendSerialized(serialized, data)
 
     // Have to serialize in async way for Blobs, also need to delay sends if we are already have a queue
-    this.#sendQueue.enqueue(async () => this._sendSerialized(await serialized, data))
+    this.#sendQueue.enqueue(async () => this.#methods.sendSerialized(await serialized, data))
   }
 }
 
@@ -158,7 +160,21 @@ class RecordWebSocket extends BaseWebSocket {
   #start
 
   constructor(log, WebSocketImplementation, url, protocols, ...rest) {
-    super(url, protocols, ...rest)
+    super(url, protocols, rest, {
+      makeGetter: (name) => () => {
+        const value = this.#ws[name]
+        this.#log(`get ${name}`, { value })
+        return value
+      },
+      makeSetter: (name) => (value) => {
+        this.#log(`set ${name}`, { value })
+        this.#ws[name] = value
+      },
+      sendSerialized: (data, original) => {
+        this.#log('send()', { data })
+        this.#ws.send(original)
+      },
+    })
     this.#start = Date.now()
     this.#ws = new WebSocketImplementation(url, protocols)
     this.#recording = { url: `${url}`, protocols, log: [] }
@@ -174,26 +190,6 @@ class RecordWebSocket extends BaseWebSocket {
         })
       }
     }
-  }
-
-  _makeGetter(name) {
-    return () => {
-      const value = this.#ws[name]
-      this.#log(`get ${name}`, { value })
-      return value
-    }
-  }
-
-  _makeSetter(name) {
-    return (value) => {
-      this.#log(`set ${name}`, { value })
-      this.#ws[name] = value
-    }
-  }
-
-  _sendSerialized(serialized, original) {
-    this.#log('send()', { data: serialized })
-    this.#ws.send(original)
   }
 
   close(code, reason) {
@@ -237,7 +233,15 @@ class ReplayWebSocket extends BaseWebSocket {
   #interval
 
   constructor(log, interval, url, protocols, ...rest) {
-    super(url, protocols, ...rest)
+    super(url, protocols, rest, {
+      makeGetter: (name) => () => {
+        const { value } = this.#head
+        this.#expect(`get ${name}`, { value })
+        return value
+      },
+      makeSetter: (name) => (value) => this.#expect(`set ${name}`, { value }),
+      sendSerialized: (data) => this.#expect('send()', { data }),
+    })
     const tokey = (x) => JSON.stringify(x)
     const id = log.findIndex((x) => x.url === `${url}` && tokey(protocols) === tokey(x.protocols))
     if (id < 0) throw new Error(`Request to ${url} not found, ${log.length} more entries left`)
@@ -282,22 +286,6 @@ class ReplayWebSocket extends BaseWebSocket {
 
     this.#recording.log.shift()
     this.#nextTick(at)
-  }
-
-  _makeGetter(name) {
-    return () => {
-      const { value } = this.#head
-      this.#expect(`get ${name}`, { value })
-      return value
-    }
-  }
-
-  _makeSetter(name) {
-    return (value) => this.#expect(`set ${name}`, { value })
-  }
-
-  _sendSerialized(serialized) {
-    this.#expect('send()', { data: serialized })
   }
 
   close(code, reason, ...rest) {
