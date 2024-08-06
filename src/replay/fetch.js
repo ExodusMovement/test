@@ -1,34 +1,4 @@
-import { isPlainObject, prettyJSON, keySortedJSON } from './utils.js'
-
-const hex = (bytes) => [...bytes].map((x) => x.toString(16).padStart(2, '0')).join('')
-
-async function serializeBody(body) {
-  if (!body || typeof body === 'string') return body
-  const proto = Object.getPrototypeOf(body)
-  const wrap = (data, sub = '', r) => ({ type: body.constructor.name, [`data${sub}`]: data, ...r })
-  const { Buffer, URLSearchParams, Blob, File, FormData } = globalThis // might be undefined! not cached to allow dynamic polyfills
-  if (proto === URLSearchParams?.prototype) return wrap(`${body}`)
-  if (proto === Buffer?.prototype) return wrap(body.toString('base64'), '.base64')
-  if (proto === Uint8Array.prototype) return wrap(hex(body), '.hex')
-  if (proto === ArrayBuffer.prototype) return wrap(hex(new Uint8Array(body)), '.hex')
-
-  const TypedArray = Object.getPrototypeOf(Uint8Array)
-  if (body instanceof TypedArray || proto === DataView.prototype) {
-    return wrap(hex(new Uint8Array(body.buffer, body.byteOffset, body.byteLength)), '.hex')
-  }
-
-  if ([Blob?.prototype, File?.prototype].includes(proto)) {
-    const meta = { size: body.size, type: body.type }
-    if (body.name !== undefined) meta.name = body.name
-    return wrap(hex(await body.bytes()), '.hex', { meta })
-  }
-
-  if (proto === FormData?.prototype) {
-    return wrap(await Promise.all([...body].map(async ([k, v]) => [k, await serializeBody(v)])))
-  }
-
-  throw new Error('Unsupported body type for fetch recording')
-}
+import { isPlainObject, prettyJSON, keySortedJSON, serializeBody } from './utils.js'
 
 function serializeHeaders(headers) {
   if (!headers || Array.isArray(headers)) return headers
