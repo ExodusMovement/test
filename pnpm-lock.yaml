@@ -32,6 +32,9 @@ importers:
       '@chalker/queue':
         specifier: ^1.0.0
         version: 1.0.0
+      '@exodus/replay':
+        specifier: 1.0.0-rc.1
+        version: 1.0.0-rc.1
       '@ungap/url-search-params':
         specifier: ^0.2.2
         version: 0.2.2
@@ -576,6 +579,9 @@ packages:
     resolution: {integrity: sha512-rNPxuRNpi5cPCMIPNJ6SFoolj0ZQSKf4RQ4jAkYtPh6UO8+Khf/APlPgAFF8KvaHzMJapXPHJwct1q/cYwJfxw==}
     peerDependencies:
       prettier: ^3.0.3
+
+  '@exodus/replay@1.0.0-rc.1':
+    resolution: {integrity: sha512-Zqe6amDV+bSs21xanKAvcNl9VfL3fPNLY8P03ICFKdjfW0Cz1Bj4qXI/SRnsqLaK7Zz2kKEfivm7IV/I1Ci3GA==}
 
   '@humanwhocodes/config-array@0.11.14':
     resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
@@ -3478,6 +3484,8 @@ snapshots:
   '@exodus/prettier@1.0.0(prettier@3.3.2)':
     dependencies:
       prettier: 3.3.2
+
+  '@exodus/replay@1.0.0-rc.1': {}
 
   '@humanwhocodes/config-array@0.11.14':
     dependencies:

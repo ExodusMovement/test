@@ -1,6 +1,10 @@
-import { fetchRecorder, fetchReplayer } from './replay/fetch.js'
-import { WebSocketRecorder, WebSocketReplayer } from './replay/websocket.js'
-import { prettyJSON } from './replay/utils.js'
+import {
+  fetchRecorder,
+  fetchReplayer,
+  WebSocketRecorder,
+  WebSocketReplayer,
+  prettyJSON,
+} from '@exodus/replay'
 
 const recordingResolver = (type) => (dir, name) => [dir, '__recordings__', type, `${name}.json`]
 
