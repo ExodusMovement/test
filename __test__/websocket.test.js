@@ -110,7 +110,11 @@ testWithBlobs('buffer echo', async () => {
 
   const toArrayBuffer = (t) => t.buffer.slice(t.byteOffset, t.byteOffset + t.byteLength)
   const byteSize = (x) => x.byteLength ?? x.size ?? x.length
-  const toBuffer = async (x) => Buffer.from(x instanceof Blob ? await x.arrayBuffer() : x) // async or sync
+  const toBuffer = (x) => {
+    if (x instanceof Blob) return x.arrayBuffer().then((buf) => Buffer.from(buf)) // async
+    return x.buffer ? Buffer.from(x.buffer, x.byteOffset, x.byteLength) : Buffer.from(x) // sync
+  }
+
   const expectBufferResponse = async (input, type) => {
     socket.send(input)
     await expectBuffer(await message(socket), input, type)
@@ -122,7 +126,7 @@ testWithBlobs('buffer echo', async () => {
     expect(Object.getPrototypeOf(data) === type.prototype).toBe(true)
     expect(byteSize(data)).toBe(byteSize(input))
     // expect.toEqual can't compare ArrayBuffer instances and always returns true!
-    expect(await toBuffer(data)).toEqual(await toBuffer(data))
+    expect(await toBuffer(data)).toEqual(await toBuffer(input))
   }
 
   socket.binaryType = 'arraybuffer'
