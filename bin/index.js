@@ -51,6 +51,7 @@ function parseOptions() {
     dropNetwork: ![undefined, '', '0'].includes(process.env.EXODUS_TEST_DROP_NETWORK),
     ideaCompat: false,
     engine: process.env.EXODUS_TEST_ENGINE ?? 'node:test',
+    require: [],
   }
 
   const args = [...process.argv]
@@ -95,6 +96,9 @@ function parseOptions() {
         break
       case '--babel':
         options.babel = true
+        break
+      case '--require':
+        options.require.push(args.shift())
         break
       case '--coverage-engine':
         options.coverageEngine = args.shift()
@@ -282,6 +286,11 @@ if (options.typescript) {
   } else if (options.ts !== 'auto') {
     throw new Error(`Processing --typescript is not possible with engine ${options.engine}`)
   }
+}
+
+for (const r of options.require) {
+  assert(!options.bundle, 'Can not use -r with *:bundle engines')
+  args.push('-r', r)
 }
 
 if (patterns.length === 0) patterns.push(...DEFAULT_PATTERNS) // defaults
