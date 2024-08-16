@@ -76,18 +76,19 @@ if (typeof process === 'undefined') {
 }
 
 if (process.env.EXODUS_TEST_PLATFORM === 'hermes') {
+  const print = console.log.bind(console) // we don not want overrides
   let headerLogged = false
   globalThis.HermesInternal?.enablePromiseRejectionTracker({
     allRejections: true,
     onUnhandled: (i, err) => {
       globalThis.EXODUS_TEST_PROCESS.exitCode = 1
       if (!headerLogged) {
-        console.log(`‼ FATAL Tests generated asynchronous activity after they ended.
+        print(`‼ FATAL Tests generated asynchronous activity after they ended.
 This activity created errors and would have caused tests to fail, but instead triggered unhandledRejection events`)
         headerLogged = true
       }
 
-      console.log(`Uncaught error #${i}: ${err}`)
+      print(`Uncaught error #${i}: ${err}`)
       globalThis.EXODUS_TEST_PROCESS._maybeProcessExitCode()
     },
   })

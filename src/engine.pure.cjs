@@ -4,6 +4,7 @@ const assertLoose = require('node:assert')
 const { setTimeout, setInterval, setImmediate, Date } = globalThis
 const { clearTimeout, clearInterval, clearImmediate } = globalThis
 
+const print = console.log.bind(console) // we don not want overrides
 Error.stackTraceLimit = 100
 
 let context
@@ -72,12 +73,12 @@ async function runContext(context) {
   // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
   context.running = true
   assert(children.length === 0 || !fn)
-  if (options.skip) return console.log('⏭ SKIP', context.fullName)
+  if (options.skip) return print('⏭ SKIP', context.fullName)
   if (context.fn) {
     if (runOnly) {
-      if (!context.only) return console.log('⏭ SKIP', context.fullName)
+      if (!context.only) return print('⏭ SKIP', context.fullName)
     } else if (options.only) {
-      console.log(`⚠ WARN test.only requires the --only command-line option`)
+      print(`⚠ WARN test.only requires the --only command-line option`)
     }
 
     let error
@@ -104,23 +105,23 @@ async function runContext(context) {
     stack.reverse()
     for (const c of stack) for (const hook of c.hooks.afterEach) await runFunction(hook, context)
 
-    console.log(error === undefined ? '✔ PASS' : '✖ FAIL', context.fullName)
+    print(error === undefined ? '✔ PASS' : '✖ FAIL', context.fullName)
     if (error) {
-      console.log(' ', error)
+      print(' ', error)
       abstractProcess.exitCode = 1
     }
   } else {
     if (options.only && !runOnly) {
-      console.log(`⚠ WARN describe.only requires the --only command-line option`)
+      print(`⚠ WARN describe.only requires the --only command-line option`)
     }
 
-    // if (context !== context.root) console.log(`▶ ${context.fullName}`)
+    // if (context !== context.root) print(`▶ ${context.fullName}`)
     // TODO: try/catch for hooks?
     // TODO: flatten recursion before running?
     for (const hook of hooks.before) await runFunction(hook, context)
     for (const child of children) await runContext(child)
     for (const hook of hooks.after) await runFunction(hook, context)
-    // if (context !== context.root) console.log(`▶ ${context.fullName}`)
+    // if (context !== context.root) print(`▶ ${context.fullName}`)
   }
 }
 
@@ -130,7 +131,7 @@ async function run() {
   assert(context === context.root)
   await runContext(context).catch((error) => {
     // Should not throw under regular circumstances
-    console.log('‼ FATAL', error)
+    print('‼ FATAL', error)
     abstractProcess.exitCode = 1
   })
   abstractProcess._maybeProcessExitCode?.()
@@ -146,8 +147,8 @@ async function describe(...args) {
       // we don't need to be async if fn is sync
       if (isPromise(res)) await res
     } catch (error) {
-      console.log('✖ FAIL', context.fullName)
-      console.log('  describe() body threw an error:', error)
+      print('✖ FAIL', context.fullName)
+      print('  describe() body threw an error:', error)
       abstractProcess.exitCode = 1
     }
   }
