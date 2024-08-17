@@ -21,6 +21,7 @@ const EXTS = `.?([cm])[jt]s?(x)` // we differ from jest, allowing [cm] before ev
 const DEFAULT_PATTERNS = [`**/__tests__/**/*${EXTS}`, `**/?(*.)+(spec|test)${EXTS}`]
 
 const bundleOptions = { pure: true, bundle: true, esbuild: true, ts: 'auto' }
+const hermesAv = ['-Og', '-Xmicrotask-queue']
 const ENGINES = new Map(
   Object.entries({
     'node:test': { binary: 'node', pure: false, hasImportLoader: true, ts: 'flag' },
@@ -30,7 +31,7 @@ const ENGINES = new Map(
     'bun:bundle': { binary: 'bun', ...bundleOptions },
     'deno:bundle': { binary: 'deno', binaryArgs: ['run'], target: 'deno1', ...bundleOptions },
     'jsc:bundle': { binary: 'jsc', ...bundleOptions, target: 'safari13' },
-    'hermes:bundle': { binary: 'hermes', binaryArgs: ['-Og'], target: 'es2018', ...bundleOptions },
+    'hermes:bundle': { binary: 'hermes', binaryArgs: hermesAv, target: 'es2018', ...bundleOptions },
   })
 )
 
