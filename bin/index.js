@@ -64,7 +64,7 @@ function parseOptions() {
   const jsname = args.shift()
   assert(basename(jsname) === 'exodus-test' || jsname === fileURLToPath(import.meta.url))
 
-  while (args[0]?.startsWith('--')) {
+  while (args[0]?.startsWith('-')) {
     const option = args.shift()
     if (options.ideaCompat) {
       // Ignore some options IntelliJ IDEA is passing
