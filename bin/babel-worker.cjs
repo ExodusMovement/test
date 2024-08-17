@@ -36,8 +36,20 @@ if (isMainThread) {
   module.exports = { transformAsync }
 } else {
   const babel = require('@babel/core')
+  const tryLoadPlugin = (name) => {
+    // Try unwrapping plugin names, as otherwise Babel tries to require them from the wrong dir,
+    // which breaks strict directory structure under pnpm in some setups
+    try {
+      if (typeof name === 'string' && name.startsWith('@babel/plugin-')) return require(name)
+    } catch {}
+
+    return name
+  }
+
   parentPort.on('message', ({ port, code: input, options }) => {
     try {
+      // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
+      if (options.plugins) options.plugins = options.plugins.map((name) => tryLoadPlugin(name))
       const { code, sourcetype, map } = babel.transformSync(input, options) // async here is useless and slower
       // additional properties are deleted as we don't want to transfer e.g. Plugin instances
       port.postMessage({ result: { code, sourcetype, map } })
