@@ -243,19 +243,31 @@ class MockTimers {
 
   tick(milliseconds = 1) {
     this.#elapsed += milliseconds
-    while (true) {
-      const next =
-        this.#queue.find((x) => x.type === 'immediate') ||
-        this.#queue.find((x) => x.at <= this.#elapsed)
-      if (!next) break
-      if (next.type === 'interval') {
-        next.at += next.interval
-      } else {
-        this.#queue = this.#queue.filter((x) => x !== next)
-      }
+    while (this.#microtick() !== null);
+  }
 
-      next.fn(...next.args)
+  async tickAsync(milliseconds = 1) {
+    let shouldAwait = true
+    for (let i = 0; i < milliseconds; i++) {
+      if (shouldAwait) await awaitForMicrotaskQueue()
+      this.#elapsed += 1
+      shouldAwait = this.#microtick() !== null
+      if (shouldAwait) while (this.#microtick() !== null);
     }
+  }
+
+  #microtick() {
+    const next =
+      this.#queue.find((x) => x.type === 'immediate') ||
+      this.#queue.find((x) => x.at <= this.#elapsed)
+    if (!next) return null
+    if (next.type === 'interval') {
+      next.at += next.interval
+    } else {
+      this.#queue = this.#queue.filter((x) => x !== next)
+    }
+
+    next.fn(...next.args)
   }
 
   runAll() {
@@ -398,8 +410,9 @@ const awaitForMicrotaskQueue = async () => {
   if (setImmediate) return new Promise((resolve) => setImmediate(resolve))
 
   // Do not rely on setTimeout here! it will tick actual time and is terribly slow (i.e. timers no longer fake)
-  // 10_000 should be enough to flush everything that's going on in the microtask queue
-  for (let i = 0; i < 10_000; i++) await Promise.resolve()
+  // 100_000 should be enough to flush everything that's going on in the microtask queue
+  // Only JSC hits this currently
+  for (let i = 0; i < 100_000; i++) await Promise.resolve()
 }
 
 let builtinModules = []

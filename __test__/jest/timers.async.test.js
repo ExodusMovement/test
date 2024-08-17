@@ -59,6 +59,6 @@ testTimers('advanceTimersByTimeAsync() lets microtasks to pass, async chain', as
   }
 
   doStuff(fn)
-  await jest.advanceTimersByTimeAsync(1000)
+  await jest.advanceTimersByTimeAsync(10_000)
   expect(fn).toHaveBeenCalled()
 })

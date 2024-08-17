@@ -65,9 +65,16 @@ export function advanceTimersByTime(time) {
 }
 
 export async function advanceTimersByTimeAsync(time) {
-  for (let i = 0; i < time; i++) {
-    await awaitForMicrotaskQueue()
-    advanceTimersByTime(1)
+  assertHaveTimers()
+  warnOldTimers()
+
+  if (mock.timers.tickAsync) {
+    await mock.timers.tickAsync(time)
+  } else {
+    for (let i = 0; i < time; i++) {
+      await awaitForMicrotaskQueue()
+      mock.timers.tick(1)
+    }
   }
 
   return this
