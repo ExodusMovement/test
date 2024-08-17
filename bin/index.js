@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { basename, dirname, resolve, join } from 'node:path'
 import { createRequire } from 'node:module'
 import { randomUUID } from 'node:crypto'
-import { existsSync, rmSync } from 'node:fs'
+import { existsSync, rmSync, realpathSync } from 'node:fs'
 import { unlink } from 'node:fs/promises'
 import { tmpdir, availableParallelism } from 'node:os'
 import assert from 'node:assert/strict'
@@ -63,7 +63,8 @@ function parseOptions() {
 
   // Second argument should be this script
   const jsname = args.shift()
-  assert(basename(jsname) === 'exodus-test' || jsname === fileURLToPath(import.meta.url))
+  const pathsEqual = (a, b) => a === b || (existsSync(a) && realpathSync(a) === b) // resolve symlinks
+  assert(basename(jsname) === 'exodus-test' || pathsEqual(jsname, fileURLToPath(import.meta.url)))
 
   while (args[0]?.startsWith('-')) {
     const option = args.shift()
