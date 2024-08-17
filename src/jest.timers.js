@@ -1,4 +1,4 @@
-import { mock, assert } from './engine.js'
+import { mock, assert, awaitForMicrotaskQueue } from './engine.js'
 import { jestConfig } from './jest.config.js'
 import { haveValidTimers, haveNoTimerInfiniteLoopBug } from './version.js'
 
@@ -65,7 +65,12 @@ export function advanceTimersByTime(time) {
 }
 
 export async function advanceTimersByTimeAsync(time) {
-  return this.advanceTimersByTime(time)
+  for (let i = 0; i < time; i++) {
+    await awaitForMicrotaskQueue()
+    advanceTimersByTime(1)
+  }
+
+  return this
 }
 
 export function setSystemTime(time) {

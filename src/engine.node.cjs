@@ -10,6 +10,7 @@ const { mock, describe, test, beforeEach, afterEach, before, after } = nodeTest
 
 const isPromise = types.isPromise
 const nodeVersion = process.versions.node
+const awaitForMicrotaskQueue = () => new Promise((resolve) => process.nextTick(resolve))
 
 const files = process.argv.slice(1)
 const baseFile = files.length === 1 && existsSync(files[0]) ? normalize(files[0]) : undefined
@@ -33,7 +34,7 @@ module.exports = {
   ...{ assert, assertLoose },
   ...{ mock, describe, test, beforeEach, afterEach, before, after },
   ...{ builtinModules, syncBuiltinESMExports },
-  ...{ utilFormat, isPromise, nodeVersion },
+  ...{ utilFormat, isPromise, nodeVersion, awaitForMicrotaskQueue },
   ...{ requireIsRelative, relativeRequire, isTopLevelESM },
   ...{ readSnapshot, setSnapshotSerializers, setSnapshotResolver },
 }

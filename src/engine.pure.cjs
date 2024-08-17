@@ -386,6 +386,21 @@ const after = (fn) => context.hooks.after.push(fn)
 
 const isPromise = (x) => Boolean(x && x.then && x.catch && x.finally)
 const nodeVersion = '9999.99.99'
+const awaitForMicrotaskQueue = async () => {
+  if (globalThis?.process?.nextTick) {
+    // We are in microtasks, awaiting for "next" tick will get us out of here
+    return new Promise((resolve) => globalThis.process.nextTick(resolve))
+  }
+
+  // If that is not available, we can wait for the actual next cycle
+  // For Hermes, we use -Xmicrotask-queue for this to act not like just a Promise.resolve().then(
+  // TODO: recheck if setImmediate is not faked with setTimeout if we enable a polyfill for it for JSC?
+  if (setImmediate) return new Promise((resolve) => setImmediate(resolve))
+
+  // Do not rely on setTimeout here! it will tick actual time and is terribly slow (i.e. timers no longer fake)
+  // 10_000 should be enough to flush everything that's going on in the microtask queue
+  for (let i = 0; i < 10_000; i++) await Promise.resolve()
+}
 
 let builtinModules = []
 let requireIsRelative = false
@@ -434,7 +449,7 @@ module.exports = {
   ...{ assert, assertLoose },
   ...{ mock, describe, test, beforeEach, afterEach, before, after },
   ...{ builtinModules, syncBuiltinESMExports },
-  ...{ utilFormat, isPromise, nodeVersion },
+  ...{ utilFormat, isPromise, nodeVersion, awaitForMicrotaskQueue },
   ...{ requireIsRelative, relativeRequire, isTopLevelESM },
   ...{ readSnapshot, setSnapshotSerializers, setSnapshotResolver },
 }

@@ -12,8 +12,8 @@ export { mock, describe, test, beforeEach, afterEach, before, after }
 const { builtinModules, syncBuiltinESMExports } = engine
 export { builtinModules, syncBuiltinESMExports }
 
-const { utilFormat, isPromise, nodeVersion } = engine
-export { utilFormat, isPromise, nodeVersion }
+const { utilFormat, isPromise, nodeVersion, awaitForMicrotaskQueue } = engine
+export { utilFormat, isPromise, nodeVersion, awaitForMicrotaskQueue }
 
 const { requireIsRelative, relativeRequire, isTopLevelESM } = engine
 export { requireIsRelative, relativeRequire, isTopLevelESM }
