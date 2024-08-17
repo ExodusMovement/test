@@ -139,7 +139,6 @@ export const build = async (...files) => {
 
   if (options.jest) {
     const { jestConfig } = options
-    assert(jestConfig.rootDir)
     const preload = [...(jestConfig.setupFiles || []), ...(jestConfig.setupFilesAfterEnv || [])]
     if (jestConfig.testEnvironment && jestConfig.testEnvironment !== 'node') {
       const { specialEnvironments } = await import('../src/jest.environment.js')
@@ -147,9 +146,15 @@ export const build = async (...files) => {
       preload.push(...(specialEnvironments[jestConfig.testEnvironment].dependencies || []))
     }
 
-    const local = createRequire(resolve(jestConfig.rootDir, 'package.json'))
-    const w = (f) => `[${stringify(f)}, () => require(${stringify(local.resolve(f))})]`
-    input.push(`globalThis.EXODUS_TEST_PRELOADED = [${preload.map((f) => w(f)).join(', ')}]`)
+    if (preload.length === 0) {
+      input.push(`globalThis.EXODUS_TEST_PRELOADED = []`)
+    } else {
+      assert(jestConfig.rootDir)
+      const local = createRequire(resolve(jestConfig.rootDir, 'package.json'))
+      const w = (f) => `[${stringify(f)}, () => require(${stringify(local.resolve(f))})]`
+      input.push(`globalThis.EXODUS_TEST_PRELOADED = [${preload.map((f) => w(f)).join(', ')}]`)
+    }
+
     await importSource('./jest.js')
   }
 
