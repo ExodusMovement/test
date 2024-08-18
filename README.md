@@ -117,3 +117,7 @@ Just use `"test": "exodus-test"`
 - `--write-snapshots` -- write snapshots instead of verifying them (has `--test-update-snapshots` alias)
 
 - `--test-force-exit` -- force exit after tests are done (useful in integration tests where it could be unfeasible to resolve all open handles)
+
+## License
+
+[MIT](./LICENSE)
