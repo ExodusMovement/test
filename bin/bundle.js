@@ -129,7 +129,7 @@ export const build = async (...files) => {
   const stringify = (x) => ([undefined, null].includes(x) ? `${x}` : JSON.stringify(x))
 
   if (!['node'].includes(options.platform)) {
-    if (['jsc', 'hermes'].includes(options.platform)) {
+    if (['jsc', 'hermes', 'd8'].includes(options.platform)) {
       const entropy = randomBytes(5 * 1024).toString('base64')
       input.push(`globalThis.EXODUS_TEST_CRYPTO_ENTROPY = ${stringify(entropy)};`)
     }
@@ -172,7 +172,7 @@ export const build = async (...files) => {
   ])
   const buildWrap = async (opts) => esbuild.build(opts).catch((err) => err)
   let main = input.join(';\n')
-  if (['jsc', 'hermes'].includes(options.platform)) {
+  if (['jsc', 'hermes', 'd8'].includes(options.platform)) {
     const exit = `EXODUS_TEST_PROCESS.exitCode = 1; EXODUS_TEST_PROCESS._maybeProcessExitCode();`
     main = `try {\n${main}\n} catch (err) { print(err); ${exit} }`
   }
@@ -259,7 +259,7 @@ export const build = async (...files) => {
       // unsupported deps
       ...Object.fromEntries(blockedDeps.map((n) => [n, api('empty/module-throw.cjs')])),
     },
-    sourcemap: ['hermes', 'jsc'].includes(options.platform) ? 'inline' : 'linked', // FIXME?
+    sourcemap: ['hermes', 'jsc', 'd8'].includes(options.platform) ? 'inline' : 'linked', // FIXME?
     sourcesContent: false,
     keepNames: true,
     format: 'iife',

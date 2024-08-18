@@ -30,6 +30,7 @@ const ENGINES = new Map(
     'bun:pure': { binary: 'bun', pure: true, hasImportLoader: false, ts: 'auto' },
     'bun:bundle': { binary: 'bun', ...bundleOptions },
     'deno:bundle': { binary: 'deno', binaryArgs: ['run'], target: 'deno1', ...bundleOptions },
+    'd8:bundle': { binary: 'd8', ...bundleOptions },
     'jsc:bundle': { binary: 'jsc', ...bundleOptions, target: 'safari13' },
     'hermes:bundle': { binary: 'hermes', binaryArgs: hermesAv, target: 'es2018', ...bundleOptions },
   })
@@ -407,7 +408,7 @@ if (options.dropNetwork) console.warn('--drop-network is a test helper, not a se
 const execFile = promisify(execFileCallback)
 
 async function launch(binary, args, opts = {}, buffering = false) {
-  assert(binary && ['node', 'bun', 'deno', 'jsc', 'hermes', c8].includes(binary))
+  assert(binary && ['node', 'bun', 'deno', 'd8', 'jsc', 'hermes', c8].includes(binary))
   if (options.dropNetwork) {
     switch (process.platform) {
       case 'darwin':

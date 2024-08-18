@@ -96,7 +96,8 @@ This activity created errors and would have caused tests to fail, but instead tr
 
 if (
   process.env.EXODUS_TEST_PLATFORM === 'hermes' ||
-  (process.env.EXODUS_TEST_PLATFORM === 'jsc' && !globalThis.clearTimeout)
+  (process.env.EXODUS_TEST_PLATFORM === 'jsc' && !globalThis.clearTimeout) ||
+  (process.env.EXODUS_TEST_PLATFORM === 'd8' && !globalThis.clearTimeout)
 ) {
   // Ok, we have broken timers, let's hack them around
   let i = 0
@@ -170,7 +171,11 @@ if (globalThis.crypto?.getRandomValues && !globalThis.crypto?.randomUUID) {
   }
 }
 
-if (process.env.EXODUS_TEST_PLATFORM === 'hermes' || process.env.EXODUS_TEST_PLATFORM === 'jsc') {
+if (
+  process.env.EXODUS_TEST_PLATFORM === 'hermes' ||
+  process.env.EXODUS_TEST_PLATFORM === 'jsc' ||
+  process.env.EXODUS_TEST_PLATFORM === 'd8'
+) {
   if (!globalThis.URLSearchParams) globalThis.URLSearchParams = require('@ungap/url-search-params')
   if (!globalThis.TextEncoder || !globalThis.TextDecoder) {
     const { TextEncoder, TextDecoder } = require('text-encoding')
