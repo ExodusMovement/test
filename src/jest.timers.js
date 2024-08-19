@@ -64,6 +64,18 @@ export function advanceTimersByTime(time) {
   return this
 }
 
+export async function runAllTimersAsync() {
+  await awaitForMicrotaskQueue() // only once, before running timers, per jest doc
+  runAllTimers()
+  return this
+}
+
+export async function runOnlyPendingTimersAsync() {
+  await awaitForMicrotaskQueue() // only once, before running timers, per jest doc
+  runOnlyPendingTimers()
+  return this
+}
+
 export async function advanceTimersByTimeAsync(time) {
   assertHaveTimers()
   warnOldTimers()
