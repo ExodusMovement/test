@@ -209,3 +209,16 @@ test('deep matcher', () => {
     },
   }).toMatchSnapshot({ foo: { bar: { uuid: expect.any(String) } } })
 })
+
+test('arrays', () => {
+  expect([Math.random(), { a: 20 }]).toMatchSnapshot([expect.any(Number), {}])
+  expect(['foo']).toMatchSnapshot([expect.any(String)])
+  expect({ x: ['bar'], y: 10 }).toMatchSnapshot({ x: [expect.any(String)] })
+  expect({ x: [{ a: 'baz', b: 20 }], y: 10 }).toMatchSnapshot({ x: [{ a: expect.any(String) }] })
+  expect([{ x: [{ a: 'some', b: 20 }, { extra: 42 }], y: 10 }, { k: 1 }]).toMatchSnapshot([
+    {
+      x: [{ a: expect.any(String) }, {}],
+    },
+    {},
+  ])
+})

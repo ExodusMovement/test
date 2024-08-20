@@ -99,10 +99,9 @@ const snapInline = (obj, inline) => {
 
 const deepMerge = (obj, matcher) => {
   if (!obj || !matcher) return matcher
-  const proto = Object.getPrototypeOf(obj)
-  if (![Object.prototype, null].includes(proto)) return matcher
-  const protoM = Object.getPrototypeOf(matcher)
-  if (![Object.prototype, null].includes(protoM)) return matcher
+  const [proto, pm] = [Object.getPrototypeOf(obj), Object.getPrototypeOf(matcher)]
+  if (proto === pm && Array.prototype === proto) return obj.map((v, i) => deepMerge(v, matcher[i])) // extra length is caught in toMatchObject
+  if (![proto, pm].every((p) => [Object.prototype, null].includes(p))) return matcher
   // all matcher keys should be already in obj, as verified by toMatchObject prior to this
   const map = new Map(Object.entries(matcher))
   const merge = (key, value) => [key, map.has(key) ? deepMerge(value, map.get(key)) : value]

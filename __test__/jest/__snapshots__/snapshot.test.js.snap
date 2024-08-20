@@ -2,6 +2,62 @@
 
 exports[`  1`] = `"empty names test"`;
 
+exports[`arrays 1`] = `
+[
+  Any<Number>,
+  {
+    "a": 20,
+  },
+]
+`;
+
+exports[`arrays 2`] = `
+[
+  Any<String>,
+]
+`;
+
+exports[`arrays 3`] = `
+{
+  "x": [
+    Any<String>,
+  ],
+  "y": 10,
+}
+`;
+
+exports[`arrays 4`] = `
+{
+  "x": [
+    {
+      "a": Any<String>,
+      "b": 20,
+    },
+  ],
+  "y": 10,
+}
+`;
+
+exports[`arrays 5`] = `
+[
+  {
+    "x": [
+      {
+        "a": Any<String>,
+        "b": 20,
+      },
+      {
+        "extra": 42,
+      },
+    ],
+    "y": 10,
+  },
+  {
+    "k": 1,
+  },
+]
+`;
+
 exports[`async errors 1`] = `"slow but nah"`;
 
 exports[`complex 1`] = `
