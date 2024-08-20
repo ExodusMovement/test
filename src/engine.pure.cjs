@@ -258,40 +258,40 @@ class MockTimers {
 
   #microtick() {
     const next =
-      this.#queue.find((x) => x.type === 'immediate') ||
-      this.#queue.find((x) => x.at <= this.#elapsed)
+      this.#queue.find((x) => x.runAt === -1) || // immediates are first
+      this.#queue.find((x) => x.runAt <= this.#elapsed)
     if (!next) return null
-    if (next.type === 'interval') {
-      next.at += next.interval
-    } else {
+    if (next.interval === undefined) {
       this.#queue = this.#queue.filter((x) => x !== next)
+    } else {
+      next.runAt += next.interval
     }
 
-    next.fn(...next.args)
+    next.callback(...next.args)
   }
 
   runAll() {
-    this.tick(Math.max(0, ...this.#queue.map((x) => x.at - this.#elapsed)))
+    this.tick(Math.max(0, ...this.#queue.map((x) => x.runAt - this.#elapsed)))
   }
 
   setTime(milliseconds) {
     this.#base = milliseconds
   }
 
-  #setTimeout(fn, delay, ...args) {
-    const id = { type: 'timeout', fn, at: delay + this.#elapsed, args }
+  #setTimeout(callback, delay, ...args) {
+    const id = { callback, runAt: delay + this.#elapsed, args }
     this.#queue.push(id)
     return id
   }
 
-  #setInterval(fn, delay, ...args) {
-    const id = { type: 'interval', fn, at: delay + this.#elapsed, interval: delay, args }
+  #setInterval(callback, delay, ...args) {
+    const id = { callback, runAt: delay + this.#elapsed, interval: delay, args }
     this.#queue.push(id)
     return id
   }
 
-  #setImmediate(fn, ...args) {
-    const id = { type: 'immediate', fn, args }
+  #setImmediate(callback, ...args) {
+    const id = { callback, runAt: -1, args }
     this.#queue.push(id)
     return id
   }
