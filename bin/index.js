@@ -54,6 +54,7 @@ function parseOptions() {
     ideaCompat: false,
     engine: process.env.EXODUS_TEST_ENGINE ?? 'node:test',
     require: [],
+    testNamePattern: [],
   }
 
   const args = [...process.argv]
@@ -153,6 +154,10 @@ function parseOptions() {
       case '--idea-compat':
         options.ideaCompat = true
         break
+      case '--test-name-pattern':
+      case '--testNamePattern':
+        options.testNamePattern.push(args.shift())
+        break
       default:
         throw new Error(`Unknown option: ${option}`)
     }
@@ -191,6 +196,7 @@ if (options.pure) {
   assert(!options.writeSnapshots, `Can not use write snapshots with ${options.engine} engine`)
   assert(!options.forceExit, `Can not use --force-exit with ${options.engine} engine yet`) // TODO
   assert(!options.watch, `Can not use --watch with with ${options.engine} engine`)
+  assert(options.testNamePattern.length === 0, '--test-name-pattern requires node:test engine now')
 } else if (options.engine === 'node:test') {
   args.push('--test', '--no-warnings=ExperimentalWarning', '--test-reporter=spec')
 
@@ -209,6 +215,8 @@ if (options.pure) {
 
   if (options.watch) args.push('--watch')
   if (options.only) args.push('--test-only')
+
+  for (const pattern of options.testNamePattern) args.push('--test-name-pattern', pattern)
 
   args.push('--expose-internals') // this is unoptimal and hopefully temporary, see rationale in src/dark.cjs
 } else {
