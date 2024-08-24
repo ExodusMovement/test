@@ -69,16 +69,22 @@ function parseOptions() {
 
   while (args[0]?.startsWith('-')) {
     const option = args.shift()
+    if (option.includes('=')) {
+      const [optionName, ...rest] = option.split('=')
+      args.unshift(optionName, rest.join('='))
+      continue
+    }
+
     if (options.ideaCompat) {
       // Ignore some options IntelliJ IDEA is passing
       switch (option) {
         case '--reporters':
+        case '--testTimeout':
           args.shift()
           continue
         case '--verbose':
         case '--runTestsByPath':
         case '--runInBand':
-        case '--testTimeout=7200000':
           continue
       }
     }
