@@ -6,7 +6,7 @@ export const specialEnvironments = {
     setup: (require) => {
       const { JSDOM, VirtualConsole } = require('jsdom')
       const virtualConsole = new VirtualConsole()
-      const { window } = new JSDOM('<!DOCTYPE html>', {
+      const dom = new JSDOM('<!DOCTYPE html>', {
         url: 'http://localhost/',
         pretendToBeVisual: true,
         runScripts: 'dangerously',
@@ -17,17 +17,21 @@ export const specialEnvironments = {
         throw error
       })
       const assignMissing = (target, source) => {
-        const entries = Object.entries(source).filter(([key]) => !Object.hasOwn(target, key))
-        Object.assign(target, Object.fromEntries(entries))
+        const descriptors = Object.getOwnPropertyDescriptors(source)
+        const entries = Object.entries(descriptors).filter(([key]) => !Object.hasOwn(target, key))
+        Object.defineProperties(target, Object.fromEntries(entries))
       }
 
-      assignMissing(globalThis, window)
-      assignMissing(console, window.console)
-      Object.setPrototypeOf(global, Object.getPrototypeOf(window))
+      assignMissing(globalThis, dom.window)
+      assignMissing(console, dom.window.console)
+      Object.setPrototypeOf(globalThis, Object.getPrototypeOf(dom.window))
+      try {
+        assignMissing(globalThis, dom.getInternalVMContext())
+      } catch {}
     },
   },
 
-  // Reproduces setup-polly-jest/jest-environment-node ad hacks into 'setup-polly-jest'.pollyJest
+  // Reproduces setup-polly-jest/jest-environment-node and hacks into 'setup-polly-jest'.pollyJest
   'setup-polly-jest/jest-environment-node': {
     dependencies: ['@pollyjs/core', 'setup-polly-jest', 'setup-polly-jest/lib/common'],
     setup: async (require, engine) => {
