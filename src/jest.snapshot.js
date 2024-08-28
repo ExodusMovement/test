@@ -94,7 +94,10 @@ const snapInline = (obj, inline) => {
   assert(inline !== undefined, 'Inline Snapshots generation is not supported')
   assert(typeof inline === 'string')
   maybeSetupSerializers()
-  getAssert().strictEqual(serialize(obj).trim(), inline.trim())
+  let trimmed = inline.trim()
+  const prefix = inline.slice(0, inline.indexOf(trimmed)).split('\n').find(Boolean)
+  if (prefix && /^[ \t]+$/u.test(prefix)) trimmed = trimmed.replaceAll(`\n${prefix}`, '\n')
+  getAssert().strictEqual(serialize(obj).trim(), trimmed)
 }
 
 const deepMerge = (obj, matcher) => {

@@ -222,3 +222,29 @@ test('arrays', () => {
     {},
   ])
 })
+
+test('inline snapshots, prefixed', () => {
+  // eslint-disable-next-line unicorn/template-indent
+  expect({ a: 10, c: [1, 2], b: 20 }).toMatchInlineSnapshot(`
+{
+  "a": 10,
+  "b": 20,
+  "c": [
+    1,
+    2,
+  ],
+}
+`)
+
+  // eslint-disable-next-line unicorn/template-indent
+  expect({ a: 10, c: [1, 2], b: 20 }).toMatchInlineSnapshot(`
+  {
+    "a": 10,
+    "b": 20,
+    "c": [
+      1,
+      2,
+    ],
+  }
+          `) // end padding is ignored!
+})
