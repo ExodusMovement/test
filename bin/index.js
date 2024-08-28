@@ -185,6 +185,11 @@ const resolveRequire = (query) => require.resolve(query)
 const resolveImport = import.meta.resolve && ((query) => fileURLToPath(import.meta.resolve(query)))
 
 const args = []
+
+if (haveModuleMocks && ['node:test', 'node:pure'].includes(options.engine)) {
+  args.push('--experimental-test-module-mocks')
+}
+
 if (options.pure) {
   if (options.bundle) {
     assert(!options.coverage, `Can not use --coverage with ${options.engine} engine`)
@@ -200,7 +205,6 @@ if (options.pure) {
 } else if (options.engine === 'node:test') {
   args.push('--test', '--no-warnings=ExperimentalWarning', '--test-reporter=spec')
 
-  if (haveModuleMocks) args.push('--experimental-test-module-mocks')
   if (haveSnapshots) args.push('--experimental-test-snapshots')
 
   if (options.writeSnapshots) {

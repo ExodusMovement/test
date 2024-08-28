@@ -391,6 +391,14 @@ const mock = {
   },
 }
 
+if (process.env.EXODUS_TEST_ENGINE === 'node:pure') {
+  // Try load module mocks from node:test, if present
+  try {
+    const nodeTest = require('node:test')
+    mock.module = nodeTest.mock.module.bind(nodeTest.mock)
+  } catch {}
+}
+
 const beforeEach = (fn) => context.hooks.beforeEach.push(fn)
 const afterEach = (fn) => context.hooks.afterEach.push(fn)
 const before = (fn) => context.hooks.before.push(fn)
