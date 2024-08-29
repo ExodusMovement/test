@@ -28,26 +28,12 @@ const readSnapshots = async (files, resolvers) => {
   return snapshots
 }
 
-// These packages throw on import
-const blockedDeps = ['@pollyjs/adapter-node-http', '@pollyjs/node-server']
 const loadPipeline = [
   function (source, filepath) {
     return source
       .replace(/\bimport\.meta\.url\b/g, JSON.stringify(pathToFileURL(filepath)))
       .replace(/\b(__dirname|import\.meta\.dirname)\b/g, JSON.stringify(dirname(filepath)))
       .replace(/\b(__filename|import\.meta\.filename)\b/g, JSON.stringify(filepath))
-  },
-  function (source, filepath) {
-    // Just a convenience wrapper to show pretty errors instead of generic bundle-apis/empty/module-throw.cjs
-    for (const pkg of blockedDeps) {
-      const str = `require(${JSON.stringify(pkg)})`
-      assert(!str.includes("'"))
-      const err = `module unsupported in bundled form: ${pkg}\n       loaded from ${filepath}`
-      const rep = `((() => { throw new Error(${JSON.stringify(err)}) })())`
-      for (const sub of [str, str.replaceAll('"', "'")]) source = source.replace(sub, rep)
-    }
-
-    return source
   },
 ]
 
@@ -256,8 +242,6 @@ export const build = async (...files) => {
       bindings: api('empty/function-throw.cjs'),
       'node-gyp-build': api('empty/function-throw.cjs'),
       ws: api('ws.cjs'),
-      // unsupported deps
-      ...Object.fromEntries(blockedDeps.map((n) => [n, api('empty/module-throw.cjs')])),
     },
     sourcemap: ['hermes', 'jsc', 'd8'].includes(options.platform) ? 'inline' : 'linked', // FIXME?
     sourcesContent: false,
