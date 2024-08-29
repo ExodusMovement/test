@@ -203,6 +203,10 @@ export const jest = {
       },
       websocketRecord,
       websocketReplay,
+      websocketNoop: () => {
+        globalThis.WebSocket = jest.fn()
+        return globalThis.WebSocket
+      },
     },
   },
   setTimeout: (x) => {
