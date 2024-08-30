@@ -199,7 +199,8 @@ export function jestmock(name, mocker, { override = false } = {}) {
     assert(mocker, 'Can not auto-clone a native ESM module without --esbuild or newer Node.js')
   }
 
-  const value = mocker ? { ...mocker() } : mockClone(mapActual.get(resolved))
+  const expand = (obj) => (isObject(obj) ? { ...obj } : obj)
+  const value = mocker ? expand(mocker()) : mockClone(mapActual.get(resolved))
   mapMocks.set(resolved, value)
 
   let likelyESM = false
