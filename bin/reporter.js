@@ -26,7 +26,18 @@ export const format = (chunk) => {
     .replaceAll(/^‼ FATAL /gmu, `${color('‼', 'red')} ${color(' FATAL ', 'bgRed')} `)
 }
 
-export const printSummary = (files, failures) => {
+const formatTime = (ms) => (ms ? color(` (${ms}ms)`, dim) : '')
+
+const groupCI = reportCI && !process.execArgv.includes('--watch') && !process.env.LERNA_PACKAGE_NAME // lerna+nx groups already
+export const timeLabel = color('Total time', dim)
+export const head = groupCI ? () => {} : (file) => console.log(color(`# ${file}`, 'bold'))
+export const middle = (file, ok, ms) => {
+  if (!groupCI) return
+  console.log(`::group::${ok ? '✅' : '❌'} ${color(file, 'bold')}${formatTime(ms)}`)
+}
+
+export const tail = groupCI ? () => console.log('::endgroup::') : () => {}
+export const summary = (files, failures) => {
   if (failures.length > 0) {
     const [total, passed, failed] = [files.length, files.length - failures.length, failures.length]
     const failLine = color(`${failed} / ${total}`, 'red')
@@ -40,71 +51,81 @@ export const printSummary = (files, failures) => {
   }
 }
 
-export const timeLabel = color('Total time', dim)
-export const header = (file) => color(`# ${file}`, 'bold')
-
 export default async function nodeTestReporterExodus(source) {
   const spec = new SpecReporter()
   spec.on('data', (data) => {
     console.log(data.toString('utf8'))
   })
 
+  const log = []
+  const print = (msg) => (groupCI ? log.push(msg) : console.log(msg))
+  const dump = () => {
+    middle(file, !failedFiles.has(file))
+    for (const line of log) console.log(line)
+    log.length = 0
+    tail()
+  }
+
   const files = new Set()
   const failedFiles = new Set()
   const cwd = process.cwd()
   const path = []
-  let lastFile
-  const formatTime = ({ duration_ms: ms }) => color(` (${ms}ms)`, dim)
-  const formatSuffix = (data) => `${formatTime(data.details)}${data.todo ? ' # TODO' : ''}`
-  const printHead = (data) => {
-    const file = relative(cwd, data.file) // some events have data.file resolved, some not
-    if (file === lastFile) return
-    lastFile = file
+  let file
+  const formatSuffix = (d) => `${formatTime(d.details.duration_ms)}${d.todo ? ' # TODO' : ''}`
+  const processNewFile = (data) => {
+    const newFile = relative(cwd, data.file) // some events have data.file resolved, some not
+    if (newFile === file) return
+    if (file !== undefined) dump()
+    file = newFile
     files.add(file)
-    console.log(header(file))
+    head(file)
   }
+
+  const diagnostic = []
 
   for await (const { type, data } of source) {
     // Ignored: test:complete (no support on older Node.js), test:plan, test:dequeue, test:enqueue
     switch (type) {
       case 'test:start':
-        printHead(data)
+        processNewFile(data)
         path.push(data.name)
         break
       case 'test:pass':
         if (data.skip) {
-          console.log(`${color('⏭ SKIP ', dim)}${path.join(' > ')}${formatSuffix(data)}`)
+          print(`${color('⏭ SKIP ', dim)}${path.join(' > ')}${formatSuffix(data)}`)
         } else {
-          console.log(`${color('✔ PASS ', 'green')}${path.join(' > ')}${formatSuffix(data)}`)
+          print(`${color('✔ PASS ', 'green')}${path.join(' > ')}${formatSuffix(data)}`)
         }
 
         assert(path.pop() === data.name)
         break
       case 'test:fail':
-        console.log(`${color('✖ FAIL ', 'red')}${path.join(' > ')}${formatSuffix(data)}`)
+        print(`${color('✖ FAIL ', 'red')}${path.join(' > ')}${formatSuffix(data)}`)
         assert(path.pop() === data.name)
+        assert.equal(file, relative(cwd, data.file))
+        if (!data.todo) failedFiles.add(file)
         if (data.details.error) {
           if (data.details.error.cause) delete data.details.error.cause.matcherResult
           const err = inspect(data.details.error.cause || data.details.error, {
             colors: haveColors,
           })
-          console.log(err.replace(/^/gmu, '  '))
-          console.log('')
+          print(err.replace(/^/gmu, '  '))
+          print('')
         }
 
-        if (!data.todo) failedFiles.add(relative(cwd, data.file))
         break
       case 'test:watch:drained':
-        console.log(color(`ℹ waiting for changes as we are in ---watch mode`, 'blue'))
+        assert(!groupCI, 'Can not mix --watch with CI grouping')
+        console.log(color(`ℹ waiting for changes as we are in --watch mode`, 'blue'))
         break
       case 'test:diagnostic':
         if (/^suites \d+$/.test(data.message)) break // we count suites = files
-        console.log(color(`ℹ ${data.message}`, 'blue'))
+        diagnostic.push(color(`ℹ ${data.message}`, 'blue'))
         break
       case 'test:stderr':
       case 'test:stdout':
-        printHead(data)
-        console.log(data.message.replace(/\n$/, ''))
+        processNewFile(data)
+        print(data.message.replace(/\n$/, ''))
         break
       case 'test:coverage':
         spec.write({ type, data }) // let spec reporter handle that
@@ -112,5 +133,7 @@ export default async function nodeTestReporterExodus(source) {
     }
   }
 
-  printSummary([...files], [...failedFiles])
+  dump()
+  for (const line of diagnostic) console.log(line)
+  summary([...files], [...failedFiles])
 }

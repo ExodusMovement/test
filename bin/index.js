@@ -524,20 +524,22 @@ if (options.pure) {
     }
   }
 
-  const { format, header, timeLabel, printSummary } = await import('./reporter.js')
+  const { format, head, middle, tail, timeLabel, summary } = await import('./reporter.js')
 
   const failures = []
   const tasks = files.map((file) => ({ file, task: runConcurrent(file) }))
   console.time(timeLabel)
   for (const { file, task } of tasks) {
-    console.log(header(file))
-    const { ok, output } = await task
+    head(file)
+    const { ok, output, ms } = await task
+    middle(file, ok, ms)
     for (const chunk of output.map((x) => x.trimEnd()).filter(Boolean)) console.log(format(chunk))
+    tail(file)
     if (!ok) failures.push(file)
   }
 
   if (failures.length > 0) process.exitCode = 1
-  printSummary(files, failures)
+  summary(files, failures)
 
   console.timeEnd(timeLabel)
 } else {
