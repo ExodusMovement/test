@@ -519,7 +519,7 @@ if (options.pure) {
     }
   }
 
-  const haveColors = process.stdout.hasColors?.()
+  const haveColors = process.stdout.hasColors?.() || process.env.FORCE_COLOR === '1' // 0 is already handled by hasColors()
   const colors = new Map(Object.entries(inspect.colors))
   const color = (text, color) => {
     if (!haveColors || text === '') return text
