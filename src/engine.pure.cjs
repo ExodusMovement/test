@@ -435,7 +435,7 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
   const bundleSnaps = typeof EXODUS_TEST_SNAPSHOTS !== 'undefined' && new Map(EXODUS_TEST_SNAPSHOTS)
   const resolveSnapshot = (f) => snapshotResolver(f[0], f[1]).join('/')
   readSnapshot = (f = baseFile) => (f ? bundleSnaps.get(resolveSnapshot(f)) : null)
-  utilFormat = require('./bundle-apis/util-format.cjs')
+  utilFormat = require('exodus-test:util-format')
 } else {
   const { existsSync, readFileSync } = require('node:fs')
   const { dirname, basename, normalize, join } = require('node:path')

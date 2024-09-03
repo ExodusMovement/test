@@ -419,7 +419,7 @@ if (options.bundle) {
 
   if (options.binary === 'node') args.unshift('--enable-source-maps') // FIXME
 
-  const bundle = await import('./bundle.js')
+  const bundle = await import('../bundler/bundle.js')
   await bundle.init({ ...options, outdir, jestConfig })
   buildFile = (file) => bundle.build(file)
 }

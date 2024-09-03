@@ -1,6 +1,6 @@
 // APIs used in expect()
 
-export { isPromise } from '../engine.js'
+export const isPromise = (x) => Boolean(x && x.then && x.catch && x.finally)
 
 var NUMS = [
   'zero',

@@ -120,7 +120,7 @@ export const build = async (...files) => {
       input.push(`globalThis.EXODUS_TEST_CRYPTO_ENTROPY = ${stringify(entropy)};`)
     }
 
-    await importSource('../src/bundle-apis/globals.cjs')
+    await importSource('./modules/globals.cjs')
   }
 
   if (options.jest) {
@@ -141,7 +141,7 @@ export const build = async (...files) => {
       input.push(`globalThis.EXODUS_TEST_PRELOADED = [${preload.map((f) => w(f)).join(', ')}]`)
     }
 
-    await importSource('./jest.js')
+    await importSource('../bin/jest.js')
   }
 
   for (const file of files) importFile(file)
@@ -166,7 +166,7 @@ export const build = async (...files) => {
   const fsfiles = await getPackageFiles(filename ? dirname(resolve(filename)) : process.cwd())
 
   const hasBuffer = ['node', 'bun'].includes(options.platform)
-  const api = (f) => resolveRequire(join('../src/bundle-apis', f))
+  const api = (f) => resolveRequire(`./modules/${f}`)
   const res = await buildWrap({
     logLevel: 'silent',
     stdin: {
@@ -211,6 +211,8 @@ export const build = async (...files) => {
       '@jest/globals': resolveImport('../src/jest.js'),
       tape: resolveImport('../src/tape.cjs'),
       'tape-promise/tape': resolveImport('../src/tape.cjs'),
+      // Inner
+      'exodus-test:util-format': api('util-format.cjs'),
       // Node browserify
       'node:assert': dirname(dirname(resolveRequire('assert/'))),
       'node:assert/strict': api('assert-strict.cjs'),
