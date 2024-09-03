@@ -173,7 +173,10 @@ function parseOptions() {
   return { options, patterns }
 }
 
+const isTTY = process.stdout.isTTY
+const isCI = process.env.CI
 const { options, patterns } = parseOptions()
+const warnHuman = isTTY && !isCI ? (...args) => console.warn(...args) : () => {}
 
 const engineOptions = ENGINES.get(options.engine)
 assert(engineOptions, `Unknown engine: ${options.engine}`)
@@ -421,7 +424,7 @@ if (options.bundle) {
   buildFile = (file) => bundle.build(file)
 }
 
-if (options.dropNetwork) console.warn('--drop-network is a test helper, not a security mechanism')
+if (options.dropNetwork) warnHuman('--drop-network is a test helper, not a security mechanism')
 
 const execFile = promisify(execFileCallback)
 
@@ -473,7 +476,7 @@ if (options.pure) {
   }
 
   setEnv('EXODUS_TEST_CONTEXT', 'pure')
-  console.warn(`${options.engine} engine is experimental and may not work an expected`)
+  warnHuman(`${options.engine} engine is experimental and may not work an expected`)
 
   const runOne = async (inputFile) => {
     const bundled = buildFile ? await buildFile(inputFile) : undefined
