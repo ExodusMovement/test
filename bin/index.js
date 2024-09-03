@@ -295,7 +295,7 @@ if (options.esbuild && !options.bundle) {
 
 if (options.babel) {
   assert(!options.esbuild, 'Options --babel and --esbuild are mutually exclusive')
-  args.push('-r', resolveRequire('./babel.cjs'))
+  args.push('-r', resolveRequire('../loaders/babel.cjs'))
 }
 
 if (options.typescript) {
@@ -306,7 +306,7 @@ if (options.typescript) {
     assert(resolveImport)
     assert(options.hasImportLoader)
     // TODO: switch to native --experimental-strip-types where available
-    args.push('--import', resolveImport('./typescript.js'))
+    args.push('--import', resolveImport('../loaders/typescript.js'))
   } else if (options.ts !== 'auto') {
     throw new Error(`Processing --typescript is not possible with engine ${options.engine}`)
   }
