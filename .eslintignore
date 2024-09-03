@@ -1,9 +1,9 @@
 coverage
 playground
-__test__/tape/
-__test__/jest/jest-repo/
-__test__/jest-extended/
-__test__/jest-when/when.test.cjs
+tests/tape/
+tests/jest/jest-repo/
+tests/jest-extended/
+tests/jest-when/when.test.cjs
 __snapshots__
 __recordings__
 tempout.*
