@@ -91,11 +91,12 @@ const inConcurrent = []
 const inDescribe = []
 const concurrent = []
 
-const describeRaw = (nodeDescribe, ...args) => {
+const describeRaw = (callerLocation, nodeDescribe, ...args) => {
   const fn = args.pop()
   inDescribe.push(fn)
   const optionsConcurrent = args?.at(-1)?.concurrency > 1
   if (optionsConcurrent) inConcurrent.push(fn)
+  installLocationInNextTest(callerLocation)
   const result = nodeDescribe(...args, () => {
     const res = fn()
 
@@ -106,6 +107,7 @@ const describeRaw = (nodeDescribe, ...args) => {
     } else if (concurrent.length > 0) {
       const queue = [...concurrent]
       concurrent.length = 0
+      installLocationInNextTest(callerLocation)
       nodeDescribe('concurrent', { concurrency: defaultConcurrency }, () => {
         for (const args of queue) testRaw(...args)
       })
@@ -135,8 +137,8 @@ Also, using expect.assertions() to ensure the planned number of assertions is be
   })
 }
 
-const describe = (...args) => describeRaw(node.describe, ...args)
-describe.only = (...args) => describeRaw(node.describe.only, ...args)
+const describe = (...args) => describeRaw(getCallerLocation(), node.describe, ...args)
+describe.only = (...args) => describeRaw(getCallerLocation(), node.describe.only, ...args)
 
 const test = (...args) => testRaw(getCallerLocation(), node.test, ...args)
 test.only = (...args) => testRaw(getCallerLocation(), node.test.only, ...args)
