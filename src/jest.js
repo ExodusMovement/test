@@ -156,6 +156,8 @@ test.concurrent = (...args) => {
 }
 
 describe.each = makeEach(describe)
+describe.only.each = makeEach(describe.only)
+describe.skip.each = makeEach(describe.skip)
 test.each = makeEach(test)
 test.concurrent.each = makeEach(test.concurrent)
 test.only.each = makeEach(test.only)
