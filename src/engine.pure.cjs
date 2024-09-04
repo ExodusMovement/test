@@ -105,11 +105,12 @@ async function runContext(context) {
     stack.reverse()
     for (const c of stack) for (const hook of c.hooks.afterEach) await runFunction(hook, context)
 
-    print(error === undefined ? '✔ PASS' : '✖ FAIL', context.fullName)
+    const status = error === undefined ? '✔ PASS' : '✖ FAIL'
+    print(status, context.fullName, options.todo ? '# TODO' : '')
     if (error) {
       delete error.matcherResult
       print(' ', error)
-      abstractProcess.exitCode = 1
+      if (!options.todo) abstractProcess.exitCode = 1
     }
   } else {
     if (options.only && !runOnly) {
@@ -182,6 +183,11 @@ test.skip = (...args) => {
 test.only = (...args) => {
   const { name, options, fn } = parseArgs(args)
   return test(name, { ...options, only: true }, fn)
+}
+
+test.todo = (...args) => {
+  const { name, options, fn } = parseArgs(args)
+  return test(name, { ...options, todo: true }, fn)
 }
 
 class MockTimers {

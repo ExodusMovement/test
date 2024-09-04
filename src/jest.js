@@ -148,6 +148,7 @@ describe.skip = (...args) => describeRaw(getCallerLocation(), node.describe.skip
 const test = (...args) => testRaw(getCallerLocation(), node.test, ...args)
 test.only = (...args) => testRaw(getCallerLocation(), node.test.only, ...args)
 test.skip = (...args) => testRaw(getCallerLocation(), node.test.skip, ...args)
+test.todo = (...args) => testRaw(getCallerLocation(), node.test.todo, ...args)
 
 test.concurrent = (...args) => {
   assert(inDescribe.length > 0, 'test.concurrent is supported only within a describe block')
