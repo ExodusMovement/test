@@ -26,10 +26,6 @@ const normalizeJestConfig = (config) => ({
   },
 })
 
-function checkModuleNameMapper(mapper) {
-  return !mapper || JSON.stringify(mapper) === '{"^(\\\\.{1,2}/.*)\\\\.js$":"$1"}' // extension stripping is fine
-}
-
 function verifyJestConfig(c) {
   assert(!configUsed, 'Can not apply new config as the current one was already used')
 
@@ -41,7 +37,7 @@ function verifyJestConfig(c) {
   assert.deepEqual(environmentOptions, {}, 'Jest config.testEnvironmentOptions is not supported')
 
   assert(!c.automock, 'Automocking all modules is not currently supported (config.automock)')
-  assert(checkModuleNameMapper(c.moduleNameMapper), 'Jest config.moduleNameMapper is not supported')
+  // config.moduleNameMapper is ignored
   if (c.moduleDirectories) {
     const valid = ['node_modules']
     assert.deepEqual(c.moduleDirectories, valid, 'Jest config.moduleDirectories is not supported')
