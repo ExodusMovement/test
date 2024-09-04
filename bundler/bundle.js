@@ -207,10 +207,11 @@ export const build = async (...files) => {
       EXODUS_TEST_FSFILES: stringify(fsfiles), // TODO: can we safely use relative paths?
     },
     alias: {
-      // Jest and tape
+      // Jest, tape and node:test
       '@jest/globals': resolveImport('../src/jest.js'),
       tape: resolveImport('../src/tape.cjs'),
       'tape-promise/tape': resolveImport('../src/tape.cjs'),
+      'node:test': resolveImport('../src/node.js'),
       // Inner
       'exodus-test:util-format': api('util-format.cjs'),
       // Node browserify
