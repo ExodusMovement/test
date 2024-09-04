@@ -141,26 +141,42 @@ Also, using expect.assertions() to ensure the planned number of assertions is be
   })
 }
 
-const describe = (...args) => describeRaw(getCallerLocation(), node.describe, ...args)
-describe.only = (...args) => describeRaw(getCallerLocation(), node.describe.only, ...args)
-describe.skip = (...args) => describeRaw(getCallerLocation(), node.describe.skip, ...args)
-
-const test = (...args) => testRaw(getCallerLocation(), node.test, ...args)
-test.only = (...args) => testRaw(getCallerLocation(), node.test.only, ...args)
-test.skip = (...args) => testRaw(getCallerLocation(), node.test.skip, ...args)
-test.todo = (...args) => testRaw(getCallerLocation(), node.test.todo, ...args)
-
-test.concurrent = (...args) => {
-  assert(inDescribe.length > 0, 'test.concurrent is supported only within a describe block')
-  if (inConcurrent.length > 0) return test(...args)
-  concurrent.push([getCallerLocation(), node.test, ...args])
+function makeDescribe(impl) {
+  return (...args) => describeRaw(getCallerLocation(), impl, ...args)
 }
+
+function makeTest(impl) {
+  return (...args) => testRaw(getCallerLocation(), impl, ...args)
+}
+
+function makeTestConcurent(impl) {
+  return (...args) => {
+    assert(inDescribe.length > 0, 'test.concurrent is supported only within a describe block')
+    if (inConcurrent.length > 0) return testRaw(getCallerLocation(), impl, ...args)
+    concurrent.push([eachCallerLocation || getCallerLocation(), impl, ...args])
+  }
+}
+
+const describe = makeDescribe(node.describe)
+describe.only = makeDescribe(node.describe.only)
+describe.skip = makeDescribe(node.describe.skip)
+
+const test = makeTest(node.test)
+test.only = makeTest(node.test.only)
+test.skip = makeTest(node.test.skip)
+test.todo = makeTest(node.test.todo)
+
+test.concurrent = makeTestConcurent(node.test)
+test.concurrent.only = makeTestConcurent(node.test.only)
+test.concurrent.skip = makeTestConcurent(node.test.skip)
 
 describe.each = makeEach(describe)
 describe.only.each = makeEach(describe.only)
 describe.skip.each = makeEach(describe.skip)
 test.each = makeEach(test)
 test.concurrent.each = makeEach(test.concurrent)
+test.concurrent.only.each = makeEach(test.concurrent.only)
+test.concurrent.skip.each = makeEach(test.concurrent.skip)
 test.only.each = makeEach(test.only)
 test.skip.each = makeEach(test.skip)
 
