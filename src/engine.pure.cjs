@@ -107,6 +107,7 @@ async function runContext(context) {
 
     print(error === undefined ? '✔ PASS' : '✖ FAIL', context.fullName)
     if (error) {
+      delete error.matcherResult
       print(' ', error)
       abstractProcess.exitCode = 1
     }
