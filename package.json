@@ -26,6 +26,7 @@
     "exodus-test": "bin/index.js"
   },
   "exports": {
+    "./node-test-reporter": "./bin/reporter.js",
     "./jest": "./src/jest.js",
     "./node": "./src/node.js",
     "./tape": {
@@ -36,6 +37,7 @@
   "prettier": "@exodus/prettier",
   "files": [
     "bin/jest.js",
+    "bin/reporter.js",
     "bundler/babel-worker.cjs",
     "bundler/bundle.js",
     "bundler/modules/empty/function-throw.cjs",

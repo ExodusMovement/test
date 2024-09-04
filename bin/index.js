@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn, execFile as execFileCallback } from 'node:child_process'
-import { promisify, inspect } from 'node:util'
+import { promisify } from 'node:util'
 import { once } from 'node:events'
 import { fileURLToPath } from 'node:url'
 import { basename, dirname, resolve, join } from 'node:path'
@@ -206,7 +206,8 @@ if (options.pure) {
   assert(!options.watch, `Can not use --watch with with ${options.engine} engine`)
   assert(options.testNamePattern.length === 0, '--test-name-pattern requires node:test engine now')
 } else if (options.engine === 'node:test') {
-  args.push('--test', '--no-warnings=ExperimentalWarning', '--test-reporter=spec')
+  const reporter = resolveRequire('./reporter.js')
+  args.push('--test', '--no-warnings=ExperimentalWarning', '--test-reporter', reporter)
 
   if (haveSnapshots) args.push('--experimental-test-snapshots')
 
@@ -519,50 +520,22 @@ if (options.pure) {
     }
   }
 
-  const haveColors = process.stdout.hasColors?.() || process.env.FORCE_COLOR === '1' // 0 is already handled by hasColors()
-  const colors = new Map(Object.entries(inspect.colors))
-  const color = (text, color) => {
-    if (!haveColors || text === '') return text
-    if (!colors.has(color)) throw new Error(`Unknown color: ${color}`)
-    const [start, end] = colors.get(color)
-    return `\x1B[${start}m${text}\x1B[${end}m`
-  }
-
-  const format = (chunk) => {
-    if (!haveColors) return chunk
-    return chunk
-      .replaceAll(/^✔ PASS /gmu, color('✔ PASS ', 'green'))
-      .replaceAll(/^⏭ SKIP /gmu, color('⏭ SKIP ', 'dim'))
-      .replaceAll(/^✖ FAIL /gmu, color('✖ FAIL ', 'red'))
-      .replaceAll(/^⚠ WARN /gmu, color('⚠ WARN ', 'blue'))
-      .replaceAll(/^‼ FATAL /gmu, `${color('‼', 'red')} ${color(' FATAL ', 'bgRed')} `)
-  }
+  const { format, header, timeLabel, printSummary } = await import('./reporter.js')
 
   const failures = []
   const tasks = files.map((file) => ({ file, task: runConcurrent(file) }))
-  const timeString = color('Total time', 'dim')
-  console.time(timeString)
+  console.time(timeLabel)
   for (const { file, task } of tasks) {
-    console.log(color(`# ${file}`, 'bold'))
+    console.log(header(file))
     const { ok, output } = await task
     for (const chunk of output.map((x) => x.trimEnd()).filter(Boolean)) console.log(format(chunk))
     if (!ok) failures.push(file)
   }
 
-  if (failures.length > 0) {
-    process.exitCode = 1
-    const [total, passed, failed] = [files.length, files.length - failures.length, failures.length]
-    const failLine = color(`${failed} / ${total}`, 'red')
-    const passLine = color(`${passed} / ${total}`, 'green')
-    const suffix = passed > 0 ? color(` (passed: ${passLine})`, 'dim') : ''
-    console.log(`${color('Test suites failed:', 'bold')} ${failLine}${suffix}`)
-    console.log(color('Failed test suites:', 'red'))
-    for (const file of failures) console.log(`  ${file}`) // joining with \n can get truncated, too big
-  } else {
-    console.log(color(`All ${files.length} test suites passed`, 'green'))
-  }
+  if (failures.length > 0) process.exitCode = 1
+  printSummary(files, failures)
 
-  console.timeEnd(timeString)
+  console.timeEnd(timeLabel)
 } else {
   assert(!buildFile)
   assert(['node', c8].includes(options.binary), `Unexpected native engine: ${options.binary}`)
