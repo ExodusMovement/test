@@ -41,12 +41,12 @@ function parseArgs(list, targs) {
   return result
 }
 
-let eachCallerLocation
+const eachCallerLocation = []
 const makeEach =
   (impl) =>
   (list, ...rest) =>
   (template, fn) => {
-    eachCallerLocation = getCallerLocation()
+    eachCallerLocation.unshift(getCallerLocation())
     // Hack for common testing with simple arrow functions, until we can disable esbuild minification
     const formatArg = (x) => (x && x instanceof Function && `${x}` === '()=>{}' ? '() => {}' : x)
     // better than nothing
@@ -83,7 +83,7 @@ const makeEach =
       impl(name, () => (Array.isArray(args) ? fn(...args) : fn(args)))
     }
 
-    eachCallerLocation = undefined
+    eachCallerLocation.shift()
   }
 
 const execArgv = process.env.EXODUS_TEST_EXECARGV
@@ -100,7 +100,7 @@ const describeRaw = (callerLocation, nodeDescribe, ...args) => {
   inDescribe.push(fn)
   const optionsConcurrent = args?.at(-1)?.concurrency > 1
   if (optionsConcurrent) inConcurrent.push(fn)
-  installLocationInNextTest(eachCallerLocation || callerLocation)
+  installLocationInNextTest(eachCallerLocation[0] || callerLocation)
   const result = nodeDescribe(...args, () => {
     const res = fn()
 
@@ -111,7 +111,7 @@ const describeRaw = (callerLocation, nodeDescribe, ...args) => {
     } else if (concurrent.length > 0) {
       const queue = [...concurrent]
       concurrent.length = 0
-      installLocationInNextTest(eachCallerLocation || callerLocation)
+      installLocationInNextTest(eachCallerLocation[0] || callerLocation)
       nodeDescribe('concurrent', { concurrency: defaultConcurrency }, () => {
         for (const args of queue) testRaw(...args)
       })
@@ -126,7 +126,7 @@ const describeRaw = (callerLocation, nodeDescribe, ...args) => {
 
 const testRaw = (callerLocation, testBase, name, fn, testTimeout) => {
   const timeout = testTimeout ?? defaultTimeout
-  installLocationInNextTest(eachCallerLocation || callerLocation)
+  installLocationInNextTest(eachCallerLocation[0] || callerLocation)
   if (fn.length > 0) return testBase(name, { timeout }, (t, c) => fn(c))
   if (!forceExit) return testBase(name, { timeout }, fn)
   return testBase(name, { timeout }, async (t) => {
@@ -153,7 +153,7 @@ function makeTestConcurent(impl) {
   return (...args) => {
     assert(inDescribe.length > 0, 'test.concurrent is supported only within a describe block')
     if (inConcurrent.length > 0) return testRaw(getCallerLocation(), impl, ...args)
-    concurrent.push([eachCallerLocation || getCallerLocation(), impl, ...args])
+    concurrent.push([eachCallerLocation[0] || getCallerLocation(), impl, ...args])
   }
 }
 
