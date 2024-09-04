@@ -139,9 +139,11 @@ Also, using expect.assertions() to ensure the planned number of assertions is be
 
 const describe = (...args) => describeRaw(getCallerLocation(), node.describe, ...args)
 describe.only = (...args) => describeRaw(getCallerLocation(), node.describe.only, ...args)
+describe.skip = (...args) => describeRaw(getCallerLocation(), node.describe.skip, ...args)
 
 const test = (...args) => testRaw(getCallerLocation(), node.test, ...args)
 test.only = (...args) => testRaw(getCallerLocation(), node.test.only, ...args)
+test.skip = (...args) => testRaw(getCallerLocation(), node.test.skip, ...args)
 
 describe.each = makeEach(describe)
 test.each = makeEach(test) // TODO: pass caller location
@@ -152,8 +154,6 @@ test.concurrent = (...args) => {
 }
 
 test.concurrent.each = makeEach(test.concurrent)
-describe.skip = (...args) => node.describe.skip(...args)
-test.skip = (...args) => node.test.skip(...args)
 
 node.afterEach(() => {
   for (const { error } of expect.extractExpectedAssertionsErrors()) throw error
