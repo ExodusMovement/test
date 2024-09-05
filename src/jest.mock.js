@@ -40,6 +40,15 @@ export function resolveModule(name) {
   return require.resolve(name)
 }
 
+function resolveImport(name) {
+  try {
+    const { fileURLToPath } = require('node:url')
+    return fileURLToPath(import.meta.resolve(name))
+  } catch {
+    return null
+  }
+}
+
 export function requireActual(name) {
   const resolved = resolveModule(name)
   if (mapActual.has(resolved)) return mapActual.get(resolved)
@@ -203,7 +212,8 @@ export function jestmock(name, mocker, { override = false } = {}) {
   const value = mocker ? expand(mocker()) : mockClone(mapActual.get(resolved))
   mapMocks.set(resolved, value)
 
-  let likelyESM = false
+  const topLevelESM = isTopLevelESM()
+  let likelyESM = topLevelESM && !insideEsbuild && ![null, resolved].includes(resolveImport(name))
   let okFromESM = false
   const isBuiltIn = builtinModules.includes(resolved)
   const isNodeCache = (x) => x && x.id && x.path && x.filename && x.children && x.paths && x.loaded
@@ -238,7 +248,7 @@ export function jestmock(name, mocker, { override = false } = {}) {
     likelyESM = true
   }
 
-  if (likelyESM || (!okFromESM && isTopLevelESM())) {
+  if (likelyESM || (!okFromESM && topLevelESM)) {
     // Native module mocks is required if loading ESM or __from__ ESM
     // No good way to check the locations that import the module, but we can check top-level file
     // Built-in modules are fine though
@@ -256,6 +266,7 @@ export function jestmock(name, mocker, { override = false } = {}) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { default: defaultExport, __esModule, ...namedExports } = value
     Object.assign(obj, { defaultExport, namedExports })
+    if (obj.defaultExport === undefined) delete obj.defaultExport
   }
 
   nodeMocks.set(resolved, mock.module?.(resolved, obj))
