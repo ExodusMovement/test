@@ -119,7 +119,7 @@ export default async function nodeTestReporterExodus(source) {
   const isTopLevelTest = ({ nesting, line, column, name, file }) =>
     nesting === 0 && line === 1 && column === 1 && file.endsWith(name) && resolve(name) === file // some events have data.file resolved, some not)
   const processNewFile = (data) => {
-    const newFile = relative(cwd, data.entry || data.file) // some events have data.file resolved, some not
+    const newFile = relative(cwd, data.entry || data.file || data.name) // some events have data.file resolved, some not
     if (newFile === file) return
     if (file !== undefined) dump()
     file = newFile
@@ -149,7 +149,7 @@ export default async function nodeTestReporterExodus(source) {
         assert(path.pop() === data.name)
         if (!data.todo) failedFiles.add(file)
         if (!notPrintedError(data.details.error)) {
-          const { body, loc } = extractError(data, relative(cwd, data.file)) // might be different from current file if in subimport
+          const { body, loc } = extractError(data, relative(cwd, data.file || data.name)) // might be different from current file if in subimport
           if (!data.todo && CI && loc.line != null && loc.col != null) {
             print(`::error ${serializeGitHub(Object.entries(loc))}::${escapeGitHub(body)}`)
           } else if (body) {
