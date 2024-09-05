@@ -5,6 +5,8 @@ import { spec as SpecReporter } from 'node:test/reporters'
 
 const haveColors = process.stdout.hasColors?.() || process.env.FORCE_COLOR === '1' // 0 is already handled by hasColors()
 const colors = new Map(Object.entries(inspect.colors))
+const reportCI = process.env.CI
+const dim = reportCI ? 'gray' : 'dim'
 
 export const color = (text, color) => {
   if (!haveColors || text === '') return text
@@ -18,7 +20,7 @@ export const format = (chunk) => {
   if (!haveColors) return chunk
   return chunk
     .replaceAll(/^✔ PASS /gmu, color('✔ PASS ', 'green'))
-    .replaceAll(/^⏭ SKIP /gmu, color('⏭ SKIP ', 'dim'))
+    .replaceAll(/^⏭ SKIP /gmu, color('⏭ SKIP ', dim))
     .replaceAll(/^✖ FAIL /gmu, color('✖ FAIL ', 'red'))
     .replaceAll(/^⚠ WARN /gmu, color('⚠ WARN ', 'blue'))
     .replaceAll(/^‼ FATAL /gmu, `${color('‼', 'red')} ${color(' FATAL ', 'bgRed')} `)
@@ -29,7 +31,7 @@ export const printSummary = (files, failures) => {
     const [total, passed, failed] = [files.length, files.length - failures.length, failures.length]
     const failLine = color(`${failed} / ${total}`, 'red')
     const passLine = color(`${passed} / ${total}`, 'green')
-    const suffix = passed > 0 ? color(` (passed: ${passLine})`, 'dim') : ''
+    const suffix = passed > 0 ? color(` (passed: ${passLine})`, dim) : ''
     console.log(`${color('Test suites failed:', 'bold')} ${failLine}${suffix}`)
     console.log(color('Failed test suites:', 'red'))
     for (const file of failures) console.log(`  ${file}`) // joining with \n can get truncated, too big
@@ -38,7 +40,7 @@ export const printSummary = (files, failures) => {
   }
 }
 
-export const timeLabel = color('Total time', 'dim')
+export const timeLabel = color('Total time', dim)
 export const header = (file) => color(`# ${file}`, 'bold')
 
 export default async function nodeTestReporterExodus(source) {
@@ -52,7 +54,7 @@ export default async function nodeTestReporterExodus(source) {
   const cwd = process.cwd()
   const path = []
   let lastFile
-  const formatTime = ({ duration_ms: ms }) => color(` (${ms}ms)`, 'dim')
+  const formatTime = ({ duration_ms: ms }) => color(` (${ms}ms)`, dim)
   const formatSuffix = (data) => `${formatTime(data.details)}${data.todo ? ' # TODO' : ''}`
   const printHead = (data) => {
     const file = relative(cwd, data.file) // some events have data.file resolved, some not
@@ -71,7 +73,7 @@ export default async function nodeTestReporterExodus(source) {
         break
       case 'test:pass':
         if (data.skip) {
-          console.log(`${color('⏭ SKIP ', 'dim')}${path.join(' > ')}${formatSuffix(data)}`)
+          console.log(`${color('⏭ SKIP ', dim)}${path.join(' > ')}${formatSuffix(data)}`)
         } else {
           console.log(`${color('✔ PASS ', 'green')}${path.join(' > ')}${formatSuffix(data)}`)
         }
