@@ -3,10 +3,15 @@ import { inspect } from 'node:util'
 import { relative } from 'node:path'
 import { spec as SpecReporter } from 'node:test/reporters'
 
-const { FORCE_COLOR, CI, LERNA_PACKAGE_NAME } = process.env
+const { FORCE_COLOR, CI, GITHUB_WORKSPACE, LERNA_PACKAGE_NAME } = process.env
 const haveColors = process.stdout.hasColors?.() || FORCE_COLOR === '1' // 0 is already handled by hasColors()
 const colors = new Map(Object.entries(inspect.colors))
 const dim = CI ? 'gray' : 'dim'
+
+const uriReplacer = (x) => `%${x.codePointAt(0).toString(16).padStart(2, '0').toUpperCase()}`
+const escapeGitHubValue = (k, v) => `${k}=${String(v ?? '').replace(/[%\r\n:,]/gu, uriReplacer)}`
+const escapeGitHub = (s) => String(s || 'Unknown error').replace(/[%\r\n]/gu, uriReplacer)
+const serializeGitHub = (entries) => entries.map(([k, v]) => escapeGitHubValue(k, v)).join(',')
 
 export const color = (text, color) => {
   if (!haveColors || text === '') return text
@@ -51,15 +56,25 @@ export const summary = (files, failures) => {
   }
 }
 
+const cleanLine = (line) =>
+  line.trimStart().startsWith('at ') ? line.replace(`(file://${GITHUB_WORKSPACE}/`, '(') : line
+const cleanWorkspace = (e) => (CI && GITHUB_WORKSPACE ? e.split('\n').map(cleanLine).join('\n') : e)
 const SKIPPED_TRACE_LINES =
   /\n^(\x1B\[90m)? +at [ a-zA-Z.]+ \(node:(async_hooks|internal\/test_runner\/test):\d+:\d+\)(\x1B\[39m)?$/gmu // eslint-disable-line no-control-regex
 const notPrintedError = (e) => e?.code === 'ERR_TEST_FAILURE' && e?.failureType === 'subtestsFailed' // skipped from printing details
-const extractError = ({ error }) => {
+const extractError = ({ details: { error }, ...data }, file) => {
   if (!error) return ''
   if (error.cause) delete error.cause.matcherResult // eslint-disable-line @exodus/mutable/no-param-reassign-prop-only
   const selected = error.cause || error
-  const body = inspect(selected, { colors: haveColors })
-  return body.replaceAll(SKIPPED_TRACE_LINES, '')
+  const body = inspect(selected, { colors: haveColors }).replaceAll(SKIPPED_TRACE_LINES, '')
+
+  let loc = { file, line: data.line, col: data.column }
+  const validLine = (l) => l.startsWith('at ') && l.replace(/:\d+:\d+\)$/, '').endsWith(`/${file}`)
+  const line = (selected.stack || '').split('\n').find((l) => validLine(l.trimStart()))
+  const match = line?.match(/:(\d+):(\d+)\)$/)
+  if (match) loc = { file, line: Number(match[1]), col: Number(match[2]) }
+
+  return { body: cleanWorkspace(body), loc }
 }
 
 export default async function nodeTestReporterExodus(source) {
@@ -116,8 +131,12 @@ export default async function nodeTestReporterExodus(source) {
         assert.equal(file, relative(cwd, data.file))
         if (!data.todo) failedFiles.add(file)
         if (!notPrintedError(data.details.error)) {
-          const err = extractError(data.details)
-          if (err) print(`${err.replace(/^/gmu, '  ')}\n`)
+          const { body, loc } = extractError(data, file)
+          if (!data.todo && CI && loc.line != null && loc.col != null) {
+            print(`::error ${serializeGitHub(Object.entries(loc))}::${escapeGitHub(body)}`)
+          } else if (body) {
+            print(`${body.replace(/^/gmu, '  ')}\n`)
+          }
         }
 
         break
