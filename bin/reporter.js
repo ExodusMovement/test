@@ -51,6 +51,17 @@ export const summary = (files, failures) => {
   }
 }
 
+const SKIPPED_TRACE_LINES =
+  /\n^(\x1B\[90m)? +at [ a-zA-Z.]+ \(node:(async_hooks|internal\/test_runner\/test):\d+:\d+\)(\x1B\[39m)?$/gmu // eslint-disable-line no-control-regex
+const notPrintedError = (e) => e?.code === 'ERR_TEST_FAILURE' && e?.failureType === 'subtestsFailed' // skipped from printing details
+const extractError = ({ error }) => {
+  if (!error) return ''
+  if (error.cause) delete error.cause.matcherResult // eslint-disable-line @exodus/mutable/no-param-reassign-prop-only
+  const selected = error.cause || error
+  const body = inspect(selected, { colors: haveColors })
+  return body.replaceAll(SKIPPED_TRACE_LINES, '')
+}
+
 export default async function nodeTestReporterExodus(source) {
   const spec = new SpecReporter()
   spec.on('data', (data) => {
@@ -104,13 +115,9 @@ export default async function nodeTestReporterExodus(source) {
         assert(path.pop() === data.name)
         assert.equal(file, relative(cwd, data.file))
         if (!data.todo) failedFiles.add(file)
-        if (data.details.error) {
-          if (data.details.error.cause) delete data.details.error.cause.matcherResult
-          const err = inspect(data.details.error.cause || data.details.error, {
-            colors: haveColors,
-          })
-          print(err.replace(/^/gmu, '  '))
-          print('')
+        if (!notPrintedError(data.details.error)) {
+          const err = extractError(data.details)
+          if (err) print(`${err.replace(/^/gmu, '  ')}\n`)
         }
 
         break
