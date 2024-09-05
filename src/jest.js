@@ -127,7 +127,7 @@ const describeRaw = (callerLocation, nodeDescribe, ...args) => {
 const testRaw = (callerLocation, testBase, name, fn, testTimeout) => {
   const timeout = testTimeout ?? defaultTimeout
   installLocationInNextTest(eachCallerLocation[0] || callerLocation)
-  if (fn.length > 0) return testBase(name, { timeout }, (t, c) => fn(c))
+  if (fn?.length > 0) return testBase(name, { timeout }, (t, c) => fn(c))
   if (!forceExit) return testBase(name, { timeout }, fn)
   return testBase(name, { timeout }, async (t) => {
     const res = fn()
