@@ -3,10 +3,10 @@ import { inspect } from 'node:util'
 import { relative } from 'node:path'
 import { spec as SpecReporter } from 'node:test/reporters'
 
-const haveColors = process.stdout.hasColors?.() || process.env.FORCE_COLOR === '1' // 0 is already handled by hasColors()
+const { FORCE_COLOR, CI, LERNA_PACKAGE_NAME } = process.env
+const haveColors = process.stdout.hasColors?.() || FORCE_COLOR === '1' // 0 is already handled by hasColors()
 const colors = new Map(Object.entries(inspect.colors))
-const reportCI = process.env.CI
-const dim = reportCI ? 'gray' : 'dim'
+const dim = CI ? 'gray' : 'dim'
 
 export const color = (text, color) => {
   if (!haveColors || text === '') return text
@@ -28,7 +28,7 @@ export const format = (chunk) => {
 
 const formatTime = (ms) => (ms ? color(` (${ms}ms)`, dim) : '')
 
-const groupCI = reportCI && !process.execArgv.includes('--watch') && !process.env.LERNA_PACKAGE_NAME // lerna+nx groups already
+const groupCI = CI && !process.execArgv.includes('--watch') && !LERNA_PACKAGE_NAME // lerna+nx groups already
 export const timeLabel = color('Total time', dim)
 export const head = groupCI ? () => {} : (file) => console.log(color(`# ${file}`, 'bold'))
 export const middle = (file, ok, ms) => {
