@@ -38,6 +38,7 @@ const ENGINES = new Map(
 
 function parseOptions() {
   const options = {
+    concurrency: undefined, // undefined means unset (can read from config), 0 means auto
     jest: false,
     typescript: false,
     flow: false,
@@ -153,6 +154,12 @@ function parseOptions() {
         break
       case '--idea-compat':
         options.ideaCompat = true
+        break
+      case '--concurrency':
+        const concurrency = args.shift()
+        options.concurrency = Number(concurrency)
+        assert.equal(concurrency, `${options.concurrency}`)
+        assert(Number.isInteger(options.concurrency) && options.concurrency >= 0)
         break
       case '--test-name-pattern':
       case '--testNamePattern':
@@ -513,7 +520,7 @@ if (options.pure) {
     }
   }
 
-  const queue = new Queue(availableParallelism() - 1)
+  const queue = new Queue(options.concurrency || availableParallelism() - 1)
   const runConcurrent = async (file) => {
     await queue.claim()
     try {
@@ -549,6 +556,7 @@ if (options.pure) {
   setEnv('EXODUS_TEST_CONTEXT', options.engine)
   assert(files.length > 0) // otherwise we can run recursively
   assert(!options.binaryArgs)
+  if (options.concurrency) args.push('--test-concurrency', options.concurrency)
   const { code } = await launch(options.binary, [...args, ...files])
   process.exitCode = code
 }
