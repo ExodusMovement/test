@@ -490,21 +490,24 @@ if (options.pure) {
     // Timeout is fallback if timeout in script hangs, 50x as it can be adjusted per-script inside them
     // Do we want to extract timeouts from script code instead? Also, hermes might be slower, so makes sense to increase
     const timeout = (jestConfig?.testTimeout || 5000) * 50
+    const start = process.hrtime.bigint()
     try {
       const fullArgs = [...binaryArgs, ...args, file]
       const { code = 0, stdout, stderr } = await launch(options.binary, fullArgs, { timeout }, true)
-      return { ok: code === 0, output: [stdout, stderr] }
+      const ms = Number(process.hrtime.bigint() - start) / 1e6
+      return { ok: code === 0, output: [stdout, stderr], ms }
     } catch (err) {
+      const ms = Number(process.hrtime.bigint() - start) / 1e6
       const { code, stdout = '', stderr = '', signal, killed } = err
       if (code === null) {
         assert(signal)
         const message = `  ${signal}${killed ? ' (killed)' : ''}`
         const comment = killed && signal === 'SIGTERM' ? '  Most likely due to timeout reached' : ''
-        return { ok: false, output: [stdout, stderr, message, comment] }
+        return { ok: false, output: [stdout, stderr, message, comment], ms }
       }
 
       assert(Number.isInteger(code) && code > 0)
-      return { ok: false, output: [stdout, stderr] }
+      return { ok: false, output: [stdout, stderr], ms }
     } finally {
       if (bundled) await unlink(bundled.file)
     }
