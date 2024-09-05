@@ -178,6 +178,7 @@ export default async function nodeTestReporterExodus(source) {
   }
 
   dump()
+  for (const line of delayed) console.log(line)
   for (const line of diagnostic) console.log(line)
   summary([...files], [...failedFiles])
 }
