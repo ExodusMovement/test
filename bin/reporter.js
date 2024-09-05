@@ -117,12 +117,8 @@ export default async function nodeTestReporterExodus(source) {
         path.push(data.name)
         break
       case 'test:pass':
-        if (data.skip) {
-          print(`${color('⏭ SKIP ', dim)}${path.join(' > ')}${formatSuffix(data)}`)
-        } else {
-          print(`${color('✔ PASS ', 'green')}${path.join(' > ')}${formatSuffix(data)}`)
-        }
-
+        const label = data.skip ? color('⏭ SKIP ', dim) : color('✔ PASS ', 'green')
+        print(`${label}${path.join(' > ')}${formatSuffix(data)}`)
         assert(path.pop() === data.name)
         break
       case 'test:fail':
