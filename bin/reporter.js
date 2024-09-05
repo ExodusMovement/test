@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { inspect } from 'node:util'
-import { relative } from 'node:path'
+import { relative, resolve } from 'node:path'
 import { spec as SpecReporter } from 'node:test/reporters'
 
 const { FORCE_COLOR, CI, GITHUB_WORKSPACE, LERNA_PACKAGE_NAME } = process.env
@@ -32,6 +32,7 @@ export const format = (chunk) => {
 }
 
 const formatTime = (ms) => (ms ? color(` (${ms}ms)`, dim) : '')
+const formatSuffix = (d) => `${formatTime(d.details.duration_ms)}${d.todo ? ' # TODO' : ''}`
 
 const groupCI = CI && !process.execArgv.includes('--watch') && !LERNA_PACKAGE_NAME // lerna+nx groups already
 export const timeLabel = color('Total time', dim)
@@ -77,6 +78,22 @@ const extractError = ({ details: { error }, ...data }, file) => {
   return { body: cleanWorkspace(body), loc }
 }
 
+try {
+  // Welp, in some cases there is no other way to tell the entry point
+  // E.g. when the test file is just an import of another one, the reported 'file' is the imported one
+  // We want to know the original entry points instead
+  const runner = await import('node:internal/test_runner/runner') // eslint-disable-line @exodus/import/no-unresolved
+  const { FileTest } = runner.default || runner
+  const { addToReport } = FileTest.prototype
+  FileTest.prototype.addToReport = function (item, ...rest) {
+    if (item?.type === 'test:start' && !item.data.entry) {
+      item.data.entry = this.loc?.file || (this.name && resolve(this.name)) // eslint-disable-line @exodus/mutable/no-param-reassign-prop-only
+    }
+
+    return addToReport.call(this, item, ...rest)
+  }
+} catch {}
+
 export default async function nodeTestReporterExodus(source) {
   const spec = new SpecReporter()
   spec.on('data', (data) => {
@@ -97,24 +114,30 @@ export default async function nodeTestReporterExodus(source) {
   const cwd = process.cwd()
   const path = []
   let file
-  const formatSuffix = (d) => `${formatTime(d.details.duration_ms)}${d.todo ? ' # TODO' : ''}`
+  const diagnostic = []
+  const delayed = []
+  const isTopLevelTest = ({ nesting, line, column, name, file }) =>
+    nesting === 0 && line === 1 && column === 1 && file.endsWith(name) && resolve(name) === file // some events have data.file resolved, some not)
   const processNewFile = (data) => {
-    const newFile = relative(cwd, data.file) // some events have data.file resolved, some not
+    const newFile = relative(cwd, data.entry || data.file) // some events have data.file resolved, some not
     if (newFile === file) return
     if (file !== undefined) dump()
     file = newFile
-    files.add(file)
+    assert(files.has(file), 'Cound not determine file')
     head(file)
   }
-
-  const diagnostic = []
 
   for await (const { type, data } of source) {
     // Ignored: test:complete (no support on older Node.js), test:plan, test:dequeue, test:enqueue
     switch (type) {
+      case 'test:dequeue':
+        if (data.nesting === 0 && !Object.hasOwn(data, 'file')) files.add(relative(cwd, data.name)) // old-style
+        if (isTopLevelTest(data)) files.add(relative(cwd, data.file))
+        break
       case 'test:start':
         processNewFile(data)
         path.push(data.name)
+        while (delayed.length > 0) print(delayed.shift())
         break
       case 'test:pass':
         const label = data.skip ? color('⏭ SKIP ', dim) : color('✔ PASS ', 'green')
@@ -124,10 +147,9 @@ export default async function nodeTestReporterExodus(source) {
       case 'test:fail':
         print(`${color('✖ FAIL ', 'red')}${path.join(' > ')}${formatSuffix(data)}`)
         assert(path.pop() === data.name)
-        assert.equal(file, relative(cwd, data.file))
         if (!data.todo) failedFiles.add(file)
         if (!notPrintedError(data.details.error)) {
-          const { body, loc } = extractError(data, file)
+          const { body, loc } = extractError(data, relative(cwd, data.file)) // might be different from current file if in subimport
           if (!data.todo && CI && loc.line != null && loc.col != null) {
             print(`::error ${serializeGitHub(Object.entries(loc))}::${escapeGitHub(body)}`)
           } else if (body) {
@@ -146,8 +168,8 @@ export default async function nodeTestReporterExodus(source) {
         break
       case 'test:stderr':
       case 'test:stdout':
-        processNewFile(data)
-        print(data.message.replace(/\n$/, ''))
+        const handle = path.length > 0 ? print : (arg) => delayed.push(arg)
+        handle(data.message.replace(/\n$/, '')) // these are printed at test:start
         break
       case 'test:coverage':
         spec.write({ type, data }) // let spec reporter handle that
