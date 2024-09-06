@@ -65,14 +65,16 @@ export function advanceTimersByTime(time) {
 }
 
 export async function runAllTimersAsync() {
-  await awaitForMicrotaskQueue() // only once, before running timers, per jest doc
+  await awaitForMicrotaskQueue() // before running timers, per jest doc
   runAllTimers()
+  await awaitForMicrotaskQueue() // jest doc is misleading and it also does this after running timers
   return this
 }
 
 export async function runOnlyPendingTimersAsync() {
-  await awaitForMicrotaskQueue() // only once, before running timers, per jest doc
+  await awaitForMicrotaskQueue() // before running timers, per jest doc
   runOnlyPendingTimers()
+  await awaitForMicrotaskQueue() // jest doc is misleading and it also does this after running timers
   return this
 }
 
@@ -89,6 +91,7 @@ export async function advanceTimersByTimeAsync(time) {
     }
   }
 
+  await awaitForMicrotaskQueue() // jest doc is misleading and it also does this after running timers
   return this
 }
 
