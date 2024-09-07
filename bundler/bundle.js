@@ -39,8 +39,8 @@ const loadPipeline = [
 
 const options = {}
 
-export const init = async ({ platform, jest, flow, target, jestConfig, outdir }) => {
-  Object.assign(options, { platform, jest, flow, target, jestConfig, outdir })
+export const init = async ({ platform, jest, flow, target, jestConfig, outdir, entropySize }) => {
+  Object.assign(options, { platform, jest, flow, target, jestConfig, outdir, entropySize })
 
   if (options.flow) {
     const { default: flowRemoveTypes } = await import('flow-remove-types')
@@ -116,7 +116,7 @@ export const build = async (...files) => {
 
   if (!['node'].includes(options.platform)) {
     if (['jsc', 'hermes', 'd8'].includes(options.platform)) {
-      const entropy = randomBytes(5 * 1024).toString('base64')
+      const entropy = randomBytes(options.entropySize ?? 5 * 1024).toString('base64')
       input.push(`globalThis.EXODUS_TEST_CRYPTO_ENTROPY = ${stringify(entropy)};`)
     }
 

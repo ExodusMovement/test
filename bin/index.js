@@ -54,6 +54,7 @@ function parseOptions() {
     dropNetwork: ![undefined, '', '0'].includes(process.env.EXODUS_TEST_DROP_NETWORK),
     ideaCompat: false,
     engine: process.env.EXODUS_TEST_ENGINE ?? 'node:test',
+    entropySize: 5 * 1024,
     require: [],
     testNamePattern: [],
   }
@@ -160,6 +161,9 @@ function parseOptions() {
         options.concurrency = Number(concurrency)
         assert.equal(concurrency, `${options.concurrency}`)
         assert(Number.isInteger(options.concurrency) && options.concurrency >= 0)
+        break
+      case '--bundle-entropy-size':
+        options.entropySize = Number(args.shift())
         break
       case '--test-name-pattern':
       case '--testNamePattern':
