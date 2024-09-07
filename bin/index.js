@@ -165,6 +165,7 @@ function parseOptions() {
       case '--bundle-entropy-size':
         options.entropySize = Number(args.shift())
         break
+      case '-t':
       case '--test-name-pattern':
       case '--testNamePattern':
         options.testNamePattern.push(args.shift())
