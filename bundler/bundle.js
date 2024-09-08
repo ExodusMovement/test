@@ -167,6 +167,27 @@ export const build = async (...files) => {
 
   const hasBuffer = ['node', 'bun'].includes(options.platform)
   const api = (f) => resolveRequire(`./modules/${f}`)
+  const nodeUnprefixed = {
+    assert: dirname(dirname(resolveRequire('assert/'))),
+    'assert/strict': api('assert-strict.cjs'),
+    buffer: hasBuffer ? api('node-buffer.cjs') : dirname(resolveRequire('buffer/')),
+    child_process: api('child_process.cjs'),
+    constants: resolveRequire('constants-browserify'),
+    crypto: api('crypto.cjs'),
+    events: dirname(resolveRequire('events/')),
+    fs: api('fs.cjs'),
+    'fs/promises': api('fs-promises.cjs'),
+    http: api('http.cjs'),
+    https: api('https.cjs'),
+    os: resolveRequire('os-browserify'),
+    path: resolveRequire('path-browserify'),
+    querystring: resolveRequire('querystring-es3'),
+    stream: resolveRequire('stream-browserify'),
+    timers: resolveRequire('timers-browserify'),
+    url: dirname(resolveRequire('url/')),
+    util: dirname(resolveRequire('util/')),
+    zlib: resolveRequire('browserify-zlib'),
+  }
   const res = await buildWrap({
     logLevel: 'silent',
     stdin: {
@@ -214,29 +235,9 @@ export const build = async (...files) => {
       'node:test': resolveImport('../src/node.js'),
       // Inner
       'exodus-test:util-format': api('util-format.cjs'),
-      // Node browserify
-      'node:assert': dirname(dirname(resolveRequire('assert/'))),
-      'node:assert/strict': api('assert-strict.cjs'),
-      'node:fs': api('fs.cjs'),
-      'node:fs/promises': api('fs-promises.cjs'),
-      fs: api('fs.cjs'),
-      'fs/promises': api('fs-promises.cjs'),
-      assert: dirname(dirname(resolveRequire('assert/'))),
-      buffer: hasBuffer ? api('node-buffer.cjs') : dirname(resolveRequire('buffer/')),
-      child_process: api('child_process.cjs'),
-      constants: resolveRequire('constants-browserify'),
-      crypto: api('crypto.cjs'),
-      events: dirname(resolveRequire('events/')),
-      http: api('http.cjs'),
-      https: api('https.cjs'),
-      os: resolveRequire('os-browserify'),
-      path: resolveRequire('path-browserify'),
-      querystring: resolveRequire('querystring-es3'),
-      stream: resolveRequire('stream-browserify'),
-      timers: resolveRequire('timers-browserify'),
-      url: dirname(resolveRequire('url/')),
-      util: dirname(resolveRequire('util/')),
-      zlib: resolveRequire('browserify-zlib'),
+      // Node.js (except node:test)
+      ...Object.fromEntries(Object.entries(nodeUnprefixed).map(([k, v]) => [`node:${k}`, v])),
+      ...nodeUnprefixed,
       // expect-related deps
       'ansi-styles': api('ansi-styles.cjs'),
       'jest-util': api('jest-util.js'),
