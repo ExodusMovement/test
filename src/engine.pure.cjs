@@ -4,6 +4,7 @@ const assertLoose = require('node:assert')
 const { setTimeout, setInterval, setImmediate, Date } = globalThis
 const { clearTimeout, clearInterval, clearImmediate } = globalThis
 
+const INBAND_PREFIX_REGEX = /^EXODUS_TEST_INBAND:/
 const print = console.log.bind(console) // we don not want overrides
 Error.stackTraceLimit = 100
 
@@ -31,6 +32,7 @@ class Context {
   constructor(parent, name, options = {}) {
     Object.assign(this, { root: parent?.root, parent, name, options })
     this.fullName = parent && parent !== parent.root ? `${parent.fullName} > ${name}` : name
+    if (this.fullName === name) this.fullName = this.fullName.replace(INBAND_PREFIX_REGEX, '')
     if (this.root) {
       this.parent.children.push(this)
     } else {

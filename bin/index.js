@@ -394,6 +394,17 @@ if (tsTests.length > 0 && !options.esbuild && !options.typescript) {
   console.warn(`Flag --typescript has been used, but there were no TypeScript tests found!`)
 }
 
+if (!options.bundle) {
+  // uses top-level await, :bundle doesn't have that
+  const inband = new Set(files.filter((f) => basename(f).includes('.inband.')))
+  if (inband.size > 0) {
+    process.env.EXODUS_TEST_INBAND = JSON.stringify([...inband])
+    const remaning = files.filter((f) => !inband.has(f))
+    files.length = 0
+    files.push(fileURLToPath(import.meta.resolve('./inband.js')), ...remaning)
+  }
+}
+
 if (!Object.hasOwn(process.env, 'NODE_ENV')) process.env.NODE_ENV = 'test'
 
 const setEnv = (name, value) => {

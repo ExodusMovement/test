@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { inspect } from 'node:util'
 import { relative, resolve } from 'node:path'
 import { spec as SpecReporter } from 'node:test/reporters'
+import { fileURLToPath } from 'node:url'
 
 const { FORCE_COLOR, CI, GITHUB_WORKSPACE, LERNA_PACKAGE_NAME } = process.env
 const haveColors = process.stdout.hasColors?.() || FORCE_COLOR === '1' // 0 is already handled by hasColors()
@@ -34,9 +35,15 @@ export const format = (chunk) => {
 const formatTime = (ms) => (ms ? color(` (${ms}ms)`, dim) : '')
 const formatSuffix = (d) => `${formatTime(d.details.duration_ms)}${d.todo ? ' # TODO' : ''}`
 
+const cwd = process.cwd()
+const INBAND_PREFIX = 'EXODUS_TEST_INBAND:'
+const inbandFileAbsolute = fileURLToPath(import.meta.resolve('./inband.js'))
+const inbandFile = relative(cwd, inbandFileAbsolute)
+
 const groupCI = CI && !process.execArgv.includes('--watch') && !LERNA_PACKAGE_NAME // lerna+nx groups already
 export const timeLabel = color('Total time', dim)
-export const head = groupCI ? () => {} : (file) => console.log(color(`# ${file}`, 'bold'))
+const filename = (f) => (f === inbandFile || f === inbandFileAbsolute ? 'In-band tests' : f)
+export const head = groupCI ? () => {} : (file) => console.log(color(`# ${filename(file)}`, 'bold'))
 export const middle = (file, ok, ms) => {
   if (!groupCI) return
   console.log(`::group::${ok ? '✅' : '❌'} ${color(file, 'bold')}${formatTime(ms)}`)
@@ -111,7 +118,6 @@ export default async function nodeTestReporterExodus(source) {
 
   const files = new Set()
   const failedFiles = new Set()
-  const cwd = process.cwd()
   const path = []
   let file
   const diagnostic = []
@@ -119,20 +125,31 @@ export default async function nodeTestReporterExodus(source) {
   const isTopLevelTest = ({ nesting, line, column, name, file }) =>
     nesting === 0 && line === 1 && column === 1 && file.endsWith(name) && resolve(name) === file // some events have data.file resolved, some not)
   const processNewFile = (data) => {
-    const newFile = relative(cwd, data.entry || data.file || data.name) // some events have data.file resolved, some not
-    if (newFile === file) return
+    const band = data.name?.startsWith?.(INBAND_PREFIX) && data.name.slice(INBAND_PREFIX.length)
+    const newFile = relative(cwd, band || data.entry || data.file || data.name) // some events have data.file resolved, some not
+    if (newFile === file || newFile === inbandFile) return
     if (file !== undefined) dump()
     file = newFile
     assert(files.has(file), 'Cound not determine file')
     head(file)
   }
 
+  const pathstr = (p) => (p[0]?.startsWith(INBAND_PREFIX) ? p.slice(1) : p).join(' > ')
+  const pskip = (p) => path.length === 1 && p[0].startsWith(INBAND_PREFIX)
+
   for await (const { type, data } of source) {
     // Ignored: test:complete (no support on older Node.js), test:plan, test:dequeue, test:enqueue
     switch (type) {
       case 'test:dequeue':
-        if (data.nesting === 0 && !Object.hasOwn(data, 'file')) files.add(relative(cwd, data.name)) // old-style
-        if (isTopLevelTest(data)) files.add(relative(cwd, data.file))
+        if (data.nesting === 0 && data.name?.startsWith?.(INBAND_PREFIX)) {
+          files.add(data.name.slice(INBAND_PREFIX.length))
+        } else if (data.nesting === 0 && !Object.hasOwn(data, 'file')) {
+          files.add(relative(cwd, data.name)) // old-style
+        } else if (isTopLevelTest(data)) {
+          files.add(relative(cwd, data.file))
+        }
+
+        files.delete(inbandFile) // ensure we don't add that one
         break
       case 'test:start':
         processNewFile(data)
@@ -141,11 +158,11 @@ export default async function nodeTestReporterExodus(source) {
         break
       case 'test:pass':
         const label = data.skip ? color('⏭ SKIP ', dim) : color('✔ PASS ', 'green')
-        print(`${label}${path.join(' > ')}${formatSuffix(data)}`)
+        if (!pskip(path)) print(`${label}${pathstr(path)}${formatSuffix(data)}`)
         assert(path.pop() === data.name)
         break
       case 'test:fail':
-        print(`${color('✖ FAIL ', 'red')}${path.join(' > ')}${formatSuffix(data)}`)
+        if (!pskip(path)) print(`${color('✖ FAIL ', 'red')}${pathstr(path)}${formatSuffix(data)}`)
         assert(path.pop() === data.name)
         if (!data.todo) failedFiles.add(file)
         if (!notPrintedError(data.details.error)) {

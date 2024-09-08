@@ -36,6 +36,7 @@
   },
   "prettier": "@exodus/prettier",
   "files": [
+    "bin/inband.js",
     "bin/jest.js",
     "bin/reporter.js",
     "bundler/babel-worker.cjs",
