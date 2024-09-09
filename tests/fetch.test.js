@@ -1,7 +1,8 @@
 jest.exodus.mock.fetchReplay()
 // jest.exodus.mock.fetchRecord()
 
-const JSON_ERROR_REGEX = /(not valid JSON|^JSON Parse error|^Unexpected token .* in JSON)/
+const JSON_ERROR_REGEX =
+  /(not valid JSON|^JSON Parse error|^Failed to parse JSON|^Unexpected token .* in JSON)/
 
 describe('fetch replay', () => {
   test('https://example.com', async () => {
