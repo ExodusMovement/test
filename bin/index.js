@@ -189,10 +189,18 @@ const { options, patterns } = parseOptions()
 const warnHuman = isTTY && !isCI ? (...args) => console.warn(...args) : () => {}
 if (isCI) process.env.FORCE_COLOR = '1' // should support colored output even though not a TTY, overridable with --no-color
 
+const setEnv = (name, value) => {
+  const env = process.env[name]
+  if (env && env !== value) throw new Error(`env conflict: ${name}="${env}", effective: "${value}"`)
+  process.env[name] = value
+}
+
 const engineOptions = ENGINES.get(options.engine)
 assert(engineOptions, `Unknown engine: ${options.engine}`)
 Object.assign(options, engineOptions)
 options.platform = options.binary // binary can be overriden by c8
+setEnv('EXODUS_TEST_ENGINE', options.engine) // e.g. 'hermes:bundle', 'node:bundle', 'node:test', 'node:pure'
+setEnv('EXODUS_TEST_PLATFORM', options.binary) // e.g. 'hermes', 'node'
 
 const require = createRequire(import.meta.url)
 const resolveRequire = (query) => require.resolve(query)
@@ -404,15 +412,6 @@ if (!options.bundle) {
 }
 
 if (!Object.hasOwn(process.env, 'NODE_ENV')) process.env.NODE_ENV = 'test'
-
-const setEnv = (name, value) => {
-  const env = process.env[name]
-  if (env && env !== value) throw new Error(`env conflict: ${name}="${env}", effective: "${value}"`)
-  process.env[name] = value
-}
-
-setEnv('EXODUS_TEST_PLATFORM', options.binary) // e.g. 'hermes', 'node'
-setEnv('EXODUS_TEST_ENGINE', options.engine) // e.g. 'hermes:bundle', 'node:bundle', 'node:test', 'node:pure'
 setEnv('EXODUS_TEST_ONLY', options.only ? '1' : '')
 
 const c8 = resolveRequire('c8/bin/c8.js')
