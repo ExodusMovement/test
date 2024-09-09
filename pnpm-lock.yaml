@@ -74,9 +74,6 @@ importers:
       flow-remove-types:
         specifier: ^2.242.0
         version: 2.242.0
-      hermes-engine-cli:
-        specifier: ^0.12.0
-        version: 0.12.0
       jest-extended:
         specifier: ^4.0.2
         version: 4.0.2(jest@29.7.0(@types/node@20.14.10))
@@ -132,6 +129,9 @@ importers:
       eslint:
         specifier: ^8.44.0
         version: 8.57.0
+      hermes-engine-cli:
+        specifier: ^0.12.0
+        version: 0.12.0
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@20.14.10)

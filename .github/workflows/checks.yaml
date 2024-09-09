@@ -34,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['22.7', '22.4', '20.11', '20.8.0', '18.19.0']
+        node-version: ['22.8', '22.4', '20.11', '20.8.0', '18.19.0']
     steps:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - uses: pnpm/action-setup@18ac635edf3d6cd3e88d281bceecc25c4dbc1e73
@@ -47,3 +47,20 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: pnpm i --frozen-lockfile
       - run: EXODUS_TEST_DROP_NETWORK=1 pnpm test:all
+
+  hermes:
+    runs-on: ubuntu-latest
+    name: 'Test on Hermes'
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+      - uses: pnpm/action-setup@18ac635edf3d6cd3e88d281bceecc25c4dbc1e73
+        with:
+          run_install: false
+      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b
+        with:
+          node-version: 22.8
+          cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
+      - run: pnpm i --frozen-lockfile
+      - run: EXODUS_TEST_DROP_NETWORK=1 pnpm test:hermes
