@@ -16,9 +16,7 @@ import glob from 'fast-glob'
 import { haveModuleMocks, haveSnapshots, haveForceExit } from '../src/version.js'
 
 const bindir = dirname(fileURLToPath(import.meta.url))
-
-const EXTS = `.?([cm])[jt]s?(x)` // we differ from jest, allowing [cm] before everything
-const DEFAULT_PATTERNS = [`**/__tests__/**/*${EXTS}`, `**/?(*.)+(spec|test)${EXTS}`]
+const DEFAULT_PATTERNS = [`**/?(*.)+(spec|test).?([cm])[jt]s?(x)`] // do not trust magic dirs by default
 
 const bundleOptions = { pure: true, bundle: true, esbuild: true, ts: 'auto' }
 const hermesAv = ['-Og', '-Xmicrotask-queue']

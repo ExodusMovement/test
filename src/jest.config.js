@@ -2,7 +2,9 @@
 import assert from 'node:assert/strict'
 import { specialEnvironments } from './jest.environment.js'
 
+const EXTS = `.?([cm])[jt]s?(x)` // we differ from jest, allowing [cm] before everything
 const normalizeJestConfig = (config) => ({
+  testMatch: [`**/__tests__/**/*${EXTS}`, `**/?(*.)+(spec|test)${EXTS}`],
   testEnvironment: 'node',
   testTimeout: 5000,
   testPathIgnorePatterns: [],
