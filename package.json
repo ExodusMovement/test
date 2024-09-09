@@ -64,6 +64,7 @@
     "src/engine.js",
     "src/engine.node.cjs",
     "src/engine.pure.cjs",
+    "src/engine.pure.snapshot.cjs",
     "src/engine.select.cjs",
     "src/jest.js",
     "src/jest.config.js",

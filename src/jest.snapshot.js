@@ -11,6 +11,7 @@ import { format, plugins as builtinPlugins } from 'pretty-format'
 import { jestConfig } from './jest.config.js'
 import { getTestNamePath } from './dark.cjs'
 import { haveSnapshotsReportUnescaped } from './version.js'
+import { matchSnapshot, escapeSnapshot } from './engine.pure.snapshot.cjs'
 
 const { snapshotFormat, snapshotSerializers } = jestConfig()
 const plugins = Object.values(builtinPlugins)
@@ -18,10 +19,6 @@ const serialize = (val) => format(val, { ...snapshotFormat, plugins }).replaceAl
 
 let serializersAreSetup = false
 let snapshotsAreJest = false
-
-// For manually loading the snapshot
-const nameCounts = new Map()
-let snapshotText
 
 function maybeSetupSerializers() {
   if (serializersAreSetup) return
@@ -124,39 +121,12 @@ const snapOnDisk = (orig, matcher) => {
   }
 
   const obj = matcher ? deepMerge(orig, matcher) : orig
-  const escape = (str) => str.replaceAll(/([\\`])/gu, '\\$1')
 
   maybeSetupJestSnapshots()
 
   if (!context?.assert?.snapshot) {
-    // We don't have native snapshots, polyfill reading
-    if (snapshotText !== null) {
-      try {
-        const snapshotRaw = readSnapshot()
-        snapshotText = snapshotRaw ? `\n${snapshotRaw}\n` : null // we'll search wrapped in \n
-      } catch {
-        snapshotText = null
-      }
-    }
-
-    const addFail = `Adding new snapshots requires Node.js >=22.3.0`
-
-    // We don't support polyfilled snapshot generation here, only parsing
-    // Also be careful with assertion plan counters
-    if (!snapshotText) getAssert().fail(`Could not find snapshot file. ${addFail}`)
-
     const namePath = getTestNamePath(context).map((x) => (x === '<anonymous>' ? '' : x))
-    const name = namePath.join(' ')
-    const count = (nameCounts.get(name) || 0) + 1
-    nameCounts.set(name, count)
-    const escaped = escape(serialize(obj))
-    const key = `${name} ${count}`
-    const makeEntry = (x) => `\nexports[\`${escape(key)}\`] = \`${x}\`;\n`
-    const final = escaped.includes('\n') ? `\n${escaped}\n` : escaped
-    if (snapshotText.includes(makeEntry(final))) return
-    // Perhaps wrapped with newlines from Node.js snapshots?
-    if (!final.includes('\n') && snapshotText.includes(makeEntry(`\n${final}\n`))) return
-    return getAssert().fail(`Could not match "${key}" in snapshot. ${addFail}`)
+    return matchSnapshot(readSnapshot, getAssert(), namePath.join(' '), serialize(obj))
   }
 
   // Node.js always wraps with newlines, while jest wraps only those that are already multiline
@@ -164,7 +134,7 @@ const snapOnDisk = (orig, matcher) => {
     wrapContextName(() => context.assert.snapshot(obj))
   } catch (e) {
     if (typeof e.expected === 'string') {
-      const escaped = haveSnapshotsReportUnescaped ? e.expected : escape(e.expected)
+      const escaped = haveSnapshotsReportUnescaped ? e.expected : escapeSnapshot(e.expected)
       const final = escaped.includes('\n') ? escaped : `\n${escaped}\n`
       if (final === e.actual) return
     }

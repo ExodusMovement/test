@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict')
 const assertLoose = require('node:assert')
+const { matchSnapshot } = require('./engine.pure.snapshot.cjs')
 
 const { setTimeout, setInterval, setImmediate, Date } = globalThis
 const { clearTimeout, clearInterval, clearImmediate } = globalThis
@@ -28,17 +29,21 @@ class Context {
   children = []
   assert = { ...assertLoose, snapshot: undefined }
   hooks = { __proto__: null, before: [], after: [], beforeEach: [], afterEach: [] }
+  #fullName
 
   constructor(parent, name, options = {}) {
     Object.assign(this, { root: parent?.root, parent, name, options })
-    this.fullName = parent && parent !== parent.root ? `${parent.fullName} > ${name}` : name
-    if (this.fullName === name) this.fullName = this.fullName.replace(INBAND_PREFIX_REGEX, '')
+    this.#fullName = parent && parent !== parent.root ? `${parent.fullName} > ${name}` : name
+    if (this.#fullName === name) this.#fullName = this.#fullName.replace(INBAND_PREFIX_REGEX, '')
     if (this.root) {
       this.parent.children.push(this)
     } else {
       assert(this.name === '<root>' && !this.parent)
       this.root = this
     }
+
+    this.assert.snapshot = (obj) =>
+      matchSnapshot(readSnapshot, assert, this.fullName, serializeSnapshot(obj))
   }
 
   get onlySomewhere() {
@@ -47,6 +52,10 @@ class Context {
 
   get only() {
     return (this.options.only && !this.children.some((x) => x.onlySomewhere)) || this.parent?.only
+  }
+
+  get fullName() {
+    return this.#fullName
   }
 }
 
@@ -466,7 +475,17 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
 
 // eslint-disable-next-line no-undef
 let snapshotResolver = (dir, name) => [dir, `${name}.snapshot`] // default per Node.js docs
-const setSnapshotSerializers = () => {}
+let snapshotSerializers = [(obj) => JSON.stringify(obj, null, 2)]
+const serializeSnapshot = (obj) => {
+  let val = obj
+  for (const fn of snapshotSerializers) val = fn(val)
+  return val
+}
+
+const setSnapshotSerializers = ([...arr]) => {
+  snapshotSerializers = arr
+}
+
 const setSnapshotResolver = (fn) => {
   snapshotResolver = fn
 }
