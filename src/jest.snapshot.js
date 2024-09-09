@@ -48,6 +48,7 @@ const wrap = (check) => {
   }
 }
 
+// Older Node.js versions do not have context.assert, which we want to prefer for counting
 let context
 beforeEach((t) => (context = t))
 const getAssert = () => context?.assert ?? assert // do not use non-strict comparisons on this!
@@ -160,7 +161,7 @@ const snapOnDisk = (orig, matcher) => {
 
   // Node.js always wraps with newlines, while jest wraps only those that are already multiline
   try {
-    wrapContextName(() => getAssert().snapshot(obj))
+    wrapContextName(() => context.assert.snapshot(obj))
   } catch (e) {
     if (typeof e.expected === 'string') {
       const escaped = haveSnapshotsReportUnescaped ? e.expected : escape(e.expected)
