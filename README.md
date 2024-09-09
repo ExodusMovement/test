@@ -11,7 +11,7 @@ A runner for `node:test`, `jest`, and `tape` test suites on top of `node:test` (
 - Runs on [node:test](https://nodejs.org/api/test.html), and (experimental) on bun, deno, d8, JSC and
   [Hermes](https://hermesengine.dev)
 - Testsuite-agnostic -- can run any file as long as it sets exit code based on test results
-- Built-in [Jest](https://jestjs.io) compatibility (with `--jest`)
+- Built-in [Jest](https://jestjs.io) compatibility (with `--jest`), including `jest.*` global
   - Up to ~10x faster depending on the original setup
   - Actual `expect` module, also `jest-extended` and `jest-when` just work on top
   - Snapshots, including snapshot matchers
