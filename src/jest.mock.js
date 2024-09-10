@@ -33,7 +33,7 @@ export const jestModuleMocks = {
   resetModules,
 }
 
-export function resolveModule(name) {
+function resolveModule(name) {
   assert(requireIsRelative || /^[@a-zA-Z]/u.test(name), 'Mocking relative paths is not possible')
   const unprefixed = name.replace(/^node:/, '')
   if (builtinModules.includes(unprefixed)) return unprefixed
@@ -49,20 +49,20 @@ function resolveImport(name) {
   }
 }
 
-export function requireActual(name) {
+function requireActual(name) {
   const resolved = resolveModule(name)
   if (mapActual.has(resolved)) return mapActual.get(resolved)
   if (!mapMocks.has(resolved)) return require(resolved)
   throw new Error('Module can not been loaded')
 }
 
-export function requireMock(name) {
+function requireMock(name) {
   const resolved = resolveModule(name)
   assert(mapMocks.has(resolved), 'Module is not mocked')
   return mapMocks.get(resolved)
 }
 
-export function resetModules() {
+function resetModules() {
   for (const [, ctx] of nodeMocks) {
     if (mock.module) ctx.restore()
   }
@@ -181,7 +181,7 @@ function mockCloneItem(obj, cache) {
   return null
 }
 
-export function jestmock(name, mocker, { override = false } = {}) {
+function jestmock(name, mocker, { override = false } = {}) {
   assert(process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle', 'module mocks unsupported from bundle') // TODO: can we do something?
 
   // Loaded ESM: isn't mocked
