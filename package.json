@@ -27,6 +27,7 @@
   },
   "exports": {
     "./node-test-reporter": "./bin/reporter.js",
+    "./expect": "./src/expect.cjs",
     "./jest": "./src/jest.js",
     "./node": "./src/node.js",
     "./tape": {
@@ -67,6 +68,7 @@
     "src/engine.pure.cjs",
     "src/engine.pure.snapshot.cjs",
     "src/engine.select.cjs",
+    "src/expect.cjs",
     "src/jest.js",
     "src/jest.config.js",
     "src/jest.config.fs.js",

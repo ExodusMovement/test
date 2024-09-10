@@ -8,8 +8,7 @@ import { setupSnapshots } from './jest.snapshot.js'
 import { fetchReplay, fetchRecord, websocketRecord, websocketReplay } from './replay.js'
 import { createCallerLocationHook, insideEsbuild } from './dark.cjs'
 import { haveValidTimers } from './version.js'
-import { expect } from 'expect'
-import matchers from 'jest-extended'
+import { expect } from './expect.cjs'
 import { format as prettyFormat } from 'pretty-format'
 
 const { getCallerLocation, installLocationInNextTest } = createCallerLocationHook()
@@ -21,7 +20,6 @@ if (process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle') {
   if (files.length === 1 && files[0].endsWith('/inband.js')) addStatefulApis = false
 }
 
-expect.extend(matchers)
 if (addStatefulApis) setupSnapshots(expect)
 
 let defaultTimeout = jestConfig().testTimeout // overridable via jest.setTimeout()
@@ -262,4 +260,4 @@ export const beforeAll = (fn) => node.before(wrapCallback(fn))
 export const afterAll = (fn) => node.after(wrapCallback(fn))
 
 export { describe, test, test as it }
-export { expect } from 'expect'
+export { expect } from './expect.cjs'

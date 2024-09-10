@@ -8,6 +8,7 @@ import {
   syncBuiltinESMExports,
 } from './engine.js'
 import { jestfn } from './jest.fn.js'
+import { loadExpect } from './expect.cjs'
 import { makeEsbuildMockable, insideEsbuild } from './dark.cjs'
 
 const mapMocks = new Map()
@@ -212,6 +213,7 @@ function jestmock(name, mocker, { override = false } = {}) {
   const value = mocker ? expand(mocker()) : mockClone(mapActual.get(resolved))
   mapMocks.set(resolved, value)
 
+  loadExpect() // we need to do this as we don't want mocks affecting expect
   const topLevelESM = isTopLevelESM()
   let likelyESM = topLevelESM && !insideEsbuild && ![null, resolved].includes(resolveImport(name))
   let okFromESM = false
