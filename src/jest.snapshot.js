@@ -6,7 +6,6 @@ import {
   readSnapshot,
   relativeRequire,
 } from './engine.js'
-import { expect } from 'expect'
 import { format, plugins as builtinPlugins } from 'pretty-format'
 import { jestConfig } from './jest.config.js'
 import { getTestNamePath } from './dark.cjs'
@@ -111,7 +110,7 @@ const deepMerge = (obj, matcher) => {
   return res
 }
 
-const snapOnDisk = (orig, matcher) => {
+const snapOnDisk = (expect, orig, matcher) => {
   if (matcher) {
     expect(orig).toMatchObject(matcher)
     // If we passed, make appear that the above call never happened
@@ -143,11 +142,14 @@ const snapOnDisk = (orig, matcher) => {
   }
 }
 
-expect.extend({
-  toMatchInlineSnapshot: (obj, i) => wrap(() => snapInline(obj, i)),
-  toMatchSnapshot: (obj, matcher) => wrap(() => snapOnDisk(obj, matcher)),
-  toThrowErrorMatchingInlineSnapshot: (...a) => wrap(() => throws(a, (m) => snapInline(m, a[1]))),
-  toThrowErrorMatchingSnapshot: (...a) => wrap(() => throws(a, (m) => snapOnDisk(m))),
-})
+export function setupSnapshots(expect) {
+  expect.extend({
+    toMatchInlineSnapshot: (obj, i) => wrap(() => snapInline(obj, i)),
+    toMatchSnapshot: (obj, matcher) => wrap(() => snapOnDisk(expect, obj, matcher)),
+    toThrowErrorMatchingInlineSnapshot: (...a) => wrap(() => throws(a, (m) => snapInline(m, a[1]))),
+    toThrowErrorMatchingSnapshot: (...a) => wrap(() => throws(a, (m) => snapOnDisk(expect, m))),
+  })
 
-expect.addSnapshotSerializer = (plugin) => plugins.push(plugin)
+  // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
+  expect.addSnapshotSerializer = (plugin) => plugins.push(plugin)
+}

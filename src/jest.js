@@ -4,7 +4,7 @@ import { jestConfig } from './jest.config.js'
 import { jestFunctionMocks } from './jest.fn.js'
 import { jestModuleMocks } from './jest.mock.js'
 import * as jestTimers from './jest.timers.js'
-import './jest.snapshot.js'
+import { setupSnapshots } from './jest.snapshot.js'
 import { fetchReplay, fetchRecord, websocketRecord, websocketReplay } from './replay.js'
 import { createCallerLocationHook, insideEsbuild } from './dark.cjs'
 import { haveValidTimers } from './version.js'
@@ -14,7 +14,15 @@ import { format as prettyFormat } from 'pretty-format'
 
 const { getCallerLocation, installLocationInNextTest } = createCallerLocationHook()
 
+let addStatefulApis = true
+if (process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle') {
+  // We can't provide snapshots in inband tests yet, and mocks/timers are unsafe there
+  const files = process.argv.slice(1)
+  if (files.length === 1 && files[0].endsWith('/inband.js')) addStatefulApis = false
+}
+
 expect.extend(matchers)
+if (addStatefulApis) setupSnapshots(expect)
 
 let defaultTimeout = jestConfig().testTimeout // overridable via jest.setTimeout()
 const defaultConcurrency = jestConfig().maxConcurrency
@@ -242,8 +250,8 @@ export const jest = {
     return this
   },
   ...jestFunctionMocks,
-  ...jestModuleMocks,
-  ...jestTimers,
+  ...(addStatefulApis ? jestModuleMocks : {}),
+  ...(addStatefulApis ? jestTimers : {}),
 }
 
 const wrapCallback = (fn) => (fn.length > 0 ? (t, c) => fn(c) : () => fn())
