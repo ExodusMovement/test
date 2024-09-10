@@ -304,7 +304,7 @@ if (options.jest) {
 if (options.esbuild && !options.bundle) {
   assert(resolveImport)
   if (options.hasImportLoader) {
-    args.push('--import', resolveImport('tsx'))
+    args.push('--import', resolveImport('../loaders/esbuild.js'))
   } else if (options.engine === process.env.EXODUS_TEST_ENGINE) {
     console.warn(`Warning: ${options.engine} engine does not support --esbuild option`)
   } else {

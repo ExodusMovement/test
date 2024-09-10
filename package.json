@@ -58,6 +58,7 @@
     "bundler/modules/util-format.cjs",
     "bundler/modules/ws.cjs",
     "loaders/babel.cjs",
+    "loaders/esbuild.js",
     "loaders/typescript.js",
     "loaders/typescript.loader.js",
     "src/dark.cjs",
