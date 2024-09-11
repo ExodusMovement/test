@@ -32,8 +32,8 @@ class Context {
   test = test // todo: bind to context
   describe = describe // todo: bind to context
   children = []
-  assert = { ...assertLoose, snapshot: undefined }
   hooks = { __proto__: null, before: [], after: [], beforeEach: [], afterEach: [] }
+  #assert
   #fullName
 
   constructor(parent, name, options = {}) {
@@ -46,9 +46,6 @@ class Context {
       check(this.name === '<root>' && !this.parent)
       this.root = this
     }
-
-    this.assert.snapshot = (obj) =>
-      matchSnapshot(readSnapshot, assert, this.fullName, serializeSnapshot(obj))
   }
 
   get onlySomewhere() {
@@ -61,6 +58,16 @@ class Context {
 
   get fullName() {
     return this.#fullName
+  }
+
+  get assert() {
+    // Lazy-loading as this is gc-intensive under large trees and unused in expect() itself
+    if (!this.#assert) {
+      const snap = (o) => matchSnapshot(readSnapshot, assert, this.fullName, serializeSnapshot(o))
+      this.#assert = { ...assertLoose, snapshot: snap }
+    }
+
+    return this.#assert
   }
 }
 
