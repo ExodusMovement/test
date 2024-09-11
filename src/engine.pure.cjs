@@ -32,9 +32,9 @@ class Context {
   test = test // todo: bind to context
   describe = describe // todo: bind to context
   children = []
-  hooks = { __proto__: null, before: [], after: [], beforeEach: [], afterEach: [] }
-  #assert
   #fullName
+  #assert
+  #hooks
 
   constructor(parent, name, options = {}) {
     Object.assign(this, { root: parent?.root, parent, name, options })
@@ -69,6 +69,17 @@ class Context {
 
     return this.#assert
   }
+
+  async addHook(type, fn) {
+    if (!this.#hooks) this.#hooks = Object.create(null)
+    if (!this.#hooks[type]) this.#hooks[type] = []
+    this.#hooks[type].push(fn)
+  }
+
+  async runHooks(type, context = this) {
+    if (!this.#hooks?.[type]) return
+    for (const hook of this.#hooks[type]) await runFunction(hook, context)
+  }
 }
 
 function enterContext(name, options) {
@@ -91,7 +102,7 @@ async function runFunction(fn, context) {
 const runOnly = process.env.EXODUS_TEST_ONLY === '1'
 
 async function runContext(context) {
-  const { options, children, hooks, fn } = context
+  const { options, children, fn } = context
   check(!context.running, 'Can not run twice')
   // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
   context.running = true
@@ -109,7 +120,7 @@ async function runContext(context) {
     while (stack[0].parent) stack.unshift(stack[0].parent)
 
     // TODO: try/catch for hooks?
-    for (const c of stack) for (const hook of c.hooks.beforeEach) await runFunction(hook, context)
+    for (const c of stack) await c.runHooks('beforeEach', context)
     const guard = { id: null, failed: false }
     guard.promise = new Promise((resolve) => {
       guard.id = setTimeout(() => {
@@ -126,7 +137,7 @@ async function runContext(context) {
 
     clearTimeout(guard.id)
     stack.reverse()
-    for (const c of stack) for (const hook of c.hooks.afterEach) await runFunction(hook, context)
+    for (const c of stack) await c.runHooks('afterEach', context)
 
     const status = error === undefined ? '✔ PASS' : '✖ FAIL'
     print(status, context.fullName, options.todo ? '# TODO' : '')
@@ -143,9 +154,9 @@ async function runContext(context) {
     // if (context !== context.root) print(`▶ ${context.fullName}`)
     // TODO: try/catch for hooks?
     // TODO: flatten recursion before running?
-    for (const hook of hooks.before) await runFunction(hook, context)
+    await context.runHooks('before')
     for (const child of children) await runContext(child)
-    for (const hook of hooks.after) await runFunction(hook, context)
+    await context.runHooks('after')
     // if (context !== context.root) print(`▶ ${context.fullName}`)
   }
 }
@@ -429,10 +440,10 @@ if (process.env.EXODUS_TEST_ENGINE === 'node:pure') {
   } catch {}
 }
 
-const beforeEach = (fn) => context.hooks.beforeEach.push(fn)
-const afterEach = (fn) => context.hooks.afterEach.push(fn)
-const before = (fn) => context.hooks.before.push(fn)
-const after = (fn) => context.hooks.after.push(fn)
+const beforeEach = (fn) => context.addHook('beforeEach', fn)
+const afterEach = (fn) => context.addHook('afterEach', fn)
+const before = (fn) => context.addHook('before', fn)
+const after = (fn) => context.addHook('after', fn)
 
 const isPromise = (x) => Boolean(x && x.then && x.catch && x.finally)
 const nodeVersion = '9999.99.99'
