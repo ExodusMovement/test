@@ -15,8 +15,13 @@ let willstart
 
 const abstractProcess = globalThis.process || globalThis.EXODUS_TEST_PROCESS
 
+// assert module is slower
+const check = (condition, message) => {
+  if (!condition) throw new Error(message || 'Unexpected')
+}
+
 function parseArgs(args) {
-  assert(args.length <= 3)
+  check(args.length <= 3)
   const name = typeof args[0] === 'string' ? args.shift() : 'test'
   const fn = args.pop()
   const options = args.pop() || {}
@@ -38,7 +43,7 @@ class Context {
     if (this.root) {
       this.parent.children.push(this)
     } else {
-      assert(this.name === '<root>' && !this.parent)
+      check(this.name === '<root>' && !this.parent)
       this.root = this
     }
 
@@ -60,13 +65,13 @@ class Context {
 }
 
 function enterContext(name, options) {
-  assert(!running)
+  check(!running)
   if (willstart) clearTimeout(willstart) // have to he accurate for engines like Hermes
   context = new Context(context, name, options)
 }
 
 function exitContext() {
-  assert(context !== context.root)
+  check(context !== context.root)
   context = context.parent
   if (context === context.root) willstart = setTimeout(run, 0)
 }
@@ -80,10 +85,10 @@ const runOnly = process.env.EXODUS_TEST_ONLY === '1'
 
 async function runContext(context) {
   const { options, children, hooks, fn } = context
-  assert(!context.running, 'Can not run twice')
+  check(!context.running, 'Can not run twice')
   // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
   context.running = true
-  assert(children.length === 0 || !fn)
+  check(children.length === 0 || !fn)
   if (options.skip) return print('⏭ SKIP', context.fullName)
   if (context.fn) {
     if (runOnly) {
@@ -139,9 +144,9 @@ async function runContext(context) {
 }
 
 async function run() {
-  assert(!running)
+  check(!running)
   running = true
-  assert(context === context.root)
+  check(context === context.root)
   await runContext(context).catch((error) => {
     // Should not throw under regular circumstances
     print('‼ FATAL', error)
@@ -207,7 +212,7 @@ class MockTimers {
   #elapsed = 0
   #queue = []
   enable({ now = 0, apis = ['setInterval', 'setTimeout', 'setImmediate', 'Date'] } = {}) {
-    assert(!this.#enabled, 'MockTimers is already enabled!')
+    check(!this.#enabled, 'MockTimers is already enabled!')
     this.#base = +now
     this.#elapsed = 0
     if (apis.includes('setInterval')) {
