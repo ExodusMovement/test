@@ -82,6 +82,7 @@ function tapeWrapAssert(t, callback) {
     count += calls.length
     if (plan === count) api.end()
     if (plan !== null) assert(plan >= count, `plan (${plan}) < count (${count})`)
+    return calls[0] // return the value in case if wrapping a single call
   }
 
   const plannedAssert = () => (plan !== null && t.assert) || assertLoose // t.assert is cached and affected by t.plan
