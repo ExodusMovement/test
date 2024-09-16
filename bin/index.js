@@ -48,7 +48,7 @@ function parseOptions() {
     flow: false,
     esbuild: false,
     babel: false,
-    coverage: false,
+    coverage: getEnvFlag('EXODUS_TEST_COVERAGE'),
     coverageEngine: 'c8', // c8 or node
     watch: false,
     only: false,
