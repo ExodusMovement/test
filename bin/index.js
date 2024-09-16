@@ -14,7 +14,6 @@ import assert from 'node:assert/strict'
 import { Queue } from '@chalker/queue'
 import glob from 'fast-glob'
 import { haveModuleMocks, haveSnapshots, haveForceExit } from '../src/version.js'
-import { isTruthy } from '../src/env.js'
 
 const bindir = dirname(fileURLToPath(import.meta.url))
 const DEFAULT_PATTERNS = [`**/?(*.)+(spec|test).?([cm])[jt]s?(x)`] // do not trust magic dirs by default
@@ -49,7 +48,7 @@ function parseOptions() {
     flow: false,
     esbuild: false,
     babel: false,
-    coverage: isTruthy(process.env.EXODUS_TEST_COVERAGE),
+    coverage: getEnvFlag('EXODUS_TEST_COVERAGE'),
     coverageEngine: 'c8', // c8 or node
     watch: false,
     only: false,
