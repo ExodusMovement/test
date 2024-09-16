@@ -34,6 +34,12 @@ const ENGINES = new Map(
   })
 )
 
+const getEnvFlag = (name) => {
+  if (!Object.hasOwn(process.env, name)) return false
+  if ([undefined, '', '0', '1'].includes(process.env[name])) return process.env[name] === '1'
+  throw new Error(`Unexpected ${name} env value, expected '', '0', or '1'`)
+}
+
 function parseOptions() {
   const options = {
     concurrency: undefined, // undefined means unset (can read from config), 0 means auto
@@ -49,7 +55,7 @@ function parseOptions() {
     passWithNoTests: false,
     writeSnapshots: false,
     debug: { files: false },
-    dropNetwork: ![undefined, '', '0'].includes(process.env.EXODUS_TEST_DROP_NETWORK),
+    dropNetwork: getEnvFlag('EXODUS_TEST_DROP_NETWORK'),
     ideaCompat: false,
     engine: process.env.EXODUS_TEST_ENGINE ?? 'node:test',
     entropySize: 5 * 1024,
