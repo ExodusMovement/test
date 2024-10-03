@@ -106,7 +106,7 @@ export async function installJestEnvironment(jestGlobals) {
 
   if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
     const preloaded = new Map(EXODUS_TEST_PRELOADED) // eslint-disable-line no-undef
-    require = (name) => {
+    require = dynamicImport = (name) => {
       if (preloaded.has(name)) return preloaded.get(name)()
       assert.fail('Requiring non-bundled plugins from bundle is unsupported')
     }
