@@ -51,7 +51,7 @@ const eachCallerLocation = []
 const makeEach =
   (impl) =>
   (list, ...rest) =>
-  (template, fn, timeout) => {
+  (template, fn, ...restArgs) => {
     eachCallerLocation.unshift(getCallerLocation())
     // Hack for common testing with simple arrow functions, until we can disable esbuild minification
     const formatArg = (x) => (x && x instanceof Function && `${x}` === '()=>{}' ? '() => {}' : x)
@@ -86,7 +86,7 @@ const makeEach =
         if (length > 0) name = utilFormat(name, ...args.slice(0, length).map(formatArg))
       }
 
-      impl(name, () => (Array.isArray(args) ? fn(...args) : fn(args)), timeout)
+      impl(name, () => (Array.isArray(args) ? fn(...args) : fn(args)), ...restArgs)
     }
 
     eachCallerLocation.shift()
