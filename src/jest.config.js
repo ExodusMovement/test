@@ -104,7 +104,7 @@ export async function installJestEnvironment(jestGlobals) {
   let dynamicImport
   if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
     const preloaded = new Map(EXODUS_TEST_PRELOADED) // eslint-disable-line no-undef
-    dynamicImport = (name) => {
+    dynamicImport = async (name) => {
       if (preloaded.has(name)) return preloaded.get(name)()
       assert.fail('Requiring non-bundled plugins from bundle is unsupported')
     }
@@ -112,7 +112,7 @@ export async function installJestEnvironment(jestGlobals) {
     const { resolve } = await import('node:path')
     dynamicImport = (path) => import(resolve(config.rootDir, path))
   } else {
-    dynamicImport = () => assert.fail('Unreachable: importing plugins without a rootDir')
+    dynamicImport = async () => assert.fail('Unreachable: importing plugins without a rootDir')
   }
 
   for (const file of c.setupFiles || []) await dynamicImport(file)
