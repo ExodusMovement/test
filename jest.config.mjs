@@ -4,7 +4,7 @@ const config = {
     '<rootDir>/tests/setup-files/setup.cjs',
     '<rootDir>/tests/setup-files/setup.mjs',
     '<rootDir>/tests/setup-files/setup.js',
-  ]
+  ],
 }
 
 export default config
