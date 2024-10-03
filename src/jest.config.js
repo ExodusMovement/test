@@ -102,6 +102,8 @@ export async function installJestEnvironment(jestGlobals) {
   if (c.resetModules) beforeEach(() => jest.resetModules())
 
   let require
+  let dynamicImport
+
   if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
     const preloaded = new Map(EXODUS_TEST_PRELOADED) // eslint-disable-line no-undef
     require = (name) => {
@@ -112,18 +114,20 @@ export async function installJestEnvironment(jestGlobals) {
     const { resolve } = await import('node:path')
     const { createRequire } = await import('node:module')
     require = createRequire(resolve(config.rootDir, 'package.json'))
+    dynamicImport = (path) => import(resolve(config.rootDir, path))
   } else {
     require = () => assert.fail('Unreachable: requiring plugins without a rootDir')
+    dynamicImport = () => assert.fail('Unreachable: importing plugins without a rootDir')
   }
 
-  for (const file of c.setupFiles || []) require(file)
+  for (const file of c.setupFiles || []) await dynamicImport(file)
 
   if (Object.hasOwn(specialEnvironments, c.testEnvironment)) {
     const { setup } = specialEnvironments[c.testEnvironment]
     await setup(require, engine, jestGlobals, c.testEnvironmentOptions)
   }
 
-  for (const file of c.setupFilesAfterEnv || []) require(file)
+  for (const file of c.setupFilesAfterEnv || []) await dynamicImport(file)
 
   // @jest/globals import auto-mocking is disabled until https://github.com/nodejs/node/issues/53807 is resolved
   /*
