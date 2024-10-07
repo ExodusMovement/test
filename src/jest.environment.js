@@ -3,8 +3,8 @@ export const specialEnvironments = {
 
   jsdom: {
     dependencies: ['jsdom'],
-    setup: (require) => {
-      const { JSDOM, VirtualConsole } = require('jsdom')
+    setup: async (dynamicImport) => {
+      const { JSDOM, VirtualConsole } = await dynamicImport('jsdom')
       const virtualConsole = new VirtualConsole()
       const dom = new JSDOM('<!DOCTYPE html>', {
         url: 'http://localhost/',
