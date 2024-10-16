@@ -28,7 +28,7 @@ jobs:
       - run: pnpm lint
 
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: 'Test on Node.js ${{ matrix.node-version }}'
     timeout-minutes: 10
     strategy:
@@ -49,7 +49,7 @@ jobs:
       - run: EXODUS_TEST_DROP_NETWORK=1 pnpm test:all
 
   hermes:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: 'Test on Hermes'
     timeout-minutes: 10
     steps:
