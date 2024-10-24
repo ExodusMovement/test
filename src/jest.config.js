@@ -110,7 +110,10 @@ export async function installJestEnvironment(jestGlobals) {
     }
   } else if (config.rootDir) {
     const { resolve } = await import('node:path')
-    dynamicImport = (path) => import(resolve(config.rootDir, path))
+    const { createRequire } = await import('node:module')
+    const require = createRequire(resolve(config.rootDir, 'package.json'))
+
+    dynamicImport = (path) => import(require.resolve(path))
   } else {
     dynamicImport = async () => assert.fail('Unreachable: importing plugins without a rootDir')
   }
