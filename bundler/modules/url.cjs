@@ -1,5 +1,10 @@
 const urlLib = require('url/url.js')
 
+function pathToFileURL(path) {
+  const url = urlLib.format({ protocol: 'file:', pathname: path, slashes: true })
+  return globalThis.URL ? new globalThis.URL(url) : urlLib.parse(url)
+}
+
 function fileURLToPath(url, options) {
   if (options?.windows) throw new Error('Windows mode not supported')
   if (typeof url === 'string') {
@@ -10,7 +15,7 @@ function fileURLToPath(url, options) {
   }
 
   if (url.protocol !== 'file:' || url.host !== '') throw new Error('Input is not a file URL')
-  const { path } = url
+  const path = url.pathname
   for (let n = 0; n < path.length; n++) {
     if (path[n] !== '%' && path[n + 1] === '2' && (path.codePointAt(n + 2) | 0x20) === 102) {
       throw new Error('must not include encoded / characters')
@@ -20,4 +25,4 @@ function fileURLToPath(url, options) {
   return path
 }
 
-module.exports = { ...urlLib, fileURLToPath }
+module.exports = { ...urlLib, pathToFileURL, fileURLToPath }
