@@ -22,7 +22,7 @@ if (process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle') {
 
 if (addStatefulApis) setupSnapshots(expect)
 
-let defaultTimeout = jestConfig().testTimeout // overridable via jest.setTimeout()
+let defaultTimeout = Number(process.env.EXODUS_TEST_TIMEOUT) || jestConfig().testTimeout // overridable via jest.setTimeout()
 const defaultConcurrency = jestConfig().maxConcurrency
 
 function parseArgs(list, targs) {

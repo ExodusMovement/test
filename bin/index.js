@@ -61,6 +61,7 @@ function parseOptions() {
     entropySize: 5 * 1024,
     require: [],
     testNamePattern: [],
+    testTimeout: undefined,
   }
 
   const args = [...process.argv]
@@ -86,7 +87,6 @@ function parseOptions() {
       // Ignore some options IntelliJ IDEA is passing
       switch (option) {
         case '--reporters':
-        case '--testTimeout':
           args.shift()
           continue
         case '--verbose':
@@ -174,6 +174,9 @@ function parseOptions() {
       case '--testNamePattern':
         options.testNamePattern.push(args.shift())
         break
+      case '--testTimeout':
+        options.testTimeout = Number(args.shift())
+        break
       default:
         throw new Error(`Unknown option: ${option}`)
     }
@@ -198,7 +201,7 @@ if (isCI) process.env.FORCE_COLOR = '1' // should support colored output even th
 const setEnv = (name, value) => {
   const env = process.env[name]
   if (env && env !== value) throw new Error(`env conflict: ${name}="${env}", effective: "${value}"`)
-  process.env[name] = value
+  process.env[name] = value === undefined ? '' : value
 }
 
 const engineOptions = ENGINES.get(options.engine)
@@ -207,6 +210,7 @@ Object.assign(options, engineOptions)
 options.platform = options.binary // binary can be overriden by c8
 setEnv('EXODUS_TEST_ENGINE', options.engine) // e.g. 'hermes:bundle', 'node:bundle', 'node:test', 'node:pure'
 setEnv('EXODUS_TEST_PLATFORM', options.binary) // e.g. 'hermes', 'node'
+setEnv('EXODUS_TEST_TIMEOUT', options.testTimeout)
 
 const require = createRequire(import.meta.url)
 const resolveRequire = (query) => require.resolve(query)
@@ -515,7 +519,7 @@ if (options.pure) {
     const { binaryArgs = [] } = options
     // Timeout is fallback if timeout in script hangs, 50x as it can be adjusted per-script inside them
     // Do we want to extract timeouts from script code instead? Also, hermes might be slower, so makes sense to increase
-    const timeout = (jestConfig?.testTimeout || 5000) * 50
+    const timeout = (options.testTimeout || jestConfig?.testTimeout || 5000) * 50
     const start = process.hrtime.bigint()
     try {
       const fullArgs = [...binaryArgs, ...args, file]

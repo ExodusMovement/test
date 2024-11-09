@@ -233,6 +233,7 @@ export const build = async (...files) => {
       'process.env.EXODUS_TEST_JEST_CONFIG': stringify(JSON.stringify(options.jestConfig)),
       'process.env.EXODUS_TEST_EXECARGV': stringify(process.env.EXODUS_TEST_EXECARGV),
       'process.env.EXODUS_TEST_ONLY': stringify(process.env.EXODUS_TEST_ONLY),
+      'process.env.EXODUS_TEST_TIMEOUT': stringify(process.env.EXODUS_TEST_TIMEOUT),
       'process.env.NODE_DEBUG': stringify(),
       'process.env.DEBUG': stringify(),
       'process.env.READABLE_STREAM': stringify(),
