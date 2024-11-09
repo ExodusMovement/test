@@ -190,6 +190,10 @@ export const build = async (...files) => {
     util: dirname(resolveRequire('util/')),
     zlib: resolveRequire('browserify-zlib'),
   }
+
+  const defines = {}
+  if (files.length === 1) defines['process.argv'] = stringify(['exodus-test', resolve(files[0])])
+
   const res = await buildWrap({
     logLevel: 'silent',
     stdin: {
@@ -202,6 +206,7 @@ export const build = async (...files) => {
     platform: 'neutral',
     mainFields: ['browser', 'module', 'main'],
     define: {
+      ...defines,
       'process.env.FORCE_COLOR': stringify('0'),
       'process.env.NO_COLOR': stringify('1'),
       'process.env.NODE_ENV': stringify(process.env.NODE_ENV),
