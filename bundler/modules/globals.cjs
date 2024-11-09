@@ -70,6 +70,11 @@ if (typeof process === 'undefined') {
         }, 0)
       }
     },
+    cwd: () => {
+      // eslint-disable-next-line no-undef
+      if (typeof EXODUS_TEST_PROCESS_CWD === 'string') return EXODUS_TEST_PROCESS_CWD
+      throw new Error('Can not determine cwd, no process available')
+    },
   }
 
   globalThis.EXODUS_TEST_PROCESS = process

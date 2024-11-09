@@ -170,9 +170,10 @@ export const build = async (...files) => {
     const cwd = process.cwd()
     for (const re of [/readFileSync\('([^'\\]+)'[),]/gu, /readFileSync\("([^"\\]+)"[),]/gu]) {
       for (const match of source.matchAll(re)) {
-        const file = match[1]
+        let file = match[1]
         if (file && /^[a-z0-9@_./-]+$/iu.test(file)) {
-          if (!resolve(file).startsWith(`${cwd}/`)) continue
+          file = resolve(file)
+          if (!file.startsWith(`${cwd}/`)) continue
           const data = readFileSync(file, 'base64')
           if (fsFilesContents.has(file)) {
             assert(fsFilesContents.get(file) === data)
@@ -246,6 +247,8 @@ export const build = async (...files) => {
       'process.type': 'undefined',
       'process.version': stringify('v22.5.1'), // shouldn't depend on currently used Node.js version
       'process.versions.node': stringify('22.5.1'), // see line above
+      'process.cwd': 'EXODUS_TEST_PROCESS.cwd',
+      EXODUS_TEST_PROCESS_CWD: stringify(process.cwd()),
       EXODUS_TEST_FILES: stringify(files.map((f) => [dirname(f), basename(f)])),
       EXODUS_TEST_SNAPSHOTS: stringify(EXODUS_TEST_SNAPSHOTS),
       EXODUS_TEST_RECORDINGS: stringify(EXODUS_TEST_RECORDINGS),

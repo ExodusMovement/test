@@ -1,4 +1,5 @@
 const constants = require('constants-browserify')
+const { resolve } = require('path')
 const { F_OK, R_OK, W_OK, X_OK } = constants
 
 // promises, sync, callbacks
@@ -97,6 +98,7 @@ const readFileSync = (file, options) => {
   }
 
   if (typeof file !== 'string') throw new Error('file argument should be string')
+  file = resolve(process.cwd(), file)
   if (fsFilesContents?.has(file)) {
     const data = Buffer.from(fsFilesContents.get(file), 'base64')
     if (encoding?.toLowerCase().replace('-', '') === 'utf8') return data.toString('utf8')
