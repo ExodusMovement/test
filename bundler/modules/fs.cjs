@@ -77,11 +77,33 @@ const promises = { ...stubsPromises, constants }
 // eslint-disable-next-line no-undef
 const fsFiles = typeof EXODUS_TEST_FSFILES === 'undefined' ? null : new Set(EXODUS_TEST_FSFILES)
 const existsSync = (file) => {
-  if (fsFiles.has(file)) return true
+  if (fsFiles?.has(file)) return true
   err('existsSync', file)
 }
 
-const readFileSync = (file /*, options */) => {
+const fsFilesContents =
+  // eslint-disable-next-line no-undef
+  typeof EXODUS_TEST_FSFILES_CONTENTS === 'undefined' ? null : new Map(EXODUS_TEST_FSFILES_CONTENTS)
+const readFileSync = (file, options) => {
+  let encoding
+  if (typeof options === 'string') {
+    encoding = options
+  } else if (options !== undefined) {
+    if (typeof options !== 'object') throw new Error('Unexpected readFileSync options')
+    const { encoding: enc, ...rest } = options
+    if (enc !== undefined && typeof enc !== 'string') throw new Error('encoding should be a string')
+    encoding = enc
+    if (Object.keys(rest).length > 0) throw new Error('Unsupported readFileSync options')
+  }
+
+  if (typeof file !== 'string') throw new Error('file argument should be string')
+  if (fsFilesContents?.has(file)) {
+    const data = Buffer.from(fsFilesContents.get(file), 'base64')
+    if (encoding?.toLowerCase().replace('-', '') === 'utf8') return data.toString('utf8')
+    if (encoding === undefined) return data
+    throw new Error('Unsupported encoding')
+  }
+
   err('readFileSync', file)
 }
 

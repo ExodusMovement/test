@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { basename, dirname, extname, resolve, join } from 'node:path'
 import { createRequire } from 'node:module'
@@ -165,6 +165,26 @@ export const build = async (...files) => {
   }
 
   const fsfiles = await getPackageFiles(filename ? dirname(resolve(filename)) : process.cwd())
+  const fsFilesContents = new Map()
+  loadPipeline.push(async (source) => {
+    const cwd = process.cwd()
+    for (const re of [/readFileSync\('([^'\\]+)'[),]/gu, /readFileSync\("([^"\\]+)"[),]/gu]) {
+      for (const match of source.matchAll(re)) {
+        const file = match[1]
+        if (file && /^[a-z0-9@_./-]+$/iu.test(file)) {
+          if (!resolve(file).startsWith(`${cwd}/`)) continue
+          const data = readFileSync(file, 'base64')
+          if (fsFilesContents.has(file)) {
+            assert(fsFilesContents.get(file) === data)
+          } else {
+            fsFilesContents.set(file, data)
+          }
+        }
+      }
+    }
+
+    return source
+  })
 
   const hasBuffer = ['node', 'bun'].includes(options.platform)
   const api = (f) => resolveRequire(`./modules/${f}`)
@@ -191,10 +211,7 @@ export const build = async (...files) => {
     zlib: resolveRequire('browserify-zlib'),
   }
 
-  const defines = {}
-  if (files.length === 1) defines['process.argv'] = stringify(['exodus-test', resolve(files[0])])
-
-  const res = await buildWrap({
+  const config = {
     logLevel: 'silent',
     stdin: {
       contents: `(async function () {\n${main}\n})()`,
@@ -206,7 +223,6 @@ export const build = async (...files) => {
     platform: 'neutral',
     mainFields: ['browser', 'module', 'main'],
     define: {
-      ...defines,
       'process.env.FORCE_COLOR': stringify('0'),
       'process.env.NO_COLOR': stringify('1'),
       'process.env.NODE_ENV': stringify(process.env.NODE_ENV),
@@ -233,6 +249,7 @@ export const build = async (...files) => {
       EXODUS_TEST_SNAPSHOTS: stringify(EXODUS_TEST_SNAPSHOTS),
       EXODUS_TEST_RECORDINGS: stringify(EXODUS_TEST_RECORDINGS),
       EXODUS_TEST_FSFILES: stringify(fsfiles), // TODO: can we safely use relative paths?
+      EXODUS_TEST_FSFILES_CONTENTS: stringify([...fsFilesContents.entries()]),
     },
     alias: {
       // Jest, tape and node:test
@@ -286,8 +303,20 @@ export const build = async (...files) => {
         },
       },
     ],
-  })
+  }
+
+  if (files.length === 1)
+    config.define['process.argv'] = stringify(['exodus-test', resolve(files[0])])
+
+  let res = await buildWrap(config)
   assert.equal(res instanceof Error, res.errors.length > 0)
+
+  if (fsFilesContents.size > 0) {
+    // re-run as we detected that tests depend on fsReadFileSync contents
+    config.define.EXODUS_TEST_FSFILES_CONTENTS = stringify([...fsFilesContents.entries()])
+    res = await buildWrap(config)
+    assert.equal(res instanceof Error, res.errors.length > 0)
+  }
 
   // if (res.errors.length === 0) require('fs').copyFileSync(outfile, 'tempout.cjs') // DEBUG
 
