@@ -240,6 +240,7 @@ export const build = async (...files) => {
       // Node.js (except node:test)
       ...Object.fromEntries(Object.entries(nodeUnprefixed).map(([k, v]) => [`node:${k}`, v])),
       ...nodeUnprefixed,
+      'node:url': api('url.cjs'), // FIXME: load this under 'url' too
       // expect-related deps
       'ansi-styles': api('ansi-styles.cjs'),
       'jest-util': api('jest-util.js'),

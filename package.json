@@ -57,6 +57,7 @@
     "bundler/modules/jest-message-util.js",
     "bundler/modules/jest-util.js",
     "bundler/modules/node-buffer.cjs",
+    "bundler/modules/url.cjs",
     "bundler/modules/util-format.cjs",
     "bundler/modules/ws.cjs",
     "loaders/babel.cjs",
