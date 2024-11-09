@@ -309,8 +309,9 @@ export const build = async (...files) => {
     ],
   }
 
-  if (files.length === 1)
+  if (files.length === 1) {
     config.define['process.argv'] = stringify(['exodus-test', resolve(files[0])])
+  }
 
   let res = await buildWrap(config)
   assert.equal(res instanceof Error, res.errors.length > 0)
