@@ -47,6 +47,7 @@
     "bundler/modules/ansi-styles.cjs",
     "bundler/modules/assert-strict.cjs",
     "bundler/modules/child_process.cjs",
+    "bundler/modules/cluster.cjs",
     "bundler/modules/crypto.cjs",
     "bundler/modules/fs.cjs",
     "bundler/modules/fs-promises.cjs",

@@ -174,6 +174,7 @@ export const build = async (...files) => {
     buffer: hasBuffer ? api('node-buffer.cjs') : dirname(resolveRequire('buffer/')),
     child_process: api('child_process.cjs'),
     constants: resolveRequire('constants-browserify'),
+    cluster: api('cluster.cjs'),
     crypto: api('crypto.cjs'),
     events: dirname(resolveRequire('events/')),
     fs: api('fs.cjs'),
