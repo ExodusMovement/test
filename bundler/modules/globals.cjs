@@ -144,7 +144,7 @@ if (!globalThis.crypto?.getRandomValues && globalThis.EXODUS_TEST_CRYPTO_ENTROPY
       pos += view.length
       const copied = entropy.copy(view, 0, pos - view.length)
       if (copied !== view.length) throw new Error('Unexpected')
-      return // ok
+      return typedArray
     }
 
     throw new Error(`Not enough csprng entropy in this test bundle (ref: @exodus/test)`)
@@ -170,6 +170,8 @@ if (globalThis.crypto?.getRandomValues && !globalThis.crypto?.randomUUID) {
     return `${hex(0, 4)}-${hex(4, 6)}-${hex(6, 8)}-${hex(8, 10)}-${hex(10, 16)}`
   }
 }
+
+if (!globalThis.crypto.subtle) globalThis.crypto.subtle = {} // For getRandomValues detection
 
 if (
   process.env.EXODUS_TEST_PLATFORM === 'hermes' ||
