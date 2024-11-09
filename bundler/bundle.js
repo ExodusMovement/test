@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { basename, dirname, extname, resolve, join } from 'node:path'
 import { createRequire } from 'node:module'
@@ -174,7 +174,7 @@ export const build = async (...files) => {
         if (file && /^[a-z0-9@_./-]+$/iu.test(file)) {
           file = resolve(file)
           if (!file.startsWith(`${cwd}/`)) continue
-          const data = readFileSync(file, 'base64')
+          const data = await readFile(file, 'base64')
           if (fsFilesContents.has(file)) {
             assert(fsFilesContents.get(file) === data)
           } else {
@@ -186,6 +186,13 @@ export const build = async (...files) => {
 
     return source
   })
+
+  if (files.length === 1) {
+    const main = resolve(files[0])
+    loadPipeline.push((source, filepath) => {
+      return source.replaceAll('(require.main === module)', `(${filepath === main})`)
+    })
+  }
 
   const hasBuffer = ['node', 'bun'].includes(options.platform)
   const api = (f) => resolveRequire(`./modules/${f}`)
