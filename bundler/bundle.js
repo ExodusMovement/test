@@ -95,7 +95,7 @@ const getPackageFiles = async (dir) => {
 }
 
 const loadCache = new Map()
-const loadSourceFile = async (filepath) => {
+const loadSourceFileBase = async (filepath) => {
   if (!loadCache.has(filepath)) {
     const load = async () => {
       let contents = await readFile(filepath, 'utf8')
@@ -110,6 +110,13 @@ const loadSourceFile = async (filepath) => {
 }
 
 export const build = async (...files) => {
+  const specificLoadPipeline = []
+  const loadSourceFile = async (filepath) => {
+    let contents = await loadSourceFileBase(filepath)
+    for (const transform of specificLoadPipeline) contents = await transform(contents, filepath)
+    return contents
+  }
+
   const input = []
   const importSource = async (file) => input.push(await loadSourceFile(resolveRequire(file)))
   const importFile = (...args) => input.push(`await import(${JSON.stringify(resolve(...args))});`)
@@ -166,7 +173,7 @@ export const build = async (...files) => {
 
   const fsfiles = await getPackageFiles(filename ? dirname(resolve(filename)) : process.cwd())
   const fsFilesContents = new Map()
-  loadPipeline.push(async (source) => {
+  specificLoadPipeline.push(async (source) => {
     const cwd = process.cwd()
     for (const re of [/readFileSync\('([^'\\]+)'[),]/gu, /readFileSync\("([^"\\]+)"[),]/gu]) {
       for (const match of source.matchAll(re)) {
@@ -189,7 +196,7 @@ export const build = async (...files) => {
 
   if (files.length === 1) {
     const main = resolve(files[0])
-    loadPipeline.push((source, filepath) => {
+    specificLoadPipeline.push((source, filepath) => {
       return source.replaceAll('(require.main === module)', `(${filepath === main})`)
     })
   }
