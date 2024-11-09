@@ -56,6 +56,7 @@ export const init = async ({ platform, jest, flow, target, jestConfig, outdir, e
         configFile: false,
         plugins: [
           '@babel/plugin-syntax-typescript',
+          '@babel/plugin-syntax-import-attributes',
           '@babel/plugin-transform-block-scoping',
           '@babel/plugin-transform-class-properties',
           '@babel/plugin-transform-classes',
