@@ -261,7 +261,6 @@ export const build = async (...files) => {
       'process.type': 'undefined',
       'process.version': stringify('v22.5.1'), // shouldn't depend on currently used Node.js version
       'process.versions.node': stringify('22.5.1'), // see line above
-      'process.cwd': 'EXODUS_TEST_PROCESS.cwd',
       EXODUS_TEST_PROCESS_CWD: stringify(process.cwd()),
       EXODUS_TEST_FILES: stringify(files.map((f) => [dirname(f), basename(f)])),
       EXODUS_TEST_SNAPSHOTS: stringify(EXODUS_TEST_SNAPSHOTS),
@@ -325,6 +324,11 @@ export const build = async (...files) => {
 
   if (files.length === 1) {
     config.define['process.argv'] = stringify(['exodus-test', resolve(files[0])])
+  }
+
+  if (!['node', 'bun'].includes(options.platform)) {
+    config.define['process.cwd'] = 'EXODUS_TEST_PROCESS.cwd'
+    config.define['process.exit'] = 'EXODUS_TEST_PROCESS.exit'
   }
 
   let res = await buildWrap(config)
