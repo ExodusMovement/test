@@ -84,6 +84,10 @@
     "src/tape.js",
     "src/tape.cjs",
     "src/version.js",
+    "expect.cjs",
+    "jest.js",
+    "node.js",
+    "tape.js",
     "CHANGELOG.md"
   ],
   "scripts": {
