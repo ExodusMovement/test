@@ -121,6 +121,35 @@ Just use `"test": "exodus-test"`
 
 - `--test-force-exit` -- force exit after tests are done (useful in integration tests where it could be unfeasible to resolve all open handles)
 
+## Jest compatibility
+
+The `--jest` mode is mostly compatible with Jest. There are some noteworthy differences though.
+This tool does not hoist mocks, so it is important that a mock is defined before the module that uses it is imported.
+In ESM, this can be achieved with dynamic imports:
+
+```js
+jest.mock('./hogwarts.js', () => {
+  return {
+    __esModule: true,
+    default: jest.fn(),
+  }
+})
+
+const { default: getEntryQualification } = await import('./hogwarts.js')
+const { qualifiesForHogwarts } = await import('./wizard.js') // module importing ./hogwarts.js
+
+test('qualifies for Hogwarts', () => {
+  // doSomething is a mock function
+  getEntryQualification.mockReturnValue(['lumos'])
+
+  expect(qualifiesForHogwarts('potter')).toBe(false)
+  getEntryQualification.mockReturnValue([])
+  expect(qualifiesForHogwarts('potter')).toBe(true)
+})
+```
+
+Note that all modules that transitively import `hogwarts.js` will have to be imported after the mock is defined.
+
 ## License
 
 [MIT](./LICENSE)
