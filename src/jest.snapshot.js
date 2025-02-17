@@ -130,7 +130,8 @@ const snapOnDisk = (expect, orig, matcherOrSnapshotName, snapshotName) => {
 
   if (!context?.assert?.snapshot) {
     const namePath = getTestNamePath(context).map((x) => (x === '<anonymous>' ? '' : x))
-    return matchSnapshot(readSnapshot, getAssert(), namePath.join(' '), serialize(obj))
+    const qualified = name ? [...namePath.slice(0, -1), `${namePath.at(-1)}: ${name}`] : namePath
+    return matchSnapshot(readSnapshot, getAssert(), qualified.join(' '), serialize(obj))
   }
 
   // Node.js always wraps with newlines, while jest wraps only those that are already multiline
