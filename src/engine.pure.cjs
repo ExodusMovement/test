@@ -357,7 +357,7 @@ const mock = {
     let impl = implementation
     const _mock = {
       calls: [],
-      get callCount() {
+      callCount() {
         return this.calls.length
       },
       mockImplementation: (fn) => {
