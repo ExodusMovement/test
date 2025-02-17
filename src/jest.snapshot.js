@@ -69,7 +69,7 @@ function wrapContextName(fn, snapshotName) {
   try {
     return fn()
   } finally {
-    assert.notEqual(context.fullName, value, 'fullName should be different after test')
+    assert.notEqual(context.fullName, value)
     delete context.fullName
     assert.equal(context.fullName, value)
   }
