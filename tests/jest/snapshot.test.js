@@ -1,3 +1,5 @@
+import { createRequire } from 'node:module'
+
 it('simple', () => {
   expect(10).toMatchSnapshot()
   expect(null).toMatchSnapshot()
@@ -247,4 +249,21 @@ test('inline snapshots, prefixed', () => {
     ],
   }
           `) // end padding is ignored!
+})
+
+it('supports named snapshots', () => {
+  expect({ name: 'Bruce Wayne' }).toMatchSnapshot('public knowledge')
+  expect({ identity: 'Batman', name: 'Bruce Wayne' }).toMatchSnapshot('not so public knowledge')
+  expect({ name: 'Joker', address: 'Arkham Asylum' }).toMatchSnapshot('public knowledge')
+
+  const require = createRequire(import.meta.url)
+  const snapshots = require('./__snapshots__/snapshot.test.js.snap')
+
+  ;[
+    'supports named snapshots: public knowledge 1',
+    'supports named snapshots: public knowledge 2',
+    'supports named snapshots: not so public knowledge 1',
+  ].forEach((name) => {
+    expect(Object.hasOwn(snapshots, name)).toBe(true)
+  })
 })

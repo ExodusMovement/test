@@ -50,24 +50,26 @@ beforeEach((t) => (context = t))
 const getAssert = () => context?.assert ?? assert // do not use non-strict comparisons on this!
 
 // Wrap reported context.fullName so that snapshots are placed/looked for under jest-compatible keys
-function wrapContextName(fn) {
-  if (context.fullName === context.name) return fn() // fast path
+function wrapContextName(fn, snapshotName) {
+  if (context.fullName === context.name && !snapshotName) return fn() // fast path
   const value = context.fullName
-  assert(typeof value === 'string' && value.endsWith(` > ${context.name}`))
+  assert(snapshotName || (typeof value === 'string' && value.endsWith(` > ${context.name}`)))
   const SuiteContext = Object.getPrototypeOf(context)
   const fullNameDescriptor = Object.getOwnPropertyDescriptor(SuiteContext, 'fullName')
   assert(fullNameDescriptor && fullNameDescriptor.configurable)
+
   Object.defineProperty(context, 'fullName', {
     configurable: true,
     get() {
       assert.equal(this, context)
-      return value.replaceAll(' > ', ' ').replaceAll('<anonymous>', '')
+      const normalized = value.replaceAll(' > ', ' ').replaceAll('<anonymous>', '')
+      return snapshotName ? `${normalized}: ${snapshotName}` : normalized
     },
   })
   try {
     return fn()
   } finally {
-    assert.notEqual(context.fullName, value)
+    assert.notEqual(context.fullName, value, 'fullName should be different after test')
     delete context.fullName
     assert.equal(context.fullName, value)
   }
@@ -110,7 +112,10 @@ const deepMerge = (obj, matcher) => {
   return res
 }
 
-const snapOnDisk = (expect, orig, matcher) => {
+const snapOnDisk = (expect, orig, matcherOrSnapshotName, snapshotName) => {
+  const matcher = typeof matcherOrSnapshotName === 'object' ? matcherOrSnapshotName : undefined
+  const name = typeof matcherOrSnapshotName === 'string' ? matcherOrSnapshotName : snapshotName
+
   if (matcher) {
     expect(orig).toMatchObject(matcher)
     // If we passed, make appear that the above call never happened
@@ -130,7 +135,7 @@ const snapOnDisk = (expect, orig, matcher) => {
 
   // Node.js always wraps with newlines, while jest wraps only those that are already multiline
   try {
-    wrapContextName(() => context.assert.snapshot(obj))
+    wrapContextName(() => context.assert.snapshot(obj), name)
   } catch (e) {
     if (typeof e.expected === 'string') {
       const escaped = haveSnapshotsReportUnescaped ? e.expected : escapeSnapshot(e.expected)
