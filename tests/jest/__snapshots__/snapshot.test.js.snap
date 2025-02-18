@@ -319,7 +319,7 @@ exports[`simple 9`] = `
 
 exports[`supports named snapshots: not so public knowledge 1`] = `
 {
-  "identity": "Batman",
+  "alterEgo": "Batman",
   "name": "Bruce Wayne",
 }
 `;

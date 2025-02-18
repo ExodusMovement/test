@@ -251,7 +251,7 @@ test('inline snapshots, prefixed', () => {
 
 it('supports named snapshots', async () => {
   expect({ name: 'Bruce Wayne' }).toMatchSnapshot('public knowledge')
-  expect({ identity: 'Batman', name: 'Bruce Wayne' }).toMatchSnapshot('not so public knowledge')
+  expect({ alterEgo: 'Batman', name: 'Bruce Wayne' }).toMatchSnapshot('not so public knowledge')
   expect({ name: 'Joker', address: 'Arkham Asylum' }).toMatchSnapshot('public knowledge')
 
   let createRequire
