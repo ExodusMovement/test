@@ -11,7 +11,7 @@ describeMocks('mocking a require module from esm', () => {
     foo: 'mocked foo',
   }))
 
-  const fs = require('c8')
+  const fs = require('c8') // eslint-disable-line @exodus/import/no-extraneous-dependencies
 
   test('should do a mock', () => {
     expect(fs.__esModule).toBe(true)

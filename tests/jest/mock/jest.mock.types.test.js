@@ -1,12 +1,12 @@
 test('number', () => {
-  jest.mock('./fixtures/number.cjs')
-  const number = require('./fixtures/number.cjs')
+  jest.mock('../../fixtures/number.cjs')
+  const number = require('../../fixtures/number.cjs')
   expect(number).toBe(42)
 })
 
 test('object', () => {
-  jest.mock('./fixtures/object.cjs')
-  const object = require('./fixtures/object.cjs')
+  jest.mock('../../fixtures/object.cjs')
+  const object = require('../../fixtures/object.cjs')
   expect(object.value).toBe(20)
   expect(object.hello).toBe('world')
   expect(object.call()).toBe(undefined)
@@ -19,14 +19,14 @@ test('object', () => {
 })
 
 test('function', () => {
-  jest.mock('./fixtures/function.cjs')
-  const fn = require('./fixtures/function.cjs')
+  jest.mock('../../fixtures/function.cjs')
+  const fn = require('../../fixtures/function.cjs')
   expect(fn()).toBe(undefined)
 })
 
 test('class', () => {
-  jest.mock('./fixtures/class.cjs')
-  const Class = require('./fixtures/class.cjs')
+  jest.mock('../../fixtures/class.cjs')
+  const Class = require('../../fixtures/class.cjs')
   const obj = new Class()
   expect(obj.foo()).toBe(undefined)
   expect(() => obj.buz()).toThrow()
@@ -35,16 +35,16 @@ test('class', () => {
 })
 
 test('classobject', () => {
-  jest.mock('./fixtures/classobject.cjs')
-  const classobject = require('./fixtures/classobject.cjs')
+  jest.mock('../../fixtures/classobject.cjs')
+  const classobject = require('../../fixtures/classobject.cjs')
   expect(classobject.something).toBe('fun')
   expect(classobject.bar()).toBe(undefined)
   expect(() => classobject.not()).toThrow()
 })
 
 test('subclass', () => {
-  jest.mock('./fixtures/subclass.cjs')
-  const Subclass = require('./fixtures/subclass.cjs')
+  jest.mock('../../fixtures/subclass.cjs')
+  const Subclass = require('../../fixtures/subclass.cjs')
   const obj = new Subclass()
   expect(obj.sub()).toBe(undefined)
   expect(obj.base()).toBe(undefined)
@@ -58,8 +58,8 @@ test('subclass', () => {
 })
 
 test('subclassobject', () => {
-  jest.mock('./fixtures/subclassobject.cjs')
-  const subclassobject = require('./fixtures/subclassobject.cjs')
+  jest.mock('../../fixtures/subclassobject.cjs')
+  const subclassobject = require('../../fixtures/subclassobject.cjs')
   expect(subclassobject.hi()).toBe(undefined)
   expect(subclassobject.why()).toBe(undefined)
   expect(subclassobject.overridden()).toBe(undefined)

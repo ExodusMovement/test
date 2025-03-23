@@ -3,8 +3,8 @@ const describeMocks = have ? describe : describe.skip
 
 describeMocks('esm2cjs from esm', () => {
   test('object', async () => {
-    jest.mock('./fixtures/esm2cjs/object.js')
-    const { default: object } = await import('./fixtures/esm2cjs/object.js')
+    jest.mock('../../fixtures/esm2cjs/object.js')
+    const { default: object } = await import('../../fixtures/esm2cjs/object.js')
     expect(object.value).toBe(20)
     expect(object.hello).toBe('world')
     expect(object.call()).toBe(undefined)
@@ -17,14 +17,14 @@ describeMocks('esm2cjs from esm', () => {
   })
 
   test('function', async () => {
-    jest.mock('./fixtures/esm2cjs/function.js')
-    const { default: fn } = await import('./fixtures/esm2cjs/function.js')
+    jest.mock('../../fixtures/esm2cjs/function.js')
+    const { default: fn } = await import('../../fixtures/esm2cjs/function.js')
     expect(fn()).toBe(undefined)
   })
 
   test('class', async () => {
-    jest.mock('./fixtures/esm2cjs/class.js')
-    const { default: Class } = await import('./fixtures/esm2cjs/class.js')
+    jest.mock('../../fixtures/esm2cjs/class.js')
+    const { default: Class } = await import('../../fixtures/esm2cjs/class.js')
     const obj = new Class()
     expect(obj.foo()).toBe(undefined)
     expect(() => obj.buz()).toThrow()
@@ -33,8 +33,8 @@ describeMocks('esm2cjs from esm', () => {
   })
 
   test('named', async () => {
-    jest.mock('./fixtures/esm2cjs/named.js')
-    const named = await import('./fixtures/esm2cjs/named.js')
+    jest.mock('../../fixtures/esm2cjs/named.js')
+    const named = await import('../../fixtures/esm2cjs/named.js')
     expect(named.__esModule).toBe(true)
     expect(named.x).toBe(20)
     expect(named.y).toBe(undefined)
@@ -43,8 +43,8 @@ describeMocks('esm2cjs from esm', () => {
   })
 
   test('mixed', async () => {
-    jest.mock('./fixtures/esm2cjs/mixed.js')
-    const mixed = await import('./fixtures/esm2cjs/mixed.js')
+    jest.mock('../../fixtures/esm2cjs/mixed.js')
+    const mixed = await import('../../fixtures/esm2cjs/mixed.js')
     expect(mixed.__esModule).toBe(true)
     expect(mixed.a).toBe('A')
     expect(mixed.y).toBe(21)

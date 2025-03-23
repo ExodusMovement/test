@@ -1,10 +1,10 @@
+const c8 = require('c8') // eslint-disable-line @exodus/import/no-extraneous-dependencies
+
 jest.mock('c8', () => ({
   __esModule: true,
   default: { baz: 'BAR' },
   foo: 'some other foo',
 }))
-
-const c8 = require('c8')
 
 test('should do a mock', () => {
   expect(c8.__esModule).toBe(true)

@@ -2,14 +2,14 @@ const have = !jest.exodus || jest.exodus.features.esmInterop
 const describeMocks = have ? describe : describe.skip
 
 describeMocks('esm2cjs from cjs, overriding pre-required imports', () => {
-  const index = require('./fixtures/esm2cjs/index.js')
-  const { all } = require('./fixtures/esm2cjs/index-function.js')
+  const index = require('../../fixtures/esm2cjs/index.js')
+  const { all } = require('../../fixtures/esm2cjs/index-function.js')
   const { named: namedEarly, mixed: mixedEarly } = index // These can be destructured early
 
   all() // check that early calls don't hurt
 
   test('object', async () => {
-    jest.mock('./fixtures/esm2cjs/object.js')
+    jest.mock('../../fixtures/esm2cjs/object.js')
     // Can not be destructured early
     for (const object of [index.object, all().object]) {
       expect(object.value).toBe(20)
@@ -25,7 +25,7 @@ describeMocks('esm2cjs from cjs, overriding pre-required imports', () => {
   })
 
   test('function', async () => {
-    jest.mock('./fixtures/esm2cjs/function.js')
+    jest.mock('../../fixtures/esm2cjs/function.js')
     // Can not be destructured early
     for (const fn of [index.fn, all().fn]) {
       expect(fn()).toBe(undefined)
@@ -33,7 +33,7 @@ describeMocks('esm2cjs from cjs, overriding pre-required imports', () => {
   })
 
   test('class', async () => {
-    jest.mock('./fixtures/esm2cjs/class.js')
+    jest.mock('../../fixtures/esm2cjs/class.js')
     // Can not be destructured early
     for (const Class of [index.Class, all().Class]) {
       const obj = new Class()
@@ -45,7 +45,7 @@ describeMocks('esm2cjs from cjs, overriding pre-required imports', () => {
   })
 
   test('named', async () => {
-    jest.mock('./fixtures/esm2cjs/named.js')
+    jest.mock('../../fixtures/esm2cjs/named.js')
     for (const named of [index.named, all().named, namedEarly]) {
       expect(named.__esModule).toBe(true)
       expect(named.x).toBe(20)
@@ -56,7 +56,7 @@ describeMocks('esm2cjs from cjs, overriding pre-required imports', () => {
   })
 
   test('mixed', async () => {
-    jest.mock('./fixtures/esm2cjs/mixed.js')
+    jest.mock('../../fixtures/esm2cjs/mixed.js')
     for (const mixed of [index.mixed, all().mixed, mixedEarly]) {
       expect(mixed.__esModule).toBe(true)
       expect(mixed.a).toBe('A')
