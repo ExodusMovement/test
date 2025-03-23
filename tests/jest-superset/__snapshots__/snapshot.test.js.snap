@@ -1,0 +1,19 @@
+exports[`supports named snapshots: not so public knowledge 1`] = `
+{
+  "alterEgo": "Batman",
+  "name": "Bruce Wayne",
+}
+`;
+
+exports[`supports named snapshots: public knowledge 1`] = `
+{
+  "name": "Bruce Wayne",
+}
+`;
+
+exports[`supports named snapshots: public knowledge 2`] = `
+{
+  "address": "Arkham Asylum",
+  "name": "Joker",
+}
+`;

@@ -1,6 +1,6 @@
-exports[`  1`] = `
-"empty names test"
-`;
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`  1`] = `"empty names test"`;
 
 exports[`arrays 1`] = `
 [
@@ -58,9 +58,7 @@ exports[`arrays 5`] = `
 ]
 `;
 
-exports[`async errors 1`] = `
-"slow but nah"
-`;
+exports[`async errors 1`] = `"slow but nah"`;
 
 exports[`complex 1`] = `
 [
@@ -114,9 +112,7 @@ I
 Failed"
 `;
 
-exports[`formateted objects 1`] = `
-Any<Number>
-`;
+exports[`formateted objects 1`] = `Any<Number>`;
 
 exports[`formateted objects 2`] = `
 {
@@ -125,23 +121,7 @@ exports[`formateted objects 2`] = `
 }
 `;
 
-exports[`mixed 1`] = `
-true
-`;
-
-exports[`mixed 10`] = `
-41
-`;
-
-exports[`mixed 11`] = `
-{
-  "bar": "buz",
-}
-`;
-
-exports[`mixed 12`] = `
-{}
-`;
+exports[`mixed 1`] = `true`;
 
 exports[`mixed 2`] = `
 [
@@ -157,17 +137,11 @@ exports[`mixed 3`] = `
 }
 `;
 
-exports[`mixed 4`] = `
-43
-`;
+exports[`mixed 4`] = `43`;
 
-exports[`mixed 5`] = `
-{}
-`;
+exports[`mixed 5`] = `{}`;
 
-exports[`mixed 6`] = `
-[]
-`;
+exports[`mixed 6`] = `[]`;
 
 exports[`mixed 7`] = `
 [
@@ -177,13 +151,19 @@ exports[`mixed 7`] = `
 ]
 `;
 
-exports[`mixed 8`] = `
-[]
+exports[`mixed 8`] = `[]`;
+
+exports[`mixed 9`] = `false`;
+
+exports[`mixed 10`] = `41`;
+
+exports[`mixed 11`] = `
+{
+  "bar": "buz",
+}
 `;
 
-exports[`mixed 9`] = `
-false
-`;
+exports[`mixed 12`] = `{}`;
 
 exports[`nested test nested test one 1`] = `
 {
@@ -253,69 +233,37 @@ exports[`property matchers will check the values and pass 1`] = `
 }
 `;
 
-exports[`simple 1`] = `
-10
-`;
+exports[`simple 1`] = `10`;
 
-exports[`simple 10`] = `
-/hello/
-`;
+exports[`simple 2`] = `null`;
 
-exports[`simple 11`] = `
-true
-`;
+exports[`simple 3`] = `undefined`;
 
-exports[`simple 12`] = `
-NaN
-`;
+exports[`simple 4`] = `[]`;
 
-exports[`simple 13`] = `
-{}
-`;
+exports[`simple 5`] = `/xx/`;
 
-exports[`simple 14`] = `
-42
-`;
+exports[`simple 6`] = `Infinity`;
 
-exports[`simple 15`] = `
-[]
-`;
+exports[`simple 7`] = `false`;
 
-exports[`simple 16`] = `
--Infinity
-`;
+exports[`simple 8`] = `true`;
 
-exports[`simple 2`] = `
-null
-`;
+exports[`simple 9`] = `{}`;
 
-exports[`simple 3`] = `
-undefined
-`;
+exports[`simple 10`] = `/hello/`;
 
-exports[`simple 4`] = `
-[]
-`;
+exports[`simple 11`] = `true`;
 
-exports[`simple 5`] = `
-/xx/
-`;
+exports[`simple 12`] = `NaN`;
 
-exports[`simple 6`] = `
-Infinity
-`;
+exports[`simple 13`] = `{}`;
 
-exports[`simple 7`] = `
-false
-`;
+exports[`simple 14`] = `42`;
 
-exports[`simple 8`] = `
-true
-`;
+exports[`simple 15`] = `[]`;
 
-exports[`simple 9`] = `
-{}
-`;
+exports[`simple 16`] = `-Infinity`;
 
 exports[`supports named snapshots: not so public knowledge 1`] = `
 {
@@ -402,17 +350,11 @@ exports[`weird  names
 "
 `;
 
-exports[`weird  names  !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~ 1`] = `
-" !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~"
-`;
+exports[`weird  names  !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~ 1`] = `" !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~"`;
 
-exports[`weird  names $ 1`] = `
-"$"
-`;
+exports[`weird  names $ 1`] = `"$"`;
 
-exports[`weird  names > 1`] = `
-">"
-`;
+exports[`weird  names > 1`] = `">"`;
 
 exports[`weird  names \\
 \`
@@ -422,13 +364,7 @@ exports[`weird  names \\
 \\\`\`"
 `;
 
-exports[`weird  names \\ 1`] = `
-"\\"
-`;
-
-exports[`weird  names \` 1`] = `
-"\`"
-`;
+exports[`weird  names \\ 1`] = `"\\"`;
 
 exports[`weird  names \` \`
  \` 1`] = `
@@ -436,19 +372,13 @@ exports[`weird  names \` \`
  \`"
 `;
 
-exports[`weird  names \` \` \` 1`] = `
-"\` \` \`"
-`;
+exports[`weird  names \` \` \` 1`] = `"\` \` \`"`;
+
+exports[`weird  names \` 1`] = `"\`"`;
+
+exports[`weird  names {} 1`] = `"{}"`;
 
 exports[`weird  names multi
-line 1`] = `
-0
-`;
+line 1`] = `0`;
 
-exports[`weird  names with \` 1`] = `
-42
-`;
-
-exports[`weird  names {} 1`] = `
-"{}"
-`;
+exports[`weird  names with \` 1`] = `42`;
