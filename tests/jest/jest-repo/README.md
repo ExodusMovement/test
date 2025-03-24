@@ -9,3 +9,8 @@ When updating, use the same commit or update the link and incorporate the change
 ## package.json
 
 Do not change, it's needed to make this subtree operate in CJS mode, which jest uses
+
+## TypeScript tests
+
+Tests depending on TypeScript are in `tests/jest-superset`, as Jest is not configured with
+TypeScript yet.

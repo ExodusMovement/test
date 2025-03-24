@@ -103,6 +103,7 @@
     "test:fetch": "./bin/index.js --jest --drop-network --engine node:pure tests/fetch.test.js tests/websocket.test.js",
     "test:jsdom": "EXODUS_TEST_JEST_CONFIG='{\"testMatch\":[\"**/*.jsdom-test.js\"],\"testEnvironment\":\"jsdom\", \"rootDir\": \".\"}' ./bin/index.js --jest",
     "coverage": "./bin/index.js --jest --esbuild --coverage",
+    "jest": "NODE_OPTIONS=--experimental-vm-modules jest tests/jest/ tests/jest-when/",
     "lint": "prettier --list-different . && eslint .",
     "lint:fix": "prettier --write . && eslint --fix ."
   },

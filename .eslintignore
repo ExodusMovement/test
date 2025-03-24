@@ -2,6 +2,7 @@ coverage
 playground
 tests/tape/
 tests/jest/jest-repo/
+tests/jest-superset/jest-repo/
 tests/jest-extended/
 tests/jest-when/when.test.cjs
 __snapshots__

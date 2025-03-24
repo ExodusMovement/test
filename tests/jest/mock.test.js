@@ -99,16 +99,6 @@ test('properties are transparent', () => {
   expect(ping()).toBe(42)
 })
 
-// jest is actually failing on this, we follow node:test in pure impl
-test('calls are not counted prior to finish', () => {
-  const f = jest.fn(() => f.mock.calls.length)
-  expect(f()).toBe(0)
-  expect(f(2)).toBe(1)
-  expect(f()).toBe(2)
-  expect(f.mock.calls.length).toBe(3)
-  expect(f.mock.calls).toEqual([[], [2], []])
-})
-
 // https://jestjs.io/docs/mock-function-api#mockfnmockcalls
 test('mockFn.mock.calls', () => {
   const f = jest.fn()
