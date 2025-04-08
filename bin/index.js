@@ -15,6 +15,7 @@ import { Queue } from '@chalker/queue'
 import glob from 'fast-glob'
 // The following make sense only when we run the code in the same Node.js version, i.e. engineOptions.haveIsOk
 import { haveModuleMocks, haveSnapshots, haveForceExit } from '../src/version.js'
+import { findBinary } from './find-binary.js'
 
 const bindir = dirname(fileURLToPath(import.meta.url))
 const DEFAULT_PATTERNS = [`**/?(*.)+(spec|test).?([cm])[jt]s?(x)`] // do not trust magic dirs by default
@@ -227,7 +228,7 @@ let electron
 
 if (options.binary === 'electron') {
   setEnv('ELECTRON_RUN_AS_NODE', '1')
-  options.binary = electron = require('electron')
+  options.binary = electron = findBinary('electron')
 }
 
 const args = []
@@ -439,7 +440,7 @@ if (!options.bundle) {
 if (!Object.hasOwn(process.env, 'NODE_ENV')) process.env.NODE_ENV = 'test'
 setEnv('EXODUS_TEST_ONLY', options.only ? '1' : '')
 
-const c8 = resolveRequire('c8/bin/c8.js')
+const c8 = findBinary('c8')
 if (resolveImport) assert.equal(c8, resolveImport('c8/bin/c8.js'))
 
 if (options.coverage) {
@@ -497,30 +498,7 @@ async function launch(binary, args, opts = {}, buffering = false) {
 }
 
 if (options.pure) {
-  if (options.binary === 'hermes') {
-    const dir = dirname(require.resolve('hermes-engine-cli/package.json'))
-    switch (process.platform) {
-      case 'darwin':
-        process.env.PATH = `${join(dir, 'osx-bin')}:${process.env.PATH}`
-        break
-      case 'linux':
-        process.env.PATH = `${join(dir, 'linux64-bin')}:${process.env.PATH}`
-        break
-      case 'win32':
-        process.env.PATH = `${join(dir, 'win64-bin')}:${process.env.PATH}`
-        break
-      default:
-        assert.fail(`Unexpected platform: ${process.platform}`)
-    }
-  } else if (options.binary === 'jsc' && process.platform === 'darwin') {
-    const prefix = '/System/Library/Frameworks/JavaScriptCore.framework/Versions/A'
-    for (const dir of [`${prefix}/Helpers`, `${prefix}/Resources`]) {
-      if (existsSync(join(dir, 'jsc'))) {
-        process.env.PATH = `${dir}:${process.env.PATH}`
-        break
-      }
-    }
-  }
+  if (['hermes', 'jsc'].includes(options.binary)) options.binary = findBinary(options.binary)
 
   setEnv('EXODUS_TEST_CONTEXT', 'pure')
   warnHuman(`${engineName} is experimental and may not work an expected`)
