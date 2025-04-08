@@ -59,6 +59,7 @@ function parseOptions() {
     dropNetwork: getEnvFlag('EXODUS_TEST_DROP_NETWORK'),
     ideaCompat: false,
     engine: process.env.EXODUS_TEST_ENGINE ?? 'node:test',
+    flagEngine: false, // Option combination error reporting differs when engine is passed by flag or env
     entropySize: 5 * 1024,
     require: [],
     testNamePattern: [],
@@ -143,6 +144,7 @@ function parseOptions() {
         break
       case '--engine':
         options.engine = args.shift()
+        options.flagEngine = true
         break
       case '--debug-files':
         options.debug.files = true
@@ -317,7 +319,8 @@ if (options.esbuild && !options.bundle) {
   assert(resolveImport)
   if (options.hasImportLoader) {
     args.push('--import', resolveImport('../loaders/esbuild.js'))
-  } else if (options.engine === process.env.EXODUS_TEST_ENGINE) {
+  } else if (options.flagEngine === false) {
+    // Engine is set via env, --esbuild set via flag. Allow but warn
     console.warn(`Warning: ${engineName} does not support --esbuild option`)
   } else {
     console.error(`Error: ${engineName} does not support --esbuild option`)
