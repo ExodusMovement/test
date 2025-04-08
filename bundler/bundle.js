@@ -122,7 +122,7 @@ export const build = async (...files) => {
   const importFile = (...args) => input.push(`await import(${JSON.stringify(resolve(...args))});`)
   const stringify = (x) => ([undefined, null].includes(x) ? `${x}` : JSON.stringify(x))
 
-  if (!['node'].includes(options.platform)) {
+  if (!['node', 'electron'].includes(options.platform)) {
     if (['jsc', 'hermes', 'd8'].includes(options.platform)) {
       const entropy = randomBytes(options.entropySize ?? 5 * 1024).toString('base64')
       input.push(`globalThis.EXODUS_TEST_CRYPTO_ENTROPY = ${stringify(entropy)};`)
@@ -201,7 +201,7 @@ export const build = async (...files) => {
     })
   }
 
-  const hasBuffer = ['node', 'bun'].includes(options.platform)
+  const hasBuffer = ['node', 'bun', 'electron'].includes(options.platform)
   const api = (f) => resolveRequire(`./modules/${f}`)
   const nodeUnprefixed = {
     assert: dirname(dirname(resolveRequire('assert/'))),
@@ -326,7 +326,7 @@ export const build = async (...files) => {
     config.define['process.argv'] = stringify(['exodus-test', resolve(files[0])])
   }
 
-  if (!['node', 'bun'].includes(options.platform)) {
+  if (!['node', 'bun', 'electron'].includes(options.platform)) {
     config.define['process.cwd'] = 'EXODUS_TEST_PROCESS.cwd'
     config.define['process.exit'] = 'EXODUS_TEST_PROCESS.exit'
   }

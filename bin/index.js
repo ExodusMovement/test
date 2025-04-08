@@ -28,6 +28,9 @@ const ENGINES = new Map(
     'node:bundle': { binary: 'node', ...bundleOptions },
     'bun:pure': { binary: 'bun', pure: true, hasImportLoader: false, ts: 'auto' },
     'bun:bundle': { binary: 'bun', ...bundleOptions },
+    'electron-as-node:test': { binary: 'electron', pure: false, hasImportLoader: true, ts: 'flag' },
+    'electron-as-node:pure': { binary: 'electron', pure: true, hasImportLoader: true, ts: 'flag' },
+    'electron-as-node:bundle': { binary: 'electron', ...bundleOptions },
     'deno:bundle': { binary: 'deno', binaryArgs: ['run'], target: 'deno1', ...bundleOptions },
     'd8:bundle': { binary: 'd8', ...bundleOptions },
     'jsc:bundle': { binary: 'jsc', ...bundleOptions, target: 'safari13' },
@@ -211,7 +214,7 @@ const engineName = `${options.engine} engine` // used for warnings to user
 const engineOptions = ENGINES.get(options.engine)
 assert(engineOptions, `Unknown engine: ${options.engine}`)
 Object.assign(options, engineOptions)
-options.platform = options.binary // binary can be overriden by c8
+options.platform = options.binary // binary can be overriden by c8 or electron
 setEnv('EXODUS_TEST_ENGINE', options.engine) // e.g. 'hermes:bundle', 'node:bundle', 'node:test', 'node:pure'
 setEnv('EXODUS_TEST_PLATFORM', options.binary) // e.g. 'hermes', 'node'
 setEnv('EXODUS_TEST_TIMEOUT', options.testTimeout)
@@ -219,6 +222,13 @@ setEnv('EXODUS_TEST_TIMEOUT', options.testTimeout)
 const require = createRequire(import.meta.url)
 const resolveRequire = (query) => require.resolve(query)
 const resolveImport = import.meta.resolve && ((query) => fileURLToPath(import.meta.resolve(query)))
+
+let electron
+
+if (options.binary === 'electron') {
+  setEnv('ELECTRON_RUN_AS_NODE', '1')
+  options.binary = electron = require('electron')
+}
 
 const args = []
 
@@ -238,7 +248,7 @@ if (options.pure) {
   assert(!options.forceExit, `Can not use --force-exit with ${engineName} yet`) // TODO
   assert(!options.watch, `Can not use --watch with with ${engineName}`)
   assert(options.testNamePattern.length === 0, '--test-name-pattern requires node:test engine now')
-} else if (options.engine === 'node:test') {
+} else if (options.engine === 'node:test' || options.engine === 'electron-as-node:test') {
   const reporter = resolveRequire('./reporter.js')
   args.push('--test', '--no-warnings=ExperimentalWarning', '--test-reporter', reporter)
 
@@ -466,7 +476,7 @@ if (options.dropNetwork) warnHuman('--drop-network is a test helper, not a secur
 const execFile = promisify(execFileCallback)
 
 async function launch(binary, args, opts = {}, buffering = false) {
-  assert(binary && ['node', 'bun', 'deno', 'd8', 'jsc', 'hermes', c8].includes(binary))
+  assert(binary && ['node', 'bun', 'deno', 'd8', 'jsc', 'hermes', c8, electron].includes(binary))
   if (options.dropNetwork) {
     switch (process.platform) {
       case 'darwin':
@@ -579,9 +589,9 @@ if (options.pure) {
   console.timeEnd(timeLabel)
 } else {
   assert(!buildFile)
-  assert(['node', c8].includes(options.binary), `Unexpected native engine: ${options.binary}`)
-  assert(['node:test'].includes(options.engine))
-  setEnv('EXODUS_TEST_CONTEXT', options.engine)
+  assert(['node', c8, electron].includes(options.binary), `Unexpected binary: ${options.binary}`)
+  assert(['node:test', 'electron-as-node:test'].includes(options.engine))
+  setEnv('EXODUS_TEST_CONTEXT', 'node:test') // The context is always node:test in this branch
   assert(files.length > 0) // otherwise we can run recursively
   assert(!options.binaryArgs)
   if (options.concurrency) args.push('--test-concurrency', options.concurrency)

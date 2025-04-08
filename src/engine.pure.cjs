@@ -432,7 +432,10 @@ const mock = {
   },
 }
 
-if (process.env.EXODUS_TEST_ENGINE === 'node:pure') {
+if (
+  process.env.EXODUS_TEST_ENGINE === 'node:pure' ||
+  process.env.EXODUS_TEST_ENGINE === 'electron-as-node:pure'
+) {
   // Try load module mocks from node:test, if present
   try {
     const nodeTest = require('node:test')

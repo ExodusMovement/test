@@ -99,6 +99,9 @@
     "test:tape": "./bin/index.js --esbuild 'tests/tape/tests/*.js' tests/tape.test.js",
     "test:pure": "EXODUS_TEST_ENGINE=node:pure EXODUS_TEST_IGNORE='tests/jest-extended/**' npm run test",
     "test:bun": "EXODUS_TEST_ENGINE=bun:pure EXODUS_TEST_IGNORE='tests/jest-extended/**' npm run test",
+    "test:electron": "EXODUS_TEST_ENGINE=electron-as-node:test npm run test",
+    "test:electron:pure": "EXODUS_TEST_ENGINE=electron-as-node:pure EXODUS_TEST_IGNORE='tests/jest-extended/**' npm run test",
+    "test:electron:bundle": "EXODUS_TEST_ENGINE=electron-as-node:bundle EXODUS_TEST_IGNORE='tests/{{jest-extended,inband}/**,jest-when/when.test.*,jest/jest.resetModules.*,{jest,jest-superset}/mock/jest.mock.*}' npm run test",
     "test:hermes": "EXODUS_TEST_ENGINE=hermes:bundle EXODUS_TEST_IGNORE='tests/{{jest-extended,inband}/**,jest-when/when.test.*,jest/jest.resetModules.*,{jest,jest-superset}/mock/jest.mock.*}' npm run test",
     "test:fetch": "./bin/index.js --jest --drop-network --engine node:pure tests/fetch.test.js tests/websocket.test.js",
     "test:jsdom": "EXODUS_TEST_JEST_CONFIG='{\"testMatch\":[\"**/*.jsdom-test.js\"],\"testEnvironment\":\"jsdom\", \"rootDir\": \".\"}' ./bin/index.js --jest",
@@ -150,6 +153,7 @@
     "@jest/globals": "^29.7.0",
     "@types/jest-when": "^3.5.2",
     "@typescript-eslint/eslint-plugin": "^7.15.0",
+    "electron": "^35.1.4",
     "eslint": "^8.44.0",
     "hermes-engine-cli": "^0.12.0",
     "jest": "^29.7.0",
@@ -158,9 +162,13 @@
     "jest-when": "^3.6.0"
   },
   "peerDependencies": {
+    "electron": "*",
     "hermes-engine-cli": "^0.12.0"
   },
   "peerDependenciesMeta": {
+    "electron": {
+      "optional": true
+    },
     "hermes-engine-cli": {
       "optional": true
     }
