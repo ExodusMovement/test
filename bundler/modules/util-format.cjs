@@ -1,7 +1,9 @@
-const { inspect, isString, isNull, isObject } = require('util/') // dep
+const { inspect: inspectOrig, isString, isNull, isObject } = require('util/') // dep
+
+// Print errors without square brackets
+const inspect = (obj, opts) => (obj instanceof Error ? String(obj) : inspectOrig(obj, opts))
 
 // Patched impl from require('util'), added %i
-
 const formatRegExp = /%[%dijs]/g
 module.exports = function (f, ...args) {
   if (!isString(f)) return [f, ...args].map((x) => inspect(x)).join(' ')
