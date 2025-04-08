@@ -529,8 +529,9 @@ if (options.pure) {
         return { ok: false, output: [stdout, stderr, message, comment], ms }
       }
 
-      assert(Number.isInteger(code) && code > 0)
-      return { ok: false, output: [stdout, stderr], ms }
+      if (Number.isInteger(code) && code > 0) return { ok: false, output: [stdout, stderr], ms } // Expected, test error
+
+      throw err // Internal test runner error, e.g. launch() failed
     } finally {
       if (bundled) await unlink(bundled.file)
     }
