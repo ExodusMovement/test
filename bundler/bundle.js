@@ -68,6 +68,7 @@ export const init = async ({ platform, jest, flow, target, jestConfig, outdir, e
   }
 }
 
+const barebone = new Set(['hermes', 'jsc', 'd8'])
 const hermesSupported = {
   arrow: false,
   class: false, // we get a safeguard check this way that it's not used
@@ -123,7 +124,7 @@ export const build = async (...files) => {
   const stringify = (x) => ([undefined, null].includes(x) ? `${x}` : JSON.stringify(x))
 
   if (!['node', 'electron'].includes(options.platform)) {
-    if (['jsc', 'hermes', 'd8'].includes(options.platform)) {
+    if (barebone.has(options.platform)) {
       const entropy = randomBytes(options.entropySize ?? 5 * 1024).toString('base64')
       input.push(`globalThis.EXODUS_TEST_CRYPTO_ENTROPY = ${stringify(entropy)};`)
     }
@@ -167,7 +168,7 @@ export const build = async (...files) => {
   const buildWrap = async (opts) => esbuild.build(opts).catch((err) => err)
   let main = input.join(';\n')
   const exit = `EXODUS_TEST_PROCESS.exitCode = 1; EXODUS_TEST_PROCESS._maybeProcessExitCode();`
-  if (['jsc', 'hermes', 'd8'].includes(options.platform)) {
+  if (barebone.has(options.platform)) {
     main = `try {\n${main}\n} catch (err) { print(err); ${exit} }`
   } else if (process.env.EXODUS_TEST_IS_BROWSER) {
     main = `try {\n${main}\n} catch (err) { console.error(err); ${exit} }`
@@ -292,7 +293,7 @@ export const build = async (...files) => {
       'node-gyp-build': api('empty/function-throw.cjs'),
       ws: api('ws.cjs'),
     },
-    sourcemap: ['hermes', 'jsc', 'd8'].includes(options.platform) ? 'inline' : 'linked', // FIXME?
+    sourcemap: barebone.has(options.platform) ? 'inline' : 'linked', // FIXME?
     sourcesContent: false,
     keepNames: true,
     format: 'iife',
@@ -310,7 +311,7 @@ export const build = async (...files) => {
             // Resolve .native versions
             // TODO: move flag to engine options
             // TODO: maybe follow package.json for this
-            if (['jsc', 'hermes'].includes(options.platform)) {
+            if (barebone.has(options.platform)) {
               const maybeNative = filepath.replace(/(\.[cm]?[jt]sx?)$/u, '.native$1')
               if (existsSync(maybeNative)) filepath = maybeNative
             }
