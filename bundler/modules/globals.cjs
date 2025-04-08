@@ -159,7 +159,7 @@ if (!globalThis.crypto?.getRandomValues && globalThis.EXODUS_TEST_CRYPTO_ENTROPY
 delete globalThis.EXODUS_TEST_CRYPTO_ENTROPY
 
 if (globalThis.crypto?.getRandomValues && !globalThis.crypto?.randomUUID) {
-  const { getRandomValues } = globalThis.crypto
+  const getRandomValues = globalThis.crypto.getRandomValues.bind(globalThis.crypto)
   let entropy
 
   const hex = (start, end) => entropy.slice(start, end).toString('hex')
