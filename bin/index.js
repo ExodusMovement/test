@@ -13,6 +13,7 @@ import { tmpdir, availableParallelism } from 'node:os'
 import assert from 'node:assert/strict'
 import { Queue } from '@chalker/queue'
 import glob from 'fast-glob'
+// The following make sense only when we run the code in the same Node.js version, i.e. engineOptions.haveIsOk
 import { haveModuleMocks, haveSnapshots, haveForceExit } from '../src/version.js'
 
 const bindir = dirname(fileURLToPath(import.meta.url))
@@ -22,8 +23,8 @@ const bundleOptions = { pure: true, bundle: true, esbuild: true, ts: 'auto' }
 const hermesAv = ['-Og', '-Xmicrotask-queue']
 const ENGINES = new Map(
   Object.entries({
-    'node:test': { binary: 'node', pure: false, hasImportLoader: true, ts: 'flag' },
-    'node:pure': { binary: 'node', pure: true, hasImportLoader: true, ts: 'flag' },
+    'node:test': { binary: 'node', pure: false, hasImportLoader: true, ts: 'flag', haveIsOk: true },
+    'node:pure': { binary: 'node', pure: true, hasImportLoader: true, ts: 'flag', haveIsOk: true },
     'node:bundle': { binary: 'node', ...bundleOptions },
     'bun:pure': { binary: 'bun', pure: true, hasImportLoader: false, ts: 'auto' },
     'bun:bundle': { binary: 'bun', ...bundleOptions },
@@ -218,7 +219,7 @@ const resolveImport = import.meta.resolve && ((query) => fileURLToPath(import.me
 
 const args = []
 
-if (haveModuleMocks && ['node:test', 'node:pure'].includes(options.engine)) {
+if (haveModuleMocks && engineOptions.haveIsOk) {
   args.push('--experimental-test-module-mocks')
 }
 
@@ -238,15 +239,15 @@ if (options.pure) {
   const reporter = resolveRequire('./reporter.js')
   args.push('--test', '--no-warnings=ExperimentalWarning', '--test-reporter', reporter)
 
-  if (haveSnapshots) args.push('--experimental-test-snapshots')
+  if (haveSnapshots && engineOptions.haveIsOk) args.push('--experimental-test-snapshots')
 
   if (options.writeSnapshots) {
-    assert(haveSnapshots, 'For snapshots, use Node.js >=22.3.0')
+    assert(haveSnapshots && engineOptions.haveIsOk, 'For snapshots, use Node.js >=22.3.0')
     args.push('--test-update-snapshots')
   }
 
   if (options.forceExit) {
-    assert(haveForceExit, 'For forceExit, use Node.js >= 20.14.0')
+    assert(haveForceExit && engineOptions.haveIsOk, 'For forceExit, use Node.js >= 20.14.0')
     args.push('--test-force-exit')
   }
 
