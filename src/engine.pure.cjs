@@ -128,11 +128,12 @@ async function runContext(context) {
     // TODO: try/catch for hooks?
     for (const c of stack) await c.runHooks('beforeEach', context)
     const guard = { id: null, failed: false }
+    const timeout = options.timeout || Number(process.env.EXODUS_TEST_TIMEOUT) || 5000
     guard.promise = new Promise((resolve) => {
       guard.id = setTimeout(() => {
         guard.failed = true
         resolve()
-      }, options.timeout || 5000)
+      }, timeout)
     })
     try {
       await Promise.race([guard.promise, runFunction(fn, context)])
