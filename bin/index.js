@@ -205,6 +205,7 @@ const setEnv = (name, value) => {
   process.env[name] = value === undefined ? '' : value
 }
 
+const engineName = `${options.engine} engine` // used for warnings to user
 const engineOptions = ENGINES.get(options.engine)
 assert(engineOptions, `Unknown engine: ${options.engine}`)
 Object.assign(options, engineOptions)
@@ -225,15 +226,15 @@ if (haveModuleMocks && engineOptions.haveIsOk) {
 
 if (options.pure) {
   if (options.bundle) {
-    assert(!options.coverage, `Can not use --coverage with ${options.engine} engine`)
-    assert(!options.babel, `Can not use --babel with ${options.engine} engine`) // TODO?
+    assert(!options.coverage, `Can not use --coverage with ${engineName}`)
+    assert(!options.babel, `Can not use --babel with ${engineName}`) // TODO?
   }
 
   const requiresNodeCoverage = options.coverage && options.coverageEngine === 'node'
   assert(!requiresNodeCoverage, '"--coverage-engine node" requires "--engine node:test" (default)')
-  assert(!options.writeSnapshots, `Can not use write snapshots with ${options.engine} engine`)
-  assert(!options.forceExit, `Can not use --force-exit with ${options.engine} engine yet`) // TODO
-  assert(!options.watch, `Can not use --watch with with ${options.engine} engine`)
+  assert(!options.writeSnapshots, `Can not use write snapshots with ${engineName}`)
+  assert(!options.forceExit, `Can not use --force-exit with ${engineName} yet`) // TODO
+  assert(!options.watch, `Can not use --watch with with ${engineName}`)
   assert(options.testNamePattern.length === 0, '--test-name-pattern requires node:test engine now')
 } else if (options.engine === 'node:test') {
   const reporter = resolveRequire('./reporter.js')
@@ -317,9 +318,9 @@ if (options.esbuild && !options.bundle) {
   if (options.hasImportLoader) {
     args.push('--import', resolveImport('../loaders/esbuild.js'))
   } else if (options.engine === process.env.EXODUS_TEST_ENGINE) {
-    console.warn(`Warning: ${options.engine} engine does not support --esbuild option`)
+    console.warn(`Warning: ${engineName} does not support --esbuild option`)
   } else {
-    console.error(`Error: ${options.engine} engine does not support --esbuild option`)
+    console.error(`Error: ${engineName} does not support --esbuild option`)
     process.exit(1)
   }
 }
@@ -339,7 +340,7 @@ if (options.typescript) {
     // TODO: switch to native --experimental-strip-types where available
     args.push('--import', resolveImport('../loaders/typescript.js'))
   } else if (options.ts !== 'auto') {
-    throw new Error(`Processing --typescript is not possible with engine ${options.engine}`)
+    throw new Error(`Processing --typescript is not possible with ${engineName}`)
   }
 }
 
@@ -509,7 +510,7 @@ if (options.pure) {
   }
 
   setEnv('EXODUS_TEST_CONTEXT', 'pure')
-  warnHuman(`${options.engine} engine is experimental and may not work an expected`)
+  warnHuman(`${engineName} is experimental and may not work an expected`)
 
   const runOne = async (inputFile) => {
     const bundled = buildFile ? await buildFile(inputFile) : undefined
