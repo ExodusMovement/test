@@ -8,8 +8,8 @@ A runner for `node:test`, `jest`, and `tape` test suites on top of `node:test` (
 - Esbuild on the fly for babelified ESM interop (enable via `--esbuild`)
 - TypeScript support in both transform (through [tsx](https://tsx.is/), enable via `--esbuild`)
   and typestrip (via `--typescript`) modes
-- Runs on [node:test](https://nodejs.org/api/test.html), and (experimental) on bun, deno, d8, JSC and
-  [Hermes](https://hermesengine.dev)
+- Runs on [node:test](https://nodejs.org/api/test.html), and (experimental) on bun, deno, d8, JSC,
+  [Hermes](https://hermesengine.dev), Chrome, Firefox and WebKit.
 - Testsuite-agnostic -- can run any file as long as it sets exit code based on test results
 - Built-in [Jest](https://jestjs.io) compatibility (with `--jest`), including `jest.*` global
   - Up to ~10x faster depending on the original setup

@@ -8,6 +8,17 @@ if (!globalThis.console) {
   globalThis.console = { log: print, error: print, warn: print, info: print, debug: print }
 }
 
+// Otherwise e.g. errors (and some other objects) are hard to unwrap via the API
+// So we just stringify everything instead on the sender side
+if (process.env.EXODUS_TEST_IS_BROWSER) {
+  const utilFormat = require('exodus-test:util-format')
+  for (const type of ['log', 'error', 'warn', 'info', 'debug']) {
+    if (!Object.hasOwn(console, type)) continue
+    const orig = console[type].bind(console)
+    console[type] = (...args) => orig(utilFormat(...args))
+  }
+}
+
 if (!globalThis.fetch) {
   globalThis.fetch = () => {
     throw new Error('Fetch not supported')
@@ -48,11 +59,13 @@ if (typeof process === 'undefined') {
   const process = {
     __proto__: null,
     _exitCode: 0,
-    // eslint-disable-next-line accessor-pairs
     set exitCode(value) {
       process._exitCode = value
       if (globalThis.process) globalThis.process.exitCode = value
       if (globalThis.Deno) globalThis.Deno.exitCode = value
+    },
+    get exitCode() {
+      return process._exitCode
     },
     exit: (code = 0) => {
       globalThis.Deno?.exit?.(code)
@@ -60,8 +73,10 @@ if (typeof process === 'undefined') {
       process.exitCode = code
       process._maybeProcessExitCode()
     },
+    _exitHook: null,
     _maybeProcessExitCode: () => {
       if (globalThis.Deno) return // has native exitCode support
+      if (process._exitHook) return process._exitHook(process._exitCode)
       if (process._exitCode !== 0) {
         setTimeout(() => {
           const err = new Error('Test failed')
