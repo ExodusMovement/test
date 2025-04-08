@@ -16,6 +16,7 @@ import glob from 'fast-glob'
 // The following make sense only when we run the code in the same Node.js version, i.e. engineOptions.haveIsOk
 import { haveModuleMocks, haveSnapshots, haveForceExit } from '../src/version.js'
 import { findBinary } from './find-binary.js'
+import * as browsers from './browsers.js'
 
 const bindir = dirname(fileURLToPath(import.meta.url))
 const DEFAULT_PATTERNS = [`**/?(*.)+(spec|test).?([cm])[jt]s?(x)`] // do not trust magic dirs by default
@@ -36,6 +37,12 @@ const ENGINES = new Map(
     'd8:bundle': { binary: 'd8', ...bundleOptions },
     'jsc:bundle': { binary: 'jsc', ...bundleOptions, target: 'safari13' },
     'hermes:bundle': { binary: 'hermes', binaryArgs: hermesAv, target: 'es2018', ...bundleOptions },
+    // Browser engines
+    'chrome:puppeteer': { binary: 'chrome', browsers: 'puppeteer', ...bundleOptions },
+    'chromium:playwright': { binary: 'chromium', browsers: 'playwright', ...bundleOptions },
+    'firefox:puppeteer': { binary: 'firefox', browsers: 'puppeteer', ...bundleOptions },
+    'firefox:playwright': { binary: 'firefox', browsers: 'playwright', ...bundleOptions },
+    'webkit:playwright': { binary: 'webkit', browsers: 'playwright', ...bundleOptions },
   })
 )
 
@@ -59,6 +66,7 @@ function parseOptions() {
     only: false,
     passWithNoTests: false,
     writeSnapshots: false,
+    devtools: false,
     debug: { files: false },
     dropNetwork: getEnvFlag('EXODUS_TEST_DROP_NETWORK'),
     ideaCompat: false,
@@ -150,6 +158,9 @@ function parseOptions() {
         options.engine = args.shift()
         options.flagEngine = true
         break
+      case '--devtools':
+        options.devtools = true
+        break
       case '--debug-files':
         options.debug.files = true
         break
@@ -219,6 +230,9 @@ options.platform = options.binary // binary can be overriden by c8 or electron
 setEnv('EXODUS_TEST_ENGINE', options.engine) // e.g. 'hermes:bundle', 'node:bundle', 'node:test', 'node:pure'
 setEnv('EXODUS_TEST_PLATFORM', options.binary) // e.g. 'hermes', 'node'
 setEnv('EXODUS_TEST_TIMEOUT', options.testTimeout)
+setEnv('EXODUS_TEST_IS_BROWSER', options.browsers ? '1' : '')
+
+assert(!options.devtools || options.browsers, '--devtools can be only used with browser engines')
 
 const require = createRequire(import.meta.url)
 const resolveRequire = (query) => require.resolve(query)
@@ -477,6 +491,13 @@ if (options.dropNetwork) warnHuman('--drop-network is a test helper, not a secur
 const execFile = promisify(execFileCallback)
 
 async function launch(binary, args, opts = {}, buffering = false) {
+  if (options.browsers) {
+    assert(buffering, 'Unexpected non-buffered browser run')
+    const { timeout } = opts
+    const { devtools, dropNetwork } = options
+    return browsers.run(options.browsers, args, { binary, devtools, dropNetwork, timeout })
+  }
+
   assert(binary && ['node', 'bun', 'deno', 'd8', 'jsc', 'hermes', c8, electron].includes(binary))
   if (options.dropNetwork) {
     switch (process.platform) {
@@ -565,6 +586,7 @@ if (options.pure) {
   if (failures.length > 0) process.exitCode = 1
   summary(files, failures)
 
+  if (options.browsers) await browsers.close()
   console.timeEnd(timeLabel)
 } else {
   assert(!buildFile)

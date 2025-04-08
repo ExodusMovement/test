@@ -166,9 +166,11 @@ export const build = async (...files) => {
   ])
   const buildWrap = async (opts) => esbuild.build(opts).catch((err) => err)
   let main = input.join(';\n')
+  const exit = `EXODUS_TEST_PROCESS.exitCode = 1; EXODUS_TEST_PROCESS._maybeProcessExitCode();`
   if (['jsc', 'hermes', 'd8'].includes(options.platform)) {
-    const exit = `EXODUS_TEST_PROCESS.exitCode = 1; EXODUS_TEST_PROCESS._maybeProcessExitCode();`
     main = `try {\n${main}\n} catch (err) { print(err); ${exit} }`
+  } else if (process.env.EXODUS_TEST_IS_BROWSER) {
+    main = `try {\n${main}\n} catch (err) { console.error(err); ${exit} }`
   }
 
   const fsfiles = await getPackageFiles(filename ? dirname(resolve(filename)) : process.cwd())
@@ -245,6 +247,7 @@ export const build = async (...files) => {
       'process.env.EXODUS_TEST_ENVIRONMENT': stringify('bundle'), // always 'bundle'
       'process.env.EXODUS_TEST_PLATFORM': stringify(process.env.EXODUS_TEST_PLATFORM), // e.g. 'hermes', 'node'
       'process.env.EXODUS_TEST_ENGINE': stringify(process.env.EXODUS_TEST_ENGINE), // e.g. 'hermes:bundle', 'node:bundle'
+      'process.env.EXODUS_TEST_IS_BROWSER': stringify(process.env.EXODUS_TEST_IS_BROWSER), // '1' or ''
       'process.env.EXODUS_TEST_JEST_CONFIG': stringify(JSON.stringify(options.jestConfig)),
       'process.env.EXODUS_TEST_EXECARGV': stringify(process.env.EXODUS_TEST_EXECARGV),
       'process.env.EXODUS_TEST_ONLY': stringify(process.env.EXODUS_TEST_ONLY),
