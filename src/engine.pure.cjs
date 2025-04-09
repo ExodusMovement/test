@@ -145,7 +145,7 @@ async function runContext(context) {
     for (const c of stack) await c.runHooks('afterEach', context)
 
     const status = error === undefined ? '✔ PASS' : '✖ FAIL'
-    print(status, context.fullName, options.todo ? '# TODO' : '')
+    print(status, context.fullName, ...(options.todo ? ['# TODO'] : []))
     if (error) {
       delete error.matcherResult
       print(' ', error)
