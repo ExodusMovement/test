@@ -200,7 +200,7 @@ if (
 ) {
   if (!globalThis.URLSearchParams) globalThis.URLSearchParams = require('@ungap/url-search-params')
   if (!globalThis.TextEncoder || !globalThis.TextDecoder) {
-    const { TextEncoder, TextDecoder } = require('text-encoding')
+    const { TextEncoder, TextDecoder } = require('@exodus/text-encoding-utf8')
     if (!globalThis.TextEncoder) globalThis.TextEncoder = TextEncoder
     if (!globalThis.TextDecoder) global.TextDecoder = TextDecoder
   }
