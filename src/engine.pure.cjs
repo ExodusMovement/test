@@ -16,9 +16,7 @@ let willstart
 const abstractProcess = globalThis.process || globalThis.EXODUS_TEST_PROCESS
 
 if (process.env.EXODUS_TEST_IS_BROWSER) {
-  let promise
-  globalThis.EXODUS_TEST_PROMISE = new Promise((resolve, reject) => (promise = { resolve, reject }))
-  abstractProcess._exitHook = (exitCode) => promise.resolve(exitCode)
+  globalThis.EXODUS_TEST_PROMISE = new Promise((resolve) => (abstractProcess._exitHook = resolve))
 }
 
 // assert module is slower
