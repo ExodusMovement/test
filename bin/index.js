@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { spawn, execFile as execFileCallback } from 'node:child_process'
+import { spawn, spawnSync, execFile as execFileCallback } from 'node:child_process'
 import { promisify } from 'node:util'
 import { once } from 'node:events'
 import { fileURLToPath } from 'node:url'
@@ -88,6 +88,14 @@ function parseOptions() {
   const jsname = args.shift()
   const pathsEqual = (a, b) => a === b || (existsSync(a) && realpathSync(a) === b) // resolve symlinks
   assert(basename(jsname) === 'exodus-test' || pathsEqual(jsname, fileURLToPath(import.meta.url)))
+
+  if (args[0] === '--playwright') {
+    const playwright = dirname(fileURLToPath(import.meta.resolve('playwright-core/package.json')))
+    const cli = resolve(playwright, 'cli.js')
+    const res = spawnSync(cli, args.slice(1), { stdio: 'inherit' })
+    process.exitCode = res.status ?? 1
+    process.exit(0)
+  }
 
   while (args[0]?.startsWith('-')) {
     const option = args.shift()
