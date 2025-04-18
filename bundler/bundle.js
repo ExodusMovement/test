@@ -279,6 +279,7 @@ export const build = async (...files) => {
       'tape-promise/tape': resolveImport('../src/tape.cjs'),
       'node:test': resolveImport('../src/node.js'),
       // Inner
+      'exodus-test:text-encoding-utf': api('text-encoding-utf.cjs'),
       'exodus-test:util-format': api('util-format.cjs'),
       // Node.js (except node:test)
       ...Object.fromEntries(Object.entries(nodeUnprefixed).map(([k, v]) => [`node:${k}`, v])),

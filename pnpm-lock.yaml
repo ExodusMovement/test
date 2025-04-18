@@ -38,9 +38,6 @@ importers:
       '@exodus/replay':
         specifier: ^1.0.0-rc.4
         version: 1.0.0-rc.4
-      '@exodus/text-encoding-utf8':
-        specifier: ^1.0.2
-        version: 1.0.2
       '@ungap/url-search-params':
         specifier: ^0.2.2
         version: 0.2.2
@@ -595,9 +592,6 @@ packages:
 
   '@exodus/replay@1.0.0-rc.4':
     resolution: {integrity: sha512-b3XJUxvGyVUXCtCIHZfDxikSIUEgsFJEeyftnabadDgs9LDoyujQheiPnBa7MOuD3QndxM9vEDgIxC5NZZUsag==}
-
-  '@exodus/text-encoding-utf8@1.0.2':
-    resolution: {integrity: sha512-b6j0Xj3CN4YveWlJSP5YJsEFensXH6xbWi1mpKvpWKFNp80sQmcDBNKVrutSc7dKtgX6yOsxVZZs3zcMg/KViA==}
 
   '@humanwhocodes/config-array@0.11.14':
     resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
@@ -3798,8 +3792,6 @@ snapshots:
       prettier: 3.3.2
 
   '@exodus/replay@1.0.0-rc.4': {}
-
-  '@exodus/text-encoding-utf8@1.0.2': {}
 
   '@humanwhocodes/config-array@0.11.14':
     dependencies:
