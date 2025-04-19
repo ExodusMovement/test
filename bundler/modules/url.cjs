@@ -26,3 +26,7 @@ function fileURLToPath(url, options) {
 }
 
 module.exports = { ...urlLib, pathToFileURL, fileURLToPath }
+
+const defineExport = (k, get) => Object.defineProperty(module.exports, k, { get, enumerable: true })
+defineExport('URL', () => globalThis.URL)
+defineExport('URLSearchParams', () => globalThis.URLSearchParams)

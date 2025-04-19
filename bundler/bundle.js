@@ -224,7 +224,7 @@ export const build = async (...files) => {
     querystring: resolveRequire('querystring-es3'),
     stream: resolveRequire('stream-browserify'),
     timers: resolveRequire('timers-browserify'),
-    url: dirname(resolveRequire('url/')),
+    url: api('url.cjs'),
     util: dirname(resolveRequire('util/')),
     zlib: resolveRequire('browserify-zlib'),
   }
@@ -284,7 +284,8 @@ export const build = async (...files) => {
       // Node.js (except node:test)
       ...Object.fromEntries(Object.entries(nodeUnprefixed).map(([k, v]) => [`node:${k}`, v])),
       ...nodeUnprefixed,
-      'node:url': api('url.cjs'), // FIXME: load this under 'url' too
+      // Needed for polyfills but name conflicts with Node.js modules
+      'url/url.js': resolveRequire('url/url.js'),
       // expect-related deps
       'ansi-styles': api('ansi-styles.cjs'),
       'jest-util': api('jest-util.js'),
