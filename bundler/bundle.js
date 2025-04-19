@@ -68,7 +68,6 @@ export const init = async ({ platform, jest, flow, target, jestConfig, outdir, e
   }
 }
 
-const barebone = new Set(['hermes', 'jsc', 'd8'])
 const hermesSupported = {
   arrow: false,
   class: false, // we get a safeguard check this way that it's not used
@@ -124,7 +123,7 @@ export const build = async (...files) => {
   const stringify = (x) => ([undefined, null].includes(x) ? `${x}` : JSON.stringify(x))
 
   if (!['node', 'electron'].includes(options.platform)) {
-    if (barebone.has(options.platform)) {
+    if (process.env.EXODUS_TEST_IS_BAREBONE) {
       const entropy = randomBytes(options.entropySize ?? 5 * 1024).toString('base64')
       input.push(`globalThis.EXODUS_TEST_CRYPTO_ENTROPY = ${stringify(entropy)};`)
     }
@@ -168,7 +167,7 @@ export const build = async (...files) => {
   const buildWrap = async (opts) => esbuild.build(opts).catch((err) => err)
   let main = input.join(';\n')
   const exit = `EXODUS_TEST_PROCESS.exitCode = 1; EXODUS_TEST_PROCESS._maybeProcessExitCode();`
-  if (barebone.has(options.platform)) {
+  if (process.env.EXODUS_TEST_IS_BAREBONE) {
     main = `try {\n${main}\n} catch (err) { print(err); ${exit} }`
   } else if (process.env.EXODUS_TEST_IS_BROWSER) {
     main = `try {\n${main}\n} catch (err) { console.error(err); ${exit} }`
@@ -257,6 +256,7 @@ export const build = async (...files) => {
       'process.env.EXODUS_TEST_PLATFORM': stringify(process.env.EXODUS_TEST_PLATFORM), // e.g. 'hermes', 'node'
       'process.env.EXODUS_TEST_ENGINE': stringify(process.env.EXODUS_TEST_ENGINE), // e.g. 'hermes:bundle', 'node:bundle'
       'process.env.EXODUS_TEST_IS_BROWSER': stringify(process.env.EXODUS_TEST_IS_BROWSER), // '1' or ''
+      'process.env.EXODUS_TEST_IS_BAREBONE': stringify(process.env.EXODUS_TEST_IS_BAREBONE), // '1' or ''
       'process.env.EXODUS_TEST_JEST_CONFIG': stringify(JSON.stringify(options.jestConfig)),
       'process.env.EXODUS_TEST_EXECARGV': stringify(process.env.EXODUS_TEST_EXECARGV),
       'process.env.EXODUS_TEST_ONLY': stringify(process.env.EXODUS_TEST_ONLY),
@@ -303,7 +303,7 @@ export const build = async (...files) => {
       'node-gyp-build': api('empty/function-throw.cjs'),
       ws: api('ws.cjs'),
     },
-    sourcemap: barebone.has(options.platform) ? 'inline' : 'linked', // FIXME?
+    sourcemap: process.env.EXODUS_TEST_IS_BAREBONE ? 'inline' : 'linked', // FIXME?
     sourcesContent: false,
     keepNames: true,
     format: 'iife',
@@ -319,9 +319,8 @@ export const build = async (...files) => {
           onLoad({ filter: /\.[cm]?[jt]sx?$/, namespace: 'file' }, async (args) => {
             let filepath = args.path
             // Resolve .native versions
-            // TODO: move flag to engine options
             // TODO: maybe follow package.json for this
-            if (barebone.has(options.platform)) {
+            if (process.env.EXODUS_TEST_IS_BAREBONE) {
               const maybeNative = filepath.replace(/(\.[cm]?[jt]sx?)$/u, '.native$1')
               if (existsSync(maybeNative)) filepath = maybeNative
             }

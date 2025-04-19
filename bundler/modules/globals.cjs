@@ -193,11 +193,7 @@ if (globalThis.crypto?.getRandomValues && !globalThis.crypto?.randomUUID) {
 
 if (!globalThis.crypto.subtle) globalThis.crypto.subtle = {} // For getRandomValues detection
 
-if (
-  process.env.EXODUS_TEST_PLATFORM === 'hermes' ||
-  process.env.EXODUS_TEST_PLATFORM === 'jsc' ||
-  process.env.EXODUS_TEST_PLATFORM === 'd8'
-) {
+if (process.env.EXODUS_TEST_IS_BAREBONE) {
   if (!globalThis.URLSearchParams) globalThis.URLSearchParams = require('@ungap/url-search-params')
   if (!globalThis.TextEncoder || !globalThis.TextDecoder) {
     const { TextEncoder, TextDecoder } = require('exodus-test:text-encoding-utf')

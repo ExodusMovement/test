@@ -21,28 +21,29 @@ import * as browsers from './browsers.js'
 const bindir = dirname(fileURLToPath(import.meta.url))
 const DEFAULT_PATTERNS = [`**/?(*.)+(spec|test).?([cm])[jt]s?(x)`] // do not trust magic dirs by default
 
-const bundleOptions = { pure: true, bundle: true, esbuild: true, ts: 'auto' }
+const bundleOpts = { pure: true, bundle: true, esbuild: true, ts: 'auto' }
+const bareboneOpts = { ...bundleOpts, barebone: true }
 const hermesAv = ['-Og', '-Xmicrotask-queue']
 const ENGINES = new Map(
   Object.entries({
     'node:test': { binary: 'node', pure: false, hasImportLoader: true, ts: 'flag', haveIsOk: true },
     'node:pure': { binary: 'node', pure: true, hasImportLoader: true, ts: 'flag', haveIsOk: true },
-    'node:bundle': { binary: 'node', ...bundleOptions },
+    'node:bundle': { binary: 'node', ...bundleOpts },
     'bun:pure': { binary: 'bun', pure: true, hasImportLoader: false, ts: 'auto' },
-    'bun:bundle': { binary: 'bun', ...bundleOptions },
+    'bun:bundle': { binary: 'bun', ...bundleOpts },
     'electron-as-node:test': { binary: 'electron', pure: false, hasImportLoader: true, ts: 'flag' },
     'electron-as-node:pure': { binary: 'electron', pure: true, hasImportLoader: true, ts: 'flag' },
-    'electron-as-node:bundle': { binary: 'electron', ...bundleOptions },
-    'deno:bundle': { binary: 'deno', binaryArgs: ['run'], target: 'deno1', ...bundleOptions },
-    'd8:bundle': { binary: 'd8', ...bundleOptions },
-    'jsc:bundle': { binary: 'jsc', ...bundleOptions, target: 'safari13' },
-    'hermes:bundle': { binary: 'hermes', binaryArgs: hermesAv, target: 'es2018', ...bundleOptions },
+    'electron-as-node:bundle': { binary: 'electron', ...bundleOpts },
+    'deno:bundle': { binary: 'deno', binaryArgs: ['run'], target: 'deno1', ...bundleOpts },
+    'd8:bundle': { binary: 'd8', ...bareboneOpts },
+    'jsc:bundle': { binary: 'jsc', target: 'safari13', ...bareboneOpts },
+    'hermes:bundle': { binary: 'hermes', binaryArgs: hermesAv, target: 'es2018', ...bareboneOpts },
     // Browser engines
-    'chrome:puppeteer': { binary: 'chrome', browsers: 'puppeteer', ...bundleOptions },
-    'chromium:playwright': { binary: 'chromium', browsers: 'playwright', ...bundleOptions },
-    'firefox:puppeteer': { binary: 'firefox', browsers: 'puppeteer', ...bundleOptions },
-    'firefox:playwright': { binary: 'firefox', browsers: 'playwright', ...bundleOptions },
-    'webkit:playwright': { binary: 'webkit', browsers: 'playwright', ...bundleOptions },
+    'chrome:puppeteer': { binary: 'chrome', browsers: 'puppeteer', ...bundleOpts },
+    'chromium:playwright': { binary: 'chromium', browsers: 'playwright', ...bundleOpts },
+    'firefox:puppeteer': { binary: 'firefox', browsers: 'puppeteer', ...bundleOpts },
+    'firefox:playwright': { binary: 'firefox', browsers: 'playwright', ...bundleOpts },
+    'webkit:playwright': { binary: 'webkit', browsers: 'playwright', ...bundleOpts },
   })
 )
 
@@ -239,6 +240,7 @@ setEnv('EXODUS_TEST_ENGINE', options.engine) // e.g. 'hermes:bundle', 'node:bund
 setEnv('EXODUS_TEST_PLATFORM', options.binary) // e.g. 'hermes', 'node'
 setEnv('EXODUS_TEST_TIMEOUT', options.testTimeout)
 setEnv('EXODUS_TEST_IS_BROWSER', options.browsers ? '1' : '')
+setEnv('EXODUS_TEST_IS_BAREBONE', options.barebone ? '1' : '')
 
 assert(!options.devtools || options.browsers, '--devtools can be only used with browser engines')
 
