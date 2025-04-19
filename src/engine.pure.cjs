@@ -84,6 +84,10 @@ class Context {
     if (!this.#hooks?.[type]) return
     for (const hook of this.#hooks[type]) await runFunction(hook, context)
   }
+
+  diagnostic(message) {
+    console.log(`ℹ DIAGNOSTIC ${message}`)
+  }
 }
 
 function enterContext(name, options) {

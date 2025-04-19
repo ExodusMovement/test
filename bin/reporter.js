@@ -27,6 +27,7 @@ export const format = (chunk) => {
   return chunk
     .replaceAll(/^✔ PASS /gmu, color('✔ PASS ', 'green'))
     .replaceAll(/^⏭ SKIP /gmu, color('⏭ SKIP ', dim))
+    .replaceAll(/^ℹ DIAGNOSTIC /gmu, color('ℹ DIAGNOSTIC ', 'blue'))
     .replaceAll(/^✖ FAIL /gmu, color('✖ FAIL ', 'red'))
     .replaceAll(/^⚠ WARN /gmu, color('⚠ WARN ', 'blue'))
     .replaceAll(/^‼ FATAL /gmu, `${color('‼', 'red')} ${color(' FATAL ', 'bgRed')} `)
