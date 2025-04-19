@@ -189,15 +189,15 @@ export const build = async (...files) => {
   }
 
   specificLoadPipeline.push(async (source, filepath) => {
-    for (const match of source.matchAll(/readFileSync\((?:"([^"\\]+)"|'([^'\\]+)')[),]/gu)) {
-      await fsFilesAdd(match[1] || match[2])
+    for (const m of source.matchAll(/readFileSync\(\s*(?:"([^"\\]+)"|'([^'\\]+)')[),]/gu)) {
+      await fsFilesAdd(m[1] || m[2])
     }
 
     // E.g. path.join(import.meta.dirname, './fixtures/data.json'), dirname is inlined by loadPipeline already
     const dir = dirname(filepath)
-    for (const match of source.matchAll(/join\(("[^"\\]+"), (?:"([^"\\]+)"|'([^'\\]+)')\)/gu)) {
-      if (match[1] !== JSON.stringify(dir)) continue // only allow files relative to dirname, from loadPipeline
-      const file = relative(cwd, join(dir, match[2] || match[3]))
+    for (const m of source.matchAll(/join\(\s*("[^"\\]+"),\s*(?:"([^"\\]+)"|'([^'\\]+)')\s*\)/gu)) {
+      if (m[1] !== JSON.stringify(dir)) continue // only allow files relative to dirname, from loadPipeline
+      const file = relative(cwd, join(dir, m[2] || m[3]))
       if (/\.(json|txt)$/u.test(file)) await fsFilesAdd(file) // only allow json/txt files
     }
 
