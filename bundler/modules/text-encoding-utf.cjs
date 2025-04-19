@@ -56,8 +56,7 @@ function TextDecoder(encoding = UTF8, options = {}) {
   encoding = normalizeEncoding(encoding)
   assertUTF8orUTF16LE(encoding)
 
-  const { fatal = true, ignoreBOM = false, stream = false } = options
-  if (fatal !== true) throw new Error('disabling "fatal" mode is not supported')
+  const { fatal = false, ignoreBOM = false, stream = false } = options
   if (ignoreBOM !== false) throw new Error('option "ignoreBOM" is not supported')
   if (stream !== false) throw new Error('option "stream" is not supported')
 
@@ -67,11 +66,25 @@ function TextDecoder(encoding = UTF8, options = {}) {
   defineFinal(this, 'ignoreBOM', ignoreBOM)
 }
 
+// Note: https://npmjs.com/package/buffer has a bug
+// Buffer.from([0xf0, 0x90, 0x80]).toString().length should be 1, but it is 3 in https://npmjs.com/package/buffer
+// Buffer.from([0xf0, 0x80, 0x80]).toString().length should be 3, see https://github.com/nodejs/node/issues/16894
 TextDecoder.prototype.decode = function (buf) {
   if (buf === undefined) return ''
   assertBufferSource(buf)
   if (!Buffer.isBuffer(buf)) buf = Buffer.from(buf)
-  return buf.toString(this.encoding)
+  const res = buf.toString(this.encoding)
+  if (this.fatal && res.includes('\uFFFD')) {
+    // We have a replacement symbol, recheck if output matches input
+    const reconstructed = Buffer.from(res, this.encoding)
+    if (Buffer.compare(buf, reconstructed) !== 0) {
+      const err = new TypeError('The encoded data was not valid for encoding utf-8')
+      err.code = 'ERR_ENCODING_INVALID_ENCODED_DATA'
+      throw err
+    }
+  }
+
+  return res
 }
 
 module.exports = { TextEncoder, TextDecoder }
