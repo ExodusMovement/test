@@ -29,7 +29,7 @@ export const close = () => Promise.all(Object.values(launched).map((p) => p.then
 
 async function newPage(runner, browser, { binary, dropNetwork }) {
   const context = await (browser.newContext ? browser.newContext() : browser.createBrowserContext())
-  if (dropNetwork && context.setOffline) await context.setOffline(true)
+  if (dropNetwork && context.setOffline && binary !== 'webkit') await context.setOffline(true) // WebKit crashes if this is done prior to navigation to /dev/null
   let page
   try {
     page = await context.newPage()
@@ -40,6 +40,9 @@ async function newPage(runner, browser, { binary, dropNetwork }) {
     return newPage(runner, browser, { binary, dropNetwork })
   }
 
+  await page.goto('file:///dev/null') // Need to load a secure origin for e.g. crypto.subtle to be available
+
+  if (dropNetwork && context.setOffline) await context.setOffline(true)
   if (dropNetwork && page.setOfflineMode) await page.setOfflineMode(true)
   assert(!dropNetwork || context.setOffline || page.setOfflineMode)
   return { context, page }
@@ -55,7 +58,6 @@ export async function run(runner, args, { binary, devtools, dropNetwork, timeout
   assert(Object.hasOwn(launchers, runner), 'Unexpected runner')
   if (!launched[runner]) launched[runner] = launchers[runner]({ binary, devtools })
   const { page, context } = await newPage(runner, await launched[runner], { binary, dropNetwork })
-  await page.goto('file:///dev/null') // Need to load a secure origin for e.g. crypto.subtle to be available
 
   page.on('console', (message) => {
     const type = message.type()
