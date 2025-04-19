@@ -1,7 +1,12 @@
 const { inspect: inspectOrig, isString, isNull, isObject } = require('util/') // dep
 
 // Print errors without square brackets
-const inspect = (obj, opts) => (obj instanceof Error ? String(obj) : inspectOrig(obj, opts))
+const trim = (x) => x.trim()
+const validLine = (x) => x && x !== '@'
+const padLine = (line) => `    ${line}`
+const pad = (stack) => stack.split('\n').map(trim).filter(validLine).map(padLine).join('\n')
+const errorStr = (e) => (e.stack.startsWith(`${e}\n`) ? e.stack : `${e}\n${pad(e.stack)}`.trimEnd())
+const inspect = (obj, opts) => (obj instanceof Error ? errorStr(obj) : inspectOrig(obj, opts))
 
 // Patched impl from require('util'), added %i
 const formatRegExp = /%[%dijs]/g
