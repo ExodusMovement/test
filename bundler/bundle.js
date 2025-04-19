@@ -180,11 +180,15 @@ export const build = async (...files) => {
     if (!fileRelative || !/^[a-z0-9@_./-]+$/iu.test(fileRelative)) return
     const file = resolve(fileRelative)
     if (!file.startsWith(`${cwd}/`)) return
-    const data = await readFile(file, 'base64')
-    if (fsFilesContents.has(file)) {
-      assert(fsFilesContents.get(file) === data)
-    } else {
-      fsFilesContents.set(file, data)
+    try {
+      const data = await readFile(file, 'base64')
+      if (fsFilesContents.has(file)) {
+        assert(fsFilesContents.get(file) === data)
+      } else {
+        fsFilesContents.set(file, data)
+      }
+    } catch (e) {
+      if (e.code !== 'ENOENT') throw e
     }
   }
 
@@ -198,7 +202,7 @@ export const build = async (...files) => {
     for (const m of source.matchAll(/join\(\s*("[^"\\]+"),\s*(?:"([^"\\]+)"|'([^'\\]+)')\s*\)/gu)) {
       if (m[1] !== JSON.stringify(dir)) continue // only allow files relative to dirname, from loadPipeline
       const file = relative(cwd, join(dir, m[2] || m[3]))
-      if (/\.(json|txt)$/u.test(file)) await fsFilesAdd(file) // only allow json/txt files
+      if (/\.(json|txt|hex)$/u.test(file)) await fsFilesAdd(file) // only allow specific extensions used as test fixtures
     }
 
     return source
