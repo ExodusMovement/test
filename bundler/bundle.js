@@ -110,16 +110,7 @@ const loadSourceFileBase = async (filepath) => {
 }
 
 export const build = async (...files) => {
-  const envOverride = {
-    FORCE_COLOR: '0',
-    NO_COLOR: '1',
-    EXODUS_TEST_CONTEXT: 'pure',
-    EXODUS_TEST_ENVIRONMENT: 'bundle', // always 'bundle'
-    EXODUS_TEST_JEST_CONFIG: JSON.stringify(options.jestConfig),
-    NODE_DEBUG: undefined,
-    DEBUG: undefined,
-    READABLE_STREAM: undefined,
-  }
+  const envOverride = { FORCE_COLOR: '0', NO_COLOR: '1' }
   const getEnv = (key) => (Object.hasOwn(envOverride, key) ? envOverride[key] : process.env[key]) // We know key is safe as it comes from regex below
   const specificLoadPipeline = [
     (src) => src.replace(/\b(?:process\.env\.([A-Z0-9_]+))\b/gu, (_, x) => stringify(getEnv(x))),

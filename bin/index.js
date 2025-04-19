@@ -241,6 +241,7 @@ setEnv('EXODUS_TEST_PLATFORM', options.binary) // e.g. 'hermes', 'node'
 setEnv('EXODUS_TEST_TIMEOUT', options.testTimeout)
 setEnv('EXODUS_TEST_IS_BROWSER', options.browsers ? '1' : '')
 setEnv('EXODUS_TEST_IS_BAREBONE', options.barebone ? '1' : '')
+setEnv('EXODUS_TEST_ENVIRONMENT', options.bundle ? 'bundle' : '') // perhaps switch to _IS_BUNDLED?
 
 assert(!options.devtools || options.browsers, '--devtools can be only used with browser engines')
 
@@ -314,7 +315,9 @@ if (options.jest) {
   const { loadJestConfig } = await import('../src/jest.config.js')
   const config = await loadJestConfig(process.cwd())
   jestConfig = config
-  if (!options.bundle) {
+  if (options.bundle) {
+    setEnv('EXODUS_TEST_JEST_CONFIG', JSON.stringify(jestConfig))
+  } else {
     args.push(options.hasImportLoader ? '--import' : '-r', resolve(bindir, 'jest.js'))
   }
 
