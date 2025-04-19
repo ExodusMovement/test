@@ -60,6 +60,7 @@
     "bundler/modules/jest-util.js",
     "bundler/modules/node-buffer.cjs",
     "bundler/modules/text-encoding-utf.cjs",
+    "bundler/modules/tty.cjs",
     "bundler/modules/url.cjs",
     "bundler/modules/util-format.cjs",
     "bundler/modules/ws.cjs",

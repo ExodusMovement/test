@@ -231,6 +231,7 @@ export const build = async (...files) => {
     querystring: resolveRequire('querystring-es3'),
     stream: resolveRequire('stream-browserify'),
     timers: resolveRequire('timers-browserify'),
+    tty: api('tty.cjs'),
     url: api('url.cjs'),
     util: dirname(resolveRequire('util/')),
     zlib: resolveRequire('browserify-zlib'),
