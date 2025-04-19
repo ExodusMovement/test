@@ -226,7 +226,7 @@ export const build = async (...files) => {
     'fs/promises': api('fs-promises.cjs'),
     http: api('http.cjs'),
     https: api('https.cjs'),
-    os: resolveRequire('os-browserify'),
+    os: resolveRequire('os-browserify/browser.js'), // 'main' entry point is noop, we want browser entry
     path: resolveRequire('path-browserify'),
     querystring: resolveRequire('querystring-es3'),
     stream: resolveRequire('stream-browserify'),
