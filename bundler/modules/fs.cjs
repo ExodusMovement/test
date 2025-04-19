@@ -78,7 +78,7 @@ const promises = { ...stubsPromises, constants }
 // eslint-disable-next-line no-undef
 const fsFiles = typeof EXODUS_TEST_FSFILES === 'undefined' ? null : new Set(EXODUS_TEST_FSFILES)
 const existsSync = (file) => {
-  if (fsFiles?.has(file)) return true
+  if (fsFiles?.has(file) || fsFilesContents?.has(file)) return true
   err('existsSync', file)
 }
 
