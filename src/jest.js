@@ -231,7 +231,9 @@ export const jest = {
       fetchRecord,
       fetchReplay,
       fetchNoop: () => {
-        globalThis.fetch = jest.fn()
+        // We can't use pure noop, it will break chained fetch().then(), so let's reject
+        const fetch = () => Promise.reject(new Error('fetch is disabled by mock.fetchNoop()'))
+        globalThis.fetch = jest.fn(fetch)
         return globalThis.fetch
       },
       websocketRecord,
