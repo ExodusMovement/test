@@ -149,7 +149,7 @@
     "jsdom": "^24.1.0",
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
-    "playwright-core": "^1.51.1",
+    "playwright-core": "^1.52.0",
     "pretty-format": "^29.7.0",
     "puppeteer-core": "^24.6.0",
     "querystring-es3": "^0.2.1",
