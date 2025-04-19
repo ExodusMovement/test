@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFile } from 'node:fs/promises'
+import { readFile, readdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { basename, dirname, extname, resolve, join, relative } from 'node:path'
@@ -175,11 +175,15 @@ export const build = async (...files) => {
 
   const fsfiles = await getPackageFiles(filename ? dirname(resolve(filename)) : process.cwd())
   const fsFilesContents = new Map()
+  const fsFilesDirs = new Map()
   const cwd = process.cwd()
-  const fsFilesAdd = async (fileRelative) => {
-    if (!fileRelative || !/^[a-z0-9@_./-]+$/iu.test(fileRelative)) return
-    const file = resolve(fileRelative)
-    if (!file.startsWith(`${cwd}/`)) return
+  const fixturesRegex = /(fixtures|samples)/u
+  const aggressiveExtensions = /\.(json|txt|hex)$/u // These are bundled when just used in path.join and by wildcard from fixtures/
+  const fileAllowed = (f) =>
+    f && f.startsWith(`${cwd}/`) && resolve(f) === f && /^[a-z0-9@_./-]+$/iu.test(relative(cwd, f))
+
+  const fsFilesAdd = async (file) => {
+    if (!fileAllowed(file)) return
     try {
       const data = await readFile(file, 'base64')
       if (fsFilesContents.has(file)) {
@@ -192,18 +196,46 @@ export const build = async (...files) => {
     }
   }
 
+  const fixturesSeen = { fs: false, fixtures: false, bundled: false }
+  const fsFilesBundleFixtures = async (reason) => {
+    if (fixturesSeen.bundled || !filename) return
+    if (reason === 'fs' || reason === 'fixtures') fixturesSeen[reason] = true
+    if (!fixturesSeen.fs || !fixturesSeen.fixtures) return
+    fixturesSeen.bundled = true
+    const dir = dirname(resolve(filename))
+    for (const name of await readdir(dir, { recursive: true })) {
+      const parent = dirname(name)
+      if (!fixturesRegex.test(parent)) continue // relative dir path should look like a fixtures dir
+
+      // Save as directory entry into parent dir
+      const subdir = resolve(dir, parent)
+      if (fileAllowed(subdir)) {
+        if (!fsFilesDirs.has(subdir)) fsFilesDirs.set(subdir, [])
+        fsFilesDirs.get(subdir).push(basename(name))
+      }
+
+      // Save to files
+      const file = resolve(dir, name)
+      if (aggressiveExtensions.test(file)) await fsFilesAdd(file)
+    }
+  }
+
   specificLoadPipeline.push(async (source, filepath) => {
     for (const m of source.matchAll(/readFileSync\(\s*(?:"([^"\\]+)"|'([^'\\]+)')[),]/gu)) {
-      await fsFilesAdd(m[1] || m[2])
+      await fsFilesAdd(resolve(m[1] || m[2])) // resolves from cwd
     }
 
     // E.g. path.join(import.meta.dirname, './fixtures/data.json'), dirname is inlined by loadPipeline already
     const dir = dirname(filepath)
     for (const m of source.matchAll(/join\(\s*("[^"\\]+"),\s*(?:"([^"\\]+)"|'([^'\\]+)')\s*\)/gu)) {
       if (m[1] !== JSON.stringify(dir)) continue // only allow files relative to dirname, from loadPipeline
-      const file = relative(cwd, join(dir, m[2] || m[3]))
-      if (/\.(json|txt|hex)$/u.test(file)) await fsFilesAdd(file) // only allow specific extensions used as test fixtures
+      const file = resolve(dir, m[2] || m[3])
+      if (aggressiveExtensions.test(file)) await fsFilesAdd(file) // only bundle path.join for specific extensions used as test fixtures
     }
+
+    // Both conditions should happen for deep fixtures inclusion
+    if (/(readdir|readFile|exists)Sync/u.test(source)) await fsFilesBundleFixtures('fs')
+    if (fixturesRegex.test(source)) await fsFilesBundleFixtures('fixtures')
 
     return source
   })
@@ -284,6 +316,7 @@ export const build = async (...files) => {
       EXODUS_TEST_RECORDINGS: stringify(EXODUS_TEST_RECORDINGS),
       EXODUS_TEST_FSFILES: stringify(fsfiles), // TODO: can we safely use relative paths?
       EXODUS_TEST_FSFILES_CONTENTS: stringify([...fsFilesContents.entries()]),
+      EXODUS_TEST_FSDIRS: stringify([...fsFilesDirs.entries()]),
     },
     alias: {
       // Jest, tape and node:test
@@ -352,9 +385,10 @@ export const build = async (...files) => {
   let res = await buildWrap(config)
   assert.equal(res instanceof Error, res.errors.length > 0)
 
-  if (fsFilesContents.size > 0) {
+  if (fsFilesContents.size > 0 || fsFilesDirs.size > 0) {
     // re-run as we detected that tests depend on fsReadFileSync contents
     config.define.EXODUS_TEST_FSFILES_CONTENTS = stringify([...fsFilesContents.entries()])
+    config.define.EXODUS_TEST_FSDIRS = stringify([...fsFilesDirs.entries()])
     res = await buildWrap(config)
     assert.equal(res instanceof Error, res.errors.length > 0)
   }
