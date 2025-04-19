@@ -133,40 +133,53 @@ This activity created errors and would have caused tests to fail, but instead tr
 
 if (
   process.env.EXODUS_TEST_PLATFORM === 'hermes' ||
-  (process.env.EXODUS_TEST_PLATFORM === 'jsc' && !globalThis.clearTimeout) ||
-  (process.env.EXODUS_TEST_PLATFORM === 'd8' && !globalThis.clearTimeout)
+  (process.env.EXODUS_TEST_IS_BAREBONE && !globalThis.clearTimeout)
 ) {
   // Ok, we have broken timers, let's hack them around
   let i = 0
   const timers = new Map()
-  const { setTimeout, clearTimeout } = globalThis
-  const dateNow = Date.now
-  const precision = clearTimeout ? Infinity : 10 // have to tick this fast for clearTimeout to work
+  const repeating = new Set()
+  const { setTimeout: setTimeoutOriginal, clearTimeout: clearTimeoutOriginal } = globalThis
+  const dateNow = Date.now.bind(Date)
+  const precision = clearTimeoutOriginal ? Infinity : 10 // have to tick this fast for clearTimeout to work
 
-  globalThis.setTimeout = (fn, time, ...args) => {
+  const setTimeout = (fn, time, ...args) => {
     const id = `ht${i++}`
-    const now = dateNow()
+    let started = dateNow()
     const tick = () => {
       if (!timers.has(id)) return
-      const remaining = now + time - dateNow()
+      const remaining = started + time - dateNow()
       if (remaining < 0) {
-        timers.delete(id)
+        if (repeating.has(id)) {
+          started = dateNow()
+          timers.set(id, setTimeoutOriginal(tick, Math.min(precision, time)))
+        } else {
+          timers.delete(id)
+        }
+
         fn(...args)
       } else {
-        timers.set(id, setTimeout(tick, Math.min(precision, remaining)))
+        timers.set(id, setTimeoutOriginal(tick, Math.min(precision, remaining)))
       }
     }
 
-    timers.set(id, setTimeout(tick, Math.min(precision, time)))
+    timers.set(id, setTimeoutOriginal(tick, Math.min(precision, time)))
     return id
   }
 
-  globalThis.clearTimeout = (id) => {
-    if (!timers.has(id)) return
-    clearTimeout?.(timers.get(id))
-    timers.delete(id)
+  globalThis.setTimeout = setTimeout
+  globalThis.setInterval = (fn, time, ...args) => {
+    const id = setTimeout(fn, time, ...args)
+    repeating.add(id)
+    return id
   }
-  // TODO: setInterval, clearInterval
+
+  globalThis.clearTimeout = globalThis.clearInterval = (id) => {
+    if (!timers.has(id)) return
+    clearTimeoutOriginal?.(timers.get(id))
+    timers.delete(id)
+    repeating.delete(id)
+  }
 }
 
 if (!globalThis.crypto?.getRandomValues && globalThis.EXODUS_TEST_CRYPTO_ENTROPY) {
