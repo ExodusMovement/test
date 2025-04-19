@@ -110,7 +110,20 @@ const loadSourceFileBase = async (filepath) => {
 }
 
 export const build = async (...files) => {
-  const specificLoadPipeline = []
+  const envOverride = {
+    FORCE_COLOR: '0',
+    NO_COLOR: '1',
+    EXODUS_TEST_CONTEXT: 'pure',
+    EXODUS_TEST_ENVIRONMENT: 'bundle', // always 'bundle'
+    EXODUS_TEST_JEST_CONFIG: JSON.stringify(options.jestConfig),
+    NODE_DEBUG: undefined,
+    DEBUG: undefined,
+    READABLE_STREAM: undefined,
+  }
+  const getEnv = (key) => (Object.hasOwn(envOverride, key) ? envOverride[key] : process.env[key]) // We know key is safe as it comes from regex below
+  const specificLoadPipeline = [
+    (src) => src.replace(/\b(?:process\.env\.([A-Z0-9_]+))\b/gu, (_, x) => stringify(getEnv(x))),
+  ]
   const loadSourceFile = async (filepath) => {
     let contents = await loadSourceFileBase(filepath)
     for (const transform of specificLoadPipeline) contents = await transform(contents, filepath)
@@ -285,24 +298,6 @@ export const build = async (...files) => {
     platform: 'neutral',
     mainFields: ['browser', 'module', 'main'],
     define: {
-      'process.env.FORCE_COLOR': stringify('0'),
-      'process.env.NO_COLOR': stringify('1'),
-      'process.env.NODE_ENV': stringify(process.env.NODE_ENV),
-      'process.env.EXODUS_TEST_CONTEXT': stringify('pure'),
-      'process.env.EXODUS_TEST_ENVIRONMENT': stringify('bundle'), // always 'bundle'
-      'process.env.EXODUS_TEST_PLATFORM': stringify(process.env.EXODUS_TEST_PLATFORM), // e.g. 'hermes', 'node'
-      'process.env.EXODUS_TEST_ENGINE': stringify(process.env.EXODUS_TEST_ENGINE), // e.g. 'hermes:bundle', 'node:bundle'
-      'process.env.EXODUS_TEST_IS_BROWSER': stringify(process.env.EXODUS_TEST_IS_BROWSER), // '1' or ''
-      'process.env.EXODUS_TEST_IS_BAREBONE': stringify(process.env.EXODUS_TEST_IS_BAREBONE), // '1' or ''
-      'process.env.EXODUS_TEST_JEST_CONFIG': stringify(JSON.stringify(options.jestConfig)),
-      'process.env.EXODUS_TEST_EXECARGV': stringify(process.env.EXODUS_TEST_EXECARGV),
-      'process.env.EXODUS_TEST_ONLY': stringify(process.env.EXODUS_TEST_ONLY),
-      'process.env.EXODUS_TEST_TIMEOUT': stringify(process.env.EXODUS_TEST_TIMEOUT),
-      'process.env.NODE_DEBUG': stringify(),
-      'process.env.DEBUG': stringify(),
-      'process.env.READABLE_STREAM': stringify(),
-      'process.env.CI': stringify(process.env.CI),
-      'process.env.CI_ENABLE_VERBOSE_LOGS': stringify(process.env.CI_ENABLE_VERBOSE_LOGS),
       'process.browser': stringify(true),
       'process.emitWarning': 'undefined',
       'process.stderr': 'undefined',
