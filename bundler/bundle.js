@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { basename, dirname, extname, resolve, join } from 'node:path'
+import { basename, dirname, extname, resolve, join, relative } from 'node:path'
 import { createRequire } from 'node:module'
 import { randomUUID as uuid, randomBytes } from 'node:crypto'
 import * as esbuild from 'esbuild'
@@ -176,22 +176,30 @@ export const build = async (...files) => {
 
   const fsfiles = await getPackageFiles(filename ? dirname(resolve(filename)) : process.cwd())
   const fsFilesContents = new Map()
-  specificLoadPipeline.push(async (source) => {
-    const cwd = process.cwd()
-    for (const re of [/readFileSync\('([^'\\]+)'[),]/gu, /readFileSync\("([^"\\]+)"[),]/gu]) {
-      for (const match of source.matchAll(re)) {
-        let file = match[1]
-        if (file && /^[a-z0-9@_./-]+$/iu.test(file)) {
-          file = resolve(file)
-          if (!file.startsWith(`${cwd}/`)) continue
-          const data = await readFile(file, 'base64')
-          if (fsFilesContents.has(file)) {
-            assert(fsFilesContents.get(file) === data)
-          } else {
-            fsFilesContents.set(file, data)
-          }
-        }
-      }
+  const cwd = process.cwd()
+  const fsFilesAdd = async (fileRelative) => {
+    if (!fileRelative || !/^[a-z0-9@_./-]+$/iu.test(fileRelative)) return
+    const file = resolve(fileRelative)
+    if (!file.startsWith(`${cwd}/`)) return
+    const data = await readFile(file, 'base64')
+    if (fsFilesContents.has(file)) {
+      assert(fsFilesContents.get(file) === data)
+    } else {
+      fsFilesContents.set(file, data)
+    }
+  }
+
+  specificLoadPipeline.push(async (source, filepath) => {
+    for (const match of source.matchAll(/readFileSync\((?:"([^"\\]+)"|'([^'\\]+)')[),]/gu)) {
+      await fsFilesAdd(match[1] || match[2])
+    }
+
+    // E.g. path.join(import.meta.dirname, './fixtures/data.json'), dirname is inlined by loadPipeline already
+    const dir = dirname(filepath)
+    for (const match of source.matchAll(/join\(("[^"\\]+"), (?:"([^"\\]+)"|'([^'\\]+)')\)/gu)) {
+      if (match[1] !== JSON.stringify(dir)) continue // only allow files relative to dirname, from loadPipeline
+      const file = relative(cwd, join(dir, match[2] || match[3]))
+      if (/\.(json|txt)$/u.test(file)) await fsFilesAdd(file) // only allow json/txt files
     }
 
     return source
