@@ -19,6 +19,23 @@ if (process.env.EXODUS_TEST_IS_BROWSER || process.env.EXODUS_TEST_IS_BAREBONE) {
   }
 }
 
+if (!console.time || !console.timeEnd) {
+  const start = new Map()
+  const now = globalThis.performance?.now ? performance.now.bind(performance) : Date.now.bind(Date) // d8 and jsc have performance.now()
+  const warn = (text) => console.error(`Warning: ${text}`)
+  console.time = (key = 'default') => {
+    if (start.has(key)) return warn(`Label '${key}' already exists for console.time()`) // Does not reset
+    start.set(key, now()) // Start late
+  }
+
+  console.timeEnd = (key = 'default') => {
+    const ms = now() // End early
+    if (!start.has(key)) return warn(`No such label '${key}' for console.timeEnd()`)
+    console.log(`${key}: ${ms - start.get(key)}ms`)
+    start.delete(key)
+  }
+}
+
 if (!globalThis.fetch) {
   globalThis.fetch = () => {
     throw new Error('Fetch not supported')
