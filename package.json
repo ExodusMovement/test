@@ -131,7 +131,7 @@
     "@babel/plugin-transform-private-methods": "^7.0.0",
     "@babel/register": "^7.0.0",
     "@chalker/queue": "^1.0.0",
-    "@exodus/replay": "^1.0.0-rc.4",
+    "@exodus/replay": "^1.0.0-rc.6",
     "@ungap/url-search-params": "^0.2.2",
     "amaro": "^0.0.5",
     "assert": "^2.1.0",
