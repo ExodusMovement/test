@@ -3,16 +3,16 @@
 
 if (!globalThis.global) globalThis.global = globalThis
 if (!globalThis.Buffer) globalThis.Buffer = require('buffer').Buffer
-if (!globalThis.console) {
-  // eslint-disable-next-line no-undef
-  globalThis.console = { log: print, error: print, warn: print, info: print, debug: print }
-}
 
-// Otherwise e.g. errors (and some other objects) are hard to unwrap via the API
+const consoleKeys = ['log', 'error', 'warn', 'info', 'debug', 'trace']
+if (!globalThis.console) globalThis.console = Object.fromEntries(consoleKeys.map((k) => [k, print])) // eslint-disable-line no-undef
+
+// In browsers e.g. errors (and some other objects) are hard to unwrap via the API
 // So we just stringify everything instead on the sender side
-if (process.env.EXODUS_TEST_IS_BROWSER) {
+// In barebone, we don't want console.log({x:10}) to print "[Object object]"", we want "{ x: 10 }"
+if (process.env.EXODUS_TEST_IS_BROWSER || process.env.EXODUS_TEST_IS_BAREBONE) {
   const utilFormat = require('exodus-test:util-format')
-  for (const type of ['log', 'error', 'warn', 'info', 'debug']) {
+  for (const type of consoleKeys) {
     if (!Object.hasOwn(console, type)) continue
     const orig = console[type].bind(console)
     console[type] = (...args) => orig(utilFormat(...args))
