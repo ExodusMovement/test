@@ -2,7 +2,8 @@ import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)
 
-const describeMocks = !jest.exodus || jest.exodus.features.esmMocks ? describe : describe.skip
+const have = !jest.exodus || (jest.exodus.features.esmMocks && jest.exodus.features.dynamicRequire)
+const describeMocks = have ? describe : describe.skip
 
 describeMocks('mocking a require module from esm', () => {
   jest.mock('c8', () => ({
