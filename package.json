@@ -58,6 +58,7 @@
     "bundler/modules/globals.cjs",
     "bundler/modules/jest-message-util.js",
     "bundler/modules/jest-util.js",
+    "bundler/modules/module.cjs",
     "bundler/modules/node-buffer.cjs",
     "bundler/modules/text-encoding-utf.cjs",
     "bundler/modules/tty.cjs",

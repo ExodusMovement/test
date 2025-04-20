@@ -256,16 +256,16 @@ it('supports named snapshots', async () => {
 
   // Additionally recheck named snapshot presence
 
-  let createRequire
+  let snapshots
   try {
-    ;({ createRequire } = await import('node:module'))
+    const { createRequire } = await import('node:module')
+    const require = createRequire(import.meta.url)
+    snapshots = require('./__snapshots__/snapshot.test.js.snap')
   } catch {
-    // skip the rest of this test for environments without node:module
+    // skip the rest of this test for environments without dynamic node:module
     return
   }
 
-  const require = createRequire(import.meta.url)
-  const snapshots = require('./__snapshots__/snapshot.test.js.snap')
   if (Object.keys(snapshots).join(',') === 'default') return // Bun can't load .snap that way
   ;[
     'supports named snapshots: public knowledge 1',
