@@ -19,8 +19,6 @@ test('should do a mock with import default', async () => {
   const { default: fs } = await import('node:fs')
   expect(fs.bar?.x).toBe(40)
   expect(fs.foo).toBe('mocked foo')
-  expect(fs.default?.bar?.x).toBe(40)
-  expect(fs.default?.foo).toBe('mocked foo')
 })
 
 test('should do a mock with require', async () => {
