@@ -19,33 +19,34 @@ let getCallerLocation
 
 function createCallerLocationHook() {
   if (getCallerLocation) return { installLocationInNextTest, getCallerLocation }
+  getCallerLocation = () => {}
 
-  try {
-    const { Test } = require('node:internal/test_runner/test')
-    const { fileURLToPath } = require('node:url')
-    const mayBeUrlToPath = (str) => (str.startsWith('file://') ? fileURLToPath(str) : str)
-    const locStorage = new Map()
-    Object.defineProperty(Test.prototype, 'loc', {
-      get() {
-        return locStorage.get(this)
-      },
-      set(val) {
-        locStorage.set(this, val)
-        if (locForNextTest) {
-          const loc = locForNextTest
-          locForNextTest = undefined
-          locStorage.set(this, { line: loc[0], column: loc[1], file: mayBeUrlToPath(loc[2]) })
-        }
-      },
-    })
+  if (process.env.EXODUS_TEST_ENGINE === 'node:test') {
+    try {
+      const { Test } = require('node:internal/test_runner/test')
+      const { fileURLToPath } = require('node:url')
+      const mayBeUrlToPath = (str) => (str.startsWith('file://') ? fileURLToPath(str) : str)
+      const locStorage = new Map()
+      Object.defineProperty(Test.prototype, 'loc', {
+        get() {
+          return locStorage.get(this)
+        },
+        set(val) {
+          locStorage.set(this, val)
+          if (locForNextTest) {
+            const loc = locForNextTest
+            locForNextTest = undefined
+            locStorage.set(this, { line: loc[0], column: loc[1], file: mayBeUrlToPath(loc[2]) })
+          }
+        },
+      })
 
-    // We can replicate getCallerLocation() with public V8 Error CallSite API, but we won't
-    // need it anyway if we don't have a path for hook into internal Test implementation
+      // We can replicate getCallerLocation() with public V8 Error CallSite API, but we won't
+      // need it anyway if we don't have a path for hook into internal Test implementation
 
-    const { internalBinding } = require('node:internal/test/binding')
-    getCallerLocation = internalBinding('util').getCallerLocation
-  } catch {
-    getCallerLocation = () => {}
+      const { internalBinding } = require('node:internal/test/binding')
+      getCallerLocation = internalBinding('util').getCallerLocation
+    } catch {}
   }
 
   return { installLocationInNextTest, getCallerLocation }
@@ -56,51 +57,53 @@ function getTestNamePath(t) {
   // No implementation in Node.js yet, will have to PR
   if (t.fullName) return t.fullName.split(' > ')
 
-  // We are on Node.js < 22.3.0 where even t.fullName doesn't exist yet, polyfill
-  const namePath = Symbol('namePath')
-  const getNamePath = Symbol('getNamePath')
-  try {
-    if (t[namePath]) return t[namePath]
+  if (process.env.EXODUS_TEST_ENGINE === 'node:test') {
+    // We are on Node.js < 22.3.0 where even t.fullName doesn't exist yet, polyfill
+    const namePath = Symbol('namePath')
+    const getNamePath = Symbol('getNamePath')
+    try {
+      if (t[namePath]) return t[namePath]
 
-    // Sigh, ok, whatever
-    const { Test } = require('node:internal/test_runner/test')
+      // Sigh, ok, whatever
+      const { Test } = require('node:internal/test_runner/test')
 
-    const usePathName = Symbol('usePathName')
-    const restoreName = Symbol('restoreName')
-    Test.prototype[getNamePath] = function () {
-      if (this === this.root) return []
-      return [...(this.parent?.[getNamePath]() || []), this.name]
-    }
-
-    const diagnostic = Test.prototype.diagnostic
-    Test.prototype.diagnostic = function (...args) {
-      if (args[0] === usePathName) {
-        this[restoreName] = this.name
-        this.name = this[getNamePath]()
-        return
+      const usePathName = Symbol('usePathName')
+      const restoreName = Symbol('restoreName')
+      Test.prototype[getNamePath] = function () {
+        if (this === this.root) return []
+        return [...(this.parent?.[getNamePath]() || []), this.name]
       }
 
-      if (args[0] === restoreName) {
-        this.name = this[restoreName]
-        delete this[restoreName]
-        return
+      const diagnostic = Test.prototype.diagnostic
+      Test.prototype.diagnostic = function (...args) {
+        if (args[0] === usePathName) {
+          this[restoreName] = this.name
+          this.name = this[getNamePath]()
+          return
+        }
+
+        if (args[0] === restoreName) {
+          this.name = this[restoreName]
+          delete this[restoreName]
+          return
+        }
+
+        return diagnostic.apply(this, args)
       }
 
-      return diagnostic.apply(this, args)
-    }
+      const TestContextProto = Object.getPrototypeOf(t)
+      Object.defineProperty(TestContextProto, namePath, {
+        get() {
+          this.diagnostic(usePathName)
+          const result = this.name
+          this.diagnostic(restoreName)
+          return result
+        },
+      })
 
-    const TestContextProto = Object.getPrototypeOf(t)
-    Object.defineProperty(TestContextProto, namePath, {
-      get() {
-        this.diagnostic(usePathName)
-        const result = this.name
-        this.diagnostic(restoreName)
-        return result
-      },
-    })
-
-    return t[namePath]
-  } catch {}
+      return t[namePath]
+    } catch {}
+  }
 
   return [t.name] // last resort
 }
