@@ -28,12 +28,42 @@ const readSnapshots = async (files, resolvers) => {
   return snapshots
 }
 
+const stringify = (x) => ([undefined, null].includes(x) ? `${x}` : JSON.stringify(x))
 const loadPipeline = [
   function (source, filepath) {
-    return source
+    let res = source
       .replace(/\bimport\.meta\.url\b/g, JSON.stringify(pathToFileURL(filepath)))
       .replace(/\b(__dirname|import\.meta\.dirname)\b/g, JSON.stringify(dirname(filepath)))
       .replace(/\b(__filename|import\.meta\.filename)\b/g, JSON.stringify(filepath))
+
+    // Unneded polyfills
+    for (const [a, b] of Object.entries({
+      'is-nan': 'Number.isNaN', // https://www.npmjs.com/package/is-nan description: ES2015-compliant shim for Number.isNaN
+      'is-nan/polyfill': '() => Number.isNaN',
+      'object.assign': 'Object.assign',
+      'object.assign/polyfill': '() => Object.assign',
+      'object-is': 'Object.is',
+      'object-is/polyfill': '() => Object.is',
+      hasown: 'Object.hasOwn',
+      gopd: 'Object.getOwnPropertyDescriptor',
+      'has-property-descriptors': '() => true',
+      'has-symbols': '() => true',
+      'has-symbols/shams': '() => true',
+      'has-tostringtag': "() => typeof Symbol.toStringTag === 'symbol'",
+      'has-tostringtag/shams': '() => !!Symbol.toStringTag',
+      'es-define-property': 'Object.defineProperty',
+      'es-errors': 'Error',
+      'es-errors/eval': 'EvalError',
+      'es-errors/range': 'RangeError',
+      'es-errors/ref': 'ReferenceError',
+      'es-errors/syntax': 'SyntaxError',
+      'es-errors/type': 'TypeError',
+      'es-errors/uri': 'URIError',
+    })) {
+      res = res.replaceAll(`require('${a}')`, `(${b})`).replaceAll(`require("${a}")`, `(${b})`) // Assumes well-formed names/code
+    }
+
+    return res
   },
 ]
 
@@ -124,7 +154,6 @@ export const build = async (...files) => {
   const input = []
   const importSource = async (file) => input.push(await loadSourceFile(resolveRequire(file)))
   const importFile = (...args) => input.push(`await import(${JSON.stringify(resolve(...args))});`)
-  const stringify = (x) => ([undefined, null].includes(x) ? `${x}` : JSON.stringify(x))
 
   if (!['node', 'electron'].includes(options.platform)) {
     if (process.env.EXODUS_TEST_IS_BAREBONE) {
