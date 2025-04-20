@@ -391,14 +391,18 @@ export const build = async (...files) => {
     ],
   }
 
+  let shouldInstallMocks = false
   specificLoadPipeline.push(async (source, filepath) => {
-    let filepathRequire
-    return source.replaceAll(
-      /\bjest\.(doMock|mock)\(\s*("[^"\\]+"|'[^'\\]+')/gu,
-      (_, method, raw) => {
+    // 'await import' is replaced only in files with mocks (likely toplevel there)
+    // Otherwise we don't patch module system at all
+    if (!source.includes('jest.doMock') && !source.includes('jest.mock')) return source
+    shouldInstallMocks = true
+    const filepathRequire = createRequire(filepath)
+    return source
+      .replaceAll(/\bawait (import\((?:"[^"\\]+"|'[^'\\]+')\))/gu, 'EXODUS_TEST_SYNC_IMPORT($1)')
+      .replaceAll(/\bjest\.(doMock|mock)\(\s*("[^"\\]+"|'[^'\\]+')/gu, (_, method, raw) => {
         try {
           const arg = JSON.parse(raw[0] === "'" ? raw.replaceAll("'", '"') : raw) // fine because it doesn't have quotes or \
-          if (!filepathRequire) filepathRequire = createRequire(filepath)
           const { alias } = config
           const file = Object.hasOwn(alias, arg) ? alias[arg] : filepathRequire.resolve(arg) // throws when not resolved
           assert(existsSync(file), `File ${file} does not exist`)
@@ -409,8 +413,7 @@ export const build = async (...files) => {
           console.error(err)
           throw new Error(`Failed to mock ${raw}: not resolved`, { cause: err })
         }
-      }
-    )
+      })
   })
 
   if (files.length === 1) {
@@ -433,25 +436,25 @@ export const build = async (...files) => {
     assert.equal(res instanceof Error, res.errors.length > 0)
   }
 
-  if (res.errors.length === 0) {
+  if (res.errors.length === 0 && shouldInstallMocks) {
     const code = await readFile(outfile, 'utf8')
-    if (code.includes('jest.doMock') || code.includes('jest.mock')) {
-      const heads = {
-        esm: /(var __esm = (?:function)?\((fn[\d]*), res[\d]*\)\s*(?:=>|\{\s*return)\s*)(function __init[\d]*\(\) \{)/u,
-        cjs: /(var __commonJS = (?:function)?\((cb[\d]*), mod[\d]*\)\s*(?:=>|\{\s*return)\s*)(function __require[\d]*\(\) \{)/u,
-      }
-      const k = '__getOwnPropNames($2)[0]'
-      const mock = (p, l, v) =>
-        `var ${p}=new Set(),${l}=new Set(),${v}=new Map();$1${p}.add(${k}) && $3;{const k=${k};${l}.add(k);if (${v}.has(k))return ${v}.get(k)};`
-      assert(heads.esm.test(code) && heads.cjs.test(code), 'Failed to match for module mocks')
-      const patched = code
-        .replace(heads.esm, mock('__mocksESMPossible', '__mocksESMLoaded', '__mocksESM')) // __mocksESM actually doesn't work
-        .replace(heads.cjs, mock('__mocksCJSPossible', '__mocksCJSLoaded', '__mocksCJS'))
-      await writeFile(outfile, patched)
+    const heads = {
+      esm: /(var __esm = (?:function)?\((fn[\d]*), res[\d]*\)\s*(?:=>|\{\s*return)\s*)(function __init[\d]*\(\) \{)/u,
+      cjs: /(var __commonJS = (?:function)?\((cb[\d]*), mod[\d]*\)\s*(?:=>|\{\s*return)\s*)(function __require[\d]*\(\) \{)/u,
     }
-
-    // require('fs').copyFileSync(outfile, 'tempout.cjs') // DEBUG
+    const k = '__getOwnPropNames($2)[0]'
+    const mock = (p, l, v) =>
+      `var ${p}=new Set(),${l}=new Set(),${v}=new Map();$1${p}.add(${k}) && $3;{const k=${k};${l}.add(k);if (${v}.has(k))return ${v}.get(k)};`
+    assert(heads.esm.test(code) && heads.cjs.test(code), 'Failed to match for module mocks')
+    const patched = code
+      .replace(heads.esm, mock('__mocksESMPossible', '__mocksESMLoaded', '__mocksESM')) // __mocksESM actually doesn't work
+      .replace(heads.cjs, mock('__mocksCJSPossible', '__mocksCJSLoaded', '__mocksCJS'))
+      .replaceAll('EXODUS_TEST_SYNC_IMPORT(Promise.resolve().then(', '((f=>f())(')
+    assert(!patched.includes('EXODUS_TEST_SYNC_IMPORT'), "Failed to fix 'await import'")
+    await writeFile(outfile, patched)
   }
+
+  // if (res.errors.length === 0) require('fs').copyFileSync(outfile, 'tempout.cjs') // DEBUG
 
   // We treat warnings as errors, so just merge all them
   const errors = []
