@@ -34,7 +34,32 @@ export const jestModuleMocks = {
   resetModules,
 }
 
+if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
+  globalThis.EXODUS_TEST_MOCK_BUILTINS = new Map()
+  Object.assign(jestModuleMocks, {
+    __mockBundle: wrap((name, builtin, actual, mock) =>
+      jestmock(name, mock, { actual, builtin, override: true })
+    ),
+    __doMockBundle: wrap((name, builtin, actual, mock) =>
+      jestmock(name, mock, { actual, builtin })
+    ),
+  })
+}
+
+// For bundles
+const cjsSet = typeof __mocksCJSPossible === 'undefined' ? null : __mocksCJSPossible // eslint-disable-line no-undef
+const esmSet = typeof __mocksESMPossible === 'undefined' ? null : __mocksESMPossible // eslint-disable-line no-undef
+
 function resolveModule(name) {
+  if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
+    assert(name.startsWith('bundle:', `Can't mock unresolved ${name} in bundle, use static syntax`))
+    assert(cjsSet && esmSet, 'Module mocking not installed correctly in bundle')
+    const id = name.replace(/^bundle:/u, '')
+    assert(!cjsSet?.has(id) || !esmSet?.has(id), 'CJS/ESM conflict in bundle mock')
+    assert(cjsSet?.has(id) || esmSet?.has(id), `Mock: can not find ${id} in bundle. Unused mock?`)
+    return id
+  }
+
   assert(requireIsRelative || /^[@a-zA-Z]/u.test(name), 'Mocking relative paths is not possible')
   const unprefixed = name.replace(/^node:/, '')
   if (builtinModules.includes(unprefixed)) return unprefixed
@@ -182,15 +207,16 @@ function mockCloneItem(obj, cache) {
   return null
 }
 
-function jestmock(name, mocker, { override = false } = {}) {
-  assert(process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle', 'module mocks unsupported from bundle') // TODO: can we do something?
-
+function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
   // Loaded ESM: isn't mocked
   // Loaded CJS: mocked via object overriding
   // Loaded built-ins: mocked via object overriding where possible
-  // New CJS: mocked via mock.module + require.cache
-  // New ESM: mocked via mock.module
+  // New CJS, doMock CJS: mocked via mock.module + require.cache
+  // New ESM, doMock ESM: mocked via mock.module
   // New built-ins: mocked via mock.module
+  // [Bundled] New CJS, doMock CJS: mocked via bundle hook
+  // [Bundled] New ESM, doMock ESM: isn't mocked
+  // [Bundled] New built-ins: mocked via bundle hook
 
   const resolved = resolveModule(name)
   assert(!mapMocks.has(resolved), 'Re-mocking the same module is not supported')
@@ -199,14 +225,25 @@ function jestmock(name, mocker, { override = false } = {}) {
     'Built-in modules mocked with jest.mock can not be remocked, use jest.doMock'
   )
 
+  let havePrior
+  if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
+    havePrior = __mocksCJSLoaded.has(resolved) || __mocksESMLoaded.has(resolved) // eslint-disable-line no-undef
+    assert(actual)
+  } else {
+    havePrior = Object.hasOwn(require.cache, resolved)
+    assert(!actual && !builtin)
+  }
+
   // Attempt to load it
   // Jest also loads modules on mock
   // Can be ESM, so let it fail silently
-  const havePrior = Object.hasOwn(require.cache, resolved)
   try {
-    mapActual.set(resolved, require(resolved))
+    mapActual.set(resolved, actual ? actual() : require(resolved))
   } catch {
-    assert(mocker, 'Can not auto-clone a native ESM module without --esbuild or newer Node.js')
+    const msg = actual
+      ? 'Failed to auto-clone in bundle, specify a mocker function'
+      : 'Can not auto-clone a native ESM module without --esbuild or newer Node.js'
+    assert(mocker, msg)
   }
 
   const expand = (obj) => (isObject(obj) ? { ...obj } : obj)
@@ -214,6 +251,22 @@ function jestmock(name, mocker, { override = false } = {}) {
   mapMocks.set(resolved, value)
 
   loadExpect() // we need to do this as we don't want mocks affecting expect
+
+  if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
+    if (builtin) globalThis.EXODUS_TEST_MOCK_BUILTINS.set(builtin, value)
+    if (havePrior && override) overrideModule(resolved) // This won't work on ESM
+
+    if (cjsSet?.has(resolved)) {
+      __mocksCJS.set(resolved, value) // eslint-disable-line no-undef
+    } else if (esmSet?.has(resolved)) {
+      throw new Error('ESM module mocks are not supported from bundle') // TODO: can we do something?
+    } else {
+      throw new Error('unreachable')
+    }
+
+    return this
+  }
+
   const topLevelESM = isTopLevelESM()
   let likelyESM = topLevelESM && !insideEsbuild && ![null, resolved].includes(resolveImport(name))
   let okFromESM = false

@@ -98,8 +98,8 @@
   ],
   "scripts": {
     "test:_pure": "EXODUS_TEST_IGNORE='tests/jest-extended/**' npm run test",
-    "test:_bundle": "EXODUS_TEST_IGNORE='tests/{{jest-extended,inband}/**,jest-when/when.test.*,jest/jest.resetModules.*,{jest,jest-superset}/mock/jest.mock.*}' npm run test",
-    "test": "npm run test:jest",
+    "test:_bundle": "EXODUS_TEST_IGNORE='tests/{{jest-extended,inband}/**,jest-when/when.test.*,jest/jest.resetModules.*}' npm run test --",
+    "test": "npm run test:jest --",
     "test:all": "npm run test:jest && npm run test:tape && npm run test:native && npm run test:pure && npm run test:typescript && npm run test:fetch && npm run test:jsdom",
     "test:native": "EXODUS_TEST_IGNORE='{**/typescript/**,**/jest-repo/**/user.test.js}' ./bin/index.js --jest 'tests/**/*.test.{js,cjs,mjs}'",
     "test:typescript": "./bin/index.js --jest --typescript tests/typescript.test.ts",
