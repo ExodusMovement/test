@@ -273,7 +273,7 @@ export const build = async (...files) => {
     timers: resolveRequire('timers-browserify'),
     tty: api('tty.cjs'),
     url: api('url.cjs'),
-    util: dirname(resolveRequire('util/')),
+    util: api('util.cjs'),
     zlib: resolveRequire('browserify-zlib'),
   }
 
@@ -318,6 +318,7 @@ export const build = async (...files) => {
       ...nodeUnprefixed,
       // Needed for polyfills but name conflicts with Node.js modules
       'url/url.js': resolveRequire('url/url.js'),
+      'util/util.js': resolveRequire('util/util.js'),
       // expect-related deps
       'ansi-styles': api('ansi-styles.cjs'),
       'jest-util': api('jest-util.js'),

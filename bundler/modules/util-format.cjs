@@ -1,4 +1,4 @@
-const { inspect: inspectOrig, isString, isNull, isObject } = require('util/') // dep
+const { inspect: inspectOrig, isString, isNull, isObject } = require('util/util.js') // dep
 
 // Print errors without square brackets
 const trim = (x) => x.trim()
