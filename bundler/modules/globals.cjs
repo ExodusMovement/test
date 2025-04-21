@@ -151,6 +151,8 @@ if (typeof process === 'undefined') {
   }
 
   globalThis.EXODUS_TEST_PROCESS = process
+} else {
+  Object.assign(process, { argv: process.argv }) // apply values from defined bundled vars, if present
 }
 
 if (process.env.EXODUS_TEST_PLATFORM === 'hermes') {

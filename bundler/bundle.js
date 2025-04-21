@@ -157,7 +157,9 @@ export const build = async (...files) => {
   const importSource = async (file) => input.push(await loadSourceFile(resolveRequire(file)))
   const importFile = (...args) => input.push(`await import(${JSON.stringify(resolve(...args))});`)
 
-  if (!['node', 'electron'].includes(options.platform)) {
+  if (['node', 'electron'].includes(options.platform)) {
+    await importSource('./modules/globals.node.cjs')
+  } else {
     if (process.env.EXODUS_TEST_IS_BAREBONE) {
       const entropy = randomBytes(options.entropySize ?? 5 * 1024).toString('base64')
       input.push(`globalThis.EXODUS_TEST_CRYPTO_ENTROPY = ${stringify(entropy)};`)
