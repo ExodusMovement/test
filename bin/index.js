@@ -593,7 +593,7 @@ if (options.pure) {
     head(file)
     const { ok, output, ms } = await task
     middle(file, ok, ms)
-    for (const chunk of output.map((x) => x.trimEnd()).filter(Boolean)) console.log(format(chunk))
+    for (const chunk of output.filter((x) => x.trim())) console.log(format(chunk).trimEnd())
     tail(file)
     if (!ok) failures.push(file)
   }
