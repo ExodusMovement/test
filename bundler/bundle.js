@@ -272,7 +272,26 @@ export const build = async (...files) => {
     if (/(readdir|readFile|exists)Sync/u.test(source)) await fsFilesBundleFixtures('fs')
     if (fixturesRegex.test(source)) await fsFilesBundleFixtures('fixtures')
 
-    return source
+    // Resolve require.resolve and bundle those files for fixture or json extensions (e.g. package.json)
+    let filepathRequire
+    const toAdd = []
+    const res = source.replace(
+      /\brequire\.resolve\(\s*(?:"([^"\\]+)"|'([^'\\]+)')\s*\)/gu,
+      (orig, a, b) => {
+        if (!filepathRequire) filepathRequire = createRequire(filepath)
+        try {
+          const file = filepathRequire.resolve(a || b)
+          if (aggressiveExtensions.test(file)) toAdd.push(file) // load resolved files for specific extensions
+          return `(${stringify(file)})`
+        } catch {
+          return orig
+        }
+      }
+    )
+
+    for (const file of toAdd) await fsFilesAdd(file)
+
+    return res
   })
 
   if (files.length === 1) {
