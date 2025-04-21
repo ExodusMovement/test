@@ -86,7 +86,11 @@ export async function run(runner, args, { binary, devtools, dropNetwork, timeout
     // exitCode might be undefined if we failed before EXODUS_TEST_PROMISE was set, but we will have code then
     const exitCode = await Promise.race([wait(), promise])
     code = code || exitCode
-    assert(Number.isInteger(code))
+    if (!Number.isInteger(code)) {
+      stderr.push('Browser test did not indicate completion. Terminating with a failure...')
+      code = 1
+    }
+
     return { code, stdout: stdout.join('\n'), stderr: stderr.join('\n') }
   } catch (error) {
     return { code: 1, stdout: '', stderr: `${error}` }
