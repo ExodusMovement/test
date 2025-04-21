@@ -52,7 +52,7 @@ const esmSet = typeof __mocksESMPossible === 'undefined' ? null : __mocksESMPoss
 
 function resolveModule(name) {
   if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
-    assert(name.startsWith('bundle:', `Can't mock unresolved ${name} in bundle, use static syntax`))
+    assert(name.startsWith('bundle:'), `Can't mock unresolved ${name} in bundle, use static syntax`)
     assert(cjsSet && esmSet, 'Module mocking not installed correctly in bundle')
     const id = name.replace(/^bundle:/u, '')
     assert(!cjsSet?.has(id) || !esmSet?.has(id), 'CJS/ESM conflict in bundle mock')

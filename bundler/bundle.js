@@ -400,20 +400,24 @@ export const build = async (...files) => {
     const filepathRequire = createRequire(filepath)
     return source
       .replaceAll(/\bawait (import\((?:"[^"\\]+"|'[^'\\]+')\))/gu, 'EXODUS_TEST_SYNC_IMPORT($1)')
-      .replaceAll(/\bjest\.(doMock|mock)\(\s*("[^"\\]+"|'[^'\\]+')/gu, (_, method, raw) => {
-        try {
-          const arg = JSON.parse(raw[0] === "'" ? raw.replaceAll("'", '"') : raw) // fine because it doesn't have quotes or \
-          const { alias } = config
-          const file = Object.hasOwn(alias, arg) ? alias[arg] : filepathRequire.resolve(arg) // throws when not resolved
-          assert(existsSync(file), `File ${file} does not exist`)
-          const builtin = Object.hasOwn(alias, arg) ? stringify(arg.replace(/^node:/, '')) : 'null'
-          const id = `bundle:${relative(cwd, file)}`
-          return `jest.__${method}Bundle(${stringify(id)},${builtin},()=>require(${raw})`
-        } catch (err) {
-          console.error(err)
-          throw new Error(`Failed to mock ${raw}: not resolved`, { cause: err })
+      .replaceAll(
+        /\bjest\.(doMock|mock|requireActual|requireMock)\(\s*("[^"\\]+"|'[^'\\]+')/gu,
+        (_, method, raw) => {
+          try {
+            const arg = JSON.parse(raw[0] === "'" ? raw.replaceAll("'", '"') : raw) // fine because it doesn't have quotes or \
+            const { alias } = config
+            const file = Object.hasOwn(alias, arg) ? alias[arg] : filepathRequire.resolve(arg) // throws when not resolved
+            assert(existsSync(file), `File ${file} does not exist`)
+            const builtin = stringify(Object.hasOwn(alias, arg) ? arg.replace(/^node:/, '') : null)
+            const id = `bundle:${relative(cwd, file)}`
+            if (method.startsWith('require')) return `jest.${method}(${stringify(id)}`
+            return `jest.__${method}Bundle(${stringify(id)},${builtin},()=>require(${raw})`
+          } catch (err) {
+            console.error(err)
+            throw new Error(`Failed to mock ${raw}: not resolved`, { cause: err })
+          }
         }
-      })
+      )
   })
 
   if (files.length === 1) {
