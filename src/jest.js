@@ -190,7 +190,8 @@ node.afterEach(() => {
   for (const { error } of expect.extractExpectedAssertionsErrors()) throw error
 })
 
-if (globalThis.process) {
+if (process.env.EXODUS_TEST_PLATFORM !== 'deno' && globalThis.process) {
+  // TODO: deno, other engines
   node.after(() => {
     jestTimers.useRealTimers()
     const prefix = `Tests completed, but still have asynchronous activity after`
