@@ -179,7 +179,8 @@ async function run() {
     print('‼ FATAL', error)
     abstractProcess.exitCode = 1
   })
-  abstractProcess._maybeProcessExitCode?.()
+  // Let unhandled errors be processed (and set the error code)
+  setTimeout(() => abstractProcess._maybeProcessExitCode?.(), 0)
 }
 
 async function describe(...args) {

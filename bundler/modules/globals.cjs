@@ -155,23 +155,29 @@ if (typeof process === 'undefined') {
   Object.assign(process, { argv: process.argv }) // apply values from defined bundled vars, if present
 }
 
-if (process.env.EXODUS_TEST_PLATFORM === 'hermes') {
+if (process.env.EXODUS_TEST_PLATFORM === 'hermes' || process.env.EXODUS_TEST_IS_BROWSER) {
   const print = console.log.bind(console) // we don not want overrides
-  let headerLogged = false
-  globalThis.HermesInternal?.enablePromiseRejectionTracker({
-    allRejections: true,
-    onUnhandled: (i, err) => {
-      globalThis.EXODUS_TEST_PROCESS.exitCode = 1
-      if (!headerLogged) {
-        print(`‼ FATAL Tests generated asynchronous activity after they ended.
+  let logHeader = () => {
+    globalThis.EXODUS_TEST_PROCESS.exitCode = 1
+    print(`‼ FATAL Tests generated asynchronous activity after they ended.
 This activity created errors and would have caused tests to fail, but instead triggered unhandledRejection events`)
-        headerLogged = true
-      }
+    logHeader = () => {}
+    setTimeout(() => globalThis.EXODUS_TEST_PROCESS._maybeProcessExitCode(), 0)
+  }
 
+  if (process.env.EXODUS_TEST_PLATFORM === 'hermes') {
+    const onUnhandled = (i, err) => {
+      logHeader()
       print(`Uncaught error #${i}: ${err}`)
-      globalThis.EXODUS_TEST_PROCESS._maybeProcessExitCode()
-    },
-  })
+    }
+
+    globalThis.HermesInternal?.enablePromiseRejectionTracker({ allRejections: true, onUnhandled })
+  } else if (process.env.EXODUS_TEST_IS_BROWSER) {
+    // Won't catch all errors, as we might still be running, but better than nothing
+    // We also don't print anything except the header, as browsers already print that
+    // Cancelling the default behavior is less robust as we want to treat this as error
+    globalThis.addEventListener('unhandledrejection', () => logHeader())
+  }
 }
 
 if (
