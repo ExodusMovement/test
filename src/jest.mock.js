@@ -57,6 +57,12 @@ function resolveModule(name) {
     const id = name.replace(/^bundle:/u, '')
     assert(!cjsSet?.has(id) || !esmSet?.has(id), 'CJS/ESM conflict in bundle mock')
     assert(cjsSet?.has(id) || esmSet?.has(id), `Mock: can not find ${id} in bundle. Unused mock?`)
+    const cjs = `${id}.exodus-test-mock.cjs`
+    if (esmSet.has(id) && cjsSet.has(cjs)) {
+      assert(!esmSet.has(cjs))
+      return cjs
+    }
+
     return id
   }
 
@@ -238,12 +244,11 @@ function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
   // Jest also loads modules on mock
   // Can be ESM, so let it fail silently
   try {
+    assert(!resolved.endsWith('.exodus-test-mock.cjs')) // actual() would attempt to load non-wrapped ESM here
     mapActual.set(resolved, actual ? actual() : require(resolved))
   } catch {
-    const msg = actual
-      ? 'Failed to auto-clone in bundle, specify a mocker function'
-      : 'Can not auto-clone a native ESM module without --esbuild or newer Node.js'
-    assert(mocker, msg)
+    const reason = actual ? 'in bundle' : 'without --esbuild or newer Node.js'
+    assert(mocker, `Can not auto-clone a native ESM module ${reason}`)
   }
 
   const expand = (obj) => (isObject(obj) ? { ...obj } : obj)

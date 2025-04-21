@@ -11,6 +11,8 @@ import glob from 'fast-glob'
 const require = createRequire(import.meta.url)
 const resolveRequire = (query) => require.resolve(query)
 const resolveImport = import.meta.resolve && ((query) => fileURLToPath(import.meta.resolve(query)))
+const cjsMockRegex = /\.exodus-test-mock\.cjs$/u
+const cjsMockFallback = `throw new Error('Mocking loaded ESM modules in not possible in bundles')`
 
 const readSnapshots = async (files, resolvers) => {
   const snapshots = []
@@ -128,7 +130,7 @@ const loadCache = new Map()
 const loadSourceFileBase = async (filepath) => {
   if (!loadCache.has(filepath)) {
     const load = async () => {
-      let contents = await readFile(filepath, 'utf8')
+      let contents = await readFile(filepath.replace(cjsMockRegex, ''), 'utf8')
       for (const transform of loadPipeline) contents = await transform(contents, filepath)
       return contents
     }
@@ -371,7 +373,12 @@ export const build = async (...files) => {
     plugins: [
       {
         name: 'exodus-test.bundle',
-        setup({ onLoad }) {
+        setup({ onResolve, onLoad }) {
+          onResolve({ filter: /\.[cm]?[jt]sx?$/ }, (args) => {
+            if (shouldInstallMocks && cjsMockRegex.test(args.path)) {
+              return { path: args.path, namespace: 'file' }
+            }
+          })
           onLoad({ filter: /\.[cm]?[jt]sx?$/, namespace: 'file' }, async (args) => {
             let filepath = args.path
             // Resolve .native versions
@@ -392,7 +399,17 @@ export const build = async (...files) => {
   }
 
   let shouldInstallMocks = false
+  const mocked = new Set()
   specificLoadPipeline.push(async (source, filepath) => {
+    if (shouldInstallMocks) {
+      if (cjsMockRegex.test(filepath)) return cjsMockFallback
+      if (mocked.has(filepath) && !filepath.endsWith('.cjs') && /^export\b/mu.test(source)) {
+        const mock = stringify(`${filepath}.exodus-test-mock.cjs`)
+        const def = 'x.__esModule ? x.default : (x.default ?? x)'
+        return `export * from ${mock}\nvar x = require(${mock})\nexport default ${def}`
+      }
+    }
+
     // 'await import' is replaced only in files with mocks (likely toplevel there)
     // Otherwise we don't patch module system at all
     if (!source.includes('jest.doMock') && !source.includes('jest.mock')) return source
@@ -411,6 +428,7 @@ export const build = async (...files) => {
             const builtin = stringify(Object.hasOwn(alias, arg) ? arg.replace(/^node:/, '') : null)
             const id = `bundle:${relative(cwd, file)}`
             if (method.startsWith('require')) return `jest.${method}(${stringify(id)}`
+            mocked.add(file)
             return `jest.__${method}Bundle(${stringify(id)},${builtin},()=>require(${raw})`
           } catch (err) {
             console.error(err)
