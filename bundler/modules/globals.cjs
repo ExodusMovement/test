@@ -70,6 +70,43 @@ if (process.env.EXODUS_TEST_PLATFORM === 'hermes') {
       )
     Promise.allSettled = (iterable) => Promise.all([...iterable].map((element) => wrap(element)))
   }
+
+  // Refs: https://github.com/facebook/hermes/commit/e97db61b49bd0c065a3ce7da46f074bc39b80c6a
+  if (!Promise.any) {
+    const AggregateError =
+      globalThis.AggregateError ||
+      class AggregateError extends Error {
+        constructor(errors, message) {
+          super(message)
+          this.name = 'AggregateError'
+          this.errors = errors
+        }
+      }
+
+    const errmsg = 'All promises were rejected'
+    Promise.any = function (values) {
+      const promises = [...values]
+      const errors = []
+      if (promises.length === 0) return Promise.reject(new AggregateError(errors, errmsg))
+      let resolved = false
+      return new Promise((resolve, reject) => {
+        const oneResolve = (value) => {
+          if (resolved) return
+          resolved = true
+          errors.length = 0
+          resolve(value)
+        }
+
+        const oneReject = (error) => {
+          if (resolved) return
+          errors.push(error)
+          if (errors.length === promises.length) reject(new AggregateError(errors, errmsg))
+        }
+
+        promises.forEach((promise) => Promise.resolve(promise).then(oneResolve, oneReject))
+      })
+    }
+  }
 }
 
 if (globalThis.describe) delete globalThis.describe
