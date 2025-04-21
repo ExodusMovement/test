@@ -364,6 +364,7 @@ export const build = async (...files) => {
       tape: resolveImport('../src/tape.cjs'),
       'tape-promise/tape': resolveImport('../src/tape.cjs'),
       'node:test': resolveImport('../src/node.js'),
+      'micro-should': resolveImport('../src/jest.js'),
       // Inner
       'exodus-test:text-encoding-utf': api('text-encoding-utf.cjs'),
       'exodus-test:util-format': api('util-format.cjs'),

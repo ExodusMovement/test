@@ -262,5 +262,8 @@ export const afterEach = (fn) => node.afterEach(wrapCallback(fn))
 export const beforeAll = (fn) => node.before(wrapCallback(fn))
 export const afterAll = (fn) => node.after(wrapCallback(fn))
 
+export const should = (...args) => test(...args)
+should.runWhen = should.run = () => {} // micro-should compat
+
 export { describe, test, test as it }
 export { expect } from './expect.cjs'
