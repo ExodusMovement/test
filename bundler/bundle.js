@@ -213,7 +213,7 @@ export const build = async (...files) => {
   const fsFilesDirs = new Map()
   const cwd = process.cwd()
   const fixturesRegex = /(fixtures|samples)/u
-  const aggressiveExtensions = /\.(json|txt|hex)$/u // These are bundled when just used in path.join and by wildcard from fixtures/
+  const aggressiveExtensions = /\.(json|txt|hex|wasm)$/u // These are bundled when just used in path.join and by wildcard from fixtures/
   const fileAllowed = (f) =>
     f && f.startsWith(`${cwd}/`) && resolve(f) === f && /^[a-z0-9@_./-]+$/iu.test(relative(cwd, f))
 
@@ -276,13 +276,15 @@ export const build = async (...files) => {
     let filepathRequire
     const toAdd = []
     const res = source.replace(
-      /\brequire\.resolve\(\s*(?:"([^"\\]+)"|'([^'\\]+)')\s*\)/gu,
-      (orig, a, b) => {
+      /\b(require|import\.meta)\.resolve\(\s*(?:"([^"\\]+)"|'([^'\\]+)')\s*\)/gu,
+      (orig, cause, a, b) => {
         if (!filepathRequire) filepathRequire = createRequire(filepath)
         try {
           const file = filepathRequire.resolve(a || b)
           if (aggressiveExtensions.test(file)) toAdd.push(file) // load resolved files for specific extensions
-          return `(${stringify(file)})`
+          if (cause === 'require') return `(${stringify(file)})`
+          // Do not replace import.meta.resolve for non-fixture extensions, might cause misresolutions
+          return aggressiveExtensions.test(file) ? `(${stringify(pathToFileURL(file))})` : orig
         } catch {
           return orig
         }
