@@ -51,10 +51,12 @@ if (!globalThis.WebSocket) {
 }
 
 if (!Array.prototype.at) {
-  // eslint-disable-next-line no-extend-native
-  Array.prototype.at = function (i) {
+  const at = function (i) {
     return this[i < 0 ? this.length + i : i]
   }
+
+  // eslint-disable-next-line no-extend-native
+  Object.defineProperty(Array.prototype, 'at', { configurable: true, writable: true, value: at })
 }
 
 if (process.env.EXODUS_TEST_PLATFORM === 'hermes') {
