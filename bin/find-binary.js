@@ -4,6 +4,15 @@ import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)
 
+const findDir = (arr, file, method) => {
+  for (const x of arr) {
+    try {
+      const dir = method ? method(x) : x
+      if (dir && existsSync(join(dir, file))) return dir
+    } catch {}
+  }
+}
+
 // Can modify PATH to add the binary to it!
 function findBinaryOnce(name) {
   const paths = []
@@ -11,28 +20,30 @@ function findBinaryOnce(name) {
 
   switch (name) {
     case 'hermes':
-      try {
-        const dir = dirname(require.resolve('hermes-engine-cli/package.json'))
+      {
         const platformDirs = { darwin: 'osx-bin', linux: 'linux64-bin', win32: 'win64-bin' }
-        if (Object.hasOwn(platformDirs, process.platform)) {
+        const pkg = 'hermes-engine-cli/package.json'
+        const prefixes = ['']
+
+        // If there is no local install, look for a globally installed in nvm dir, with `npm i -g hermes-engine-cli`
+        if (process.env.NVM_BIN) prefixes.push(join(process.env.NVM_BIN, '../lib/node_modules'))
+        const dir = findDir(prefixes, '', (p) => dirname(require.resolve(join(p, pkg))))
+
+        if (dir && Object.hasOwn(platformDirs, process.platform)) {
           process.env.PATH = `${join(dir, platformDirs[process.platform])}:${process.env.PATH}`
+        } else if (dir) {
+          console.error(`Unexpected platform for 'hermes-engine-cli': ${process.platform}`)
         } else {
-          console.error(`Unexpected platform: ${process.platform}`)
+          console.warn("'hermes-engine-cli' not installed, attempting to load global `hermes`...")
         }
-      } catch {
-        console.warn("'hermes-engine-cli' not installed, attempting to load global `hermes`...")
       }
 
       return 'hermes'
     case 'jsc':
       if (process.platform === 'darwin') {
         const prefix = '/System/Library/Frameworks/JavaScriptCore.framework/Versions/A'
-        for (const dir of [`${prefix}/Helpers`, `${prefix}/Resources`]) {
-          if (existsSync(join(dir, 'jsc'))) {
-            process.env.PATH = `${dir}:${process.env.PATH}`
-            break
-          }
-        }
+        const dir = findDir([`${prefix}/Helpers`, `${prefix}/Resources`], 'jsc')
+        if (dir) process.env.PATH = `${dir}:${process.env.PATH}`
       }
 
       return 'jsc'
