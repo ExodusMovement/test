@@ -249,13 +249,6 @@ const require = createRequire(import.meta.url)
 const resolveRequire = (query) => require.resolve(query)
 const resolveImport = import.meta.resolve && ((query) => fileURLToPath(import.meta.resolve(query)))
 
-let electron
-
-if (options.binary === 'electron') {
-  setEnv('ELECTRON_RUN_AS_NODE', '1')
-  options.binary = electron = findBinary('electron')
-}
-
 const args = []
 
 if (haveModuleMocks && engineOptions.haveIsOk) {
@@ -484,6 +477,22 @@ if (options.coverage) {
   }
 }
 
+if (options.binary === 'electron') setEnv('ELECTRON_RUN_AS_NODE', '1')
+if (['hermes', 'jsc', 'electron', 'd8'].includes(options.binary)) {
+  options.binary = findBinary(options.binary)
+  options.binaryCanBeAbsolute = true
+}
+
+const assertBinary = (binary, allowed) => {
+  if (allowed.includes(binary)) return
+  if (existsSync(binary)) {
+    const name = basename(binary.toLowerCase()).replace(/\.exe$/u, '')
+    if (binary === c8 || (options.binaryCanBeAbsolute && allowed.includes(name))) return
+  }
+
+  throw new Error(`Unexpected binary: ${binary}`)
+}
+
 setEnv('EXODUS_TEST_EXECARGV', JSON.stringify(args))
 let buildFile
 
@@ -511,7 +520,7 @@ async function launch(binary, args, opts = {}, buffering = false) {
     return browsers.run(options.browsers, args, { binary, devtools, dropNetwork, timeout })
   }
 
-  assert(binary && ['node', 'bun', 'deno', 'd8', 'jsc', 'hermes', c8, electron].includes(binary))
+  assertBinary(binary, ['node', 'bun', 'deno', 'd8', 'v8', 'jsc', 'hermes', 'electron'])
   if (options.dropNetwork) {
     switch (process.platform) {
       case 'darwin':
@@ -532,8 +541,6 @@ async function launch(binary, args, opts = {}, buffering = false) {
 }
 
 if (options.pure) {
-  if (['hermes', 'jsc'].includes(options.binary)) options.binary = findBinary(options.binary)
-
   setEnv('EXODUS_TEST_CONTEXT', 'pure')
   warnHuman(`${engineName} is experimental and may not work an expected`)
   const missUnhandled = options.platform === 'jsc' || options.browsers
@@ -605,7 +612,7 @@ if (options.pure) {
   console.timeEnd(timeLabel)
 } else {
   assert(!buildFile)
-  assert(['node', c8, electron].includes(options.binary), `Unexpected binary: ${options.binary}`)
+  assertBinary(options.binary, ['node', 'electron'])
   assert(['node:test', 'electron-as-node:test'].includes(options.engine))
   setEnv('EXODUS_TEST_CONTEXT', 'node:test') // The context is always node:test in this branch
   assert(files.length > 0) // otherwise we can run recursively

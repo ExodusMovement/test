@@ -1,52 +1,51 @@
 import { existsSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { homedir } from 'node:os'
+import { join } from 'node:path'
 import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)
-
-const findDir = (arr, file, method) => {
-  for (const x of arr) {
-    try {
-      const dir = method ? method(x) : x
-      if (dir && existsSync(join(dir, file))) return dir
-    } catch {}
-  }
-}
+const nvm = process.env.NVM_BIN ? (x) => join(process.env.NVM_BIN, '../lib/node_modules', x) : null
+const jsvu = (x) => join(homedir(), '.jsvu/bin', x)
 
 // Can modify PATH to add the binary to it!
 function findBinaryOnce(name) {
+  // For browsers where full path is needed
   const paths = []
   const addPaths = (platform, ...args) => process.platform === platform && paths.push(...args)
 
+  // For js engines where we can fall back to the command name
+  const findFile = (methods) => {
+    for (const x of methods) {
+      try {
+        const file = x(process.platform === 'win32' ? `${name}.exe` : name)
+        if (file && existsSync(file)) return file
+      } catch {}
+    }
+
+    console.warn(`Local ${name} not installed, attempting to load global ${name}...`)
+    return name
+  }
+
   switch (name) {
-    case 'hermes':
-      {
-        const platformDirs = { darwin: 'osx-bin', linux: 'linux64-bin', win32: 'win64-bin' }
-        const pkg = 'hermes-engine-cli/package.json'
-        const prefixes = ['']
+    case 'hermes': {
+      const flavors = { darwin: 'osx-bin', linux: 'linux64-bin', win32: 'win64-bin' }
+      const flavor = Object.hasOwn(flavors, process.platform) ? flavors[process.platform] : null
+      return findFile([
+        (bin) => flavor && require.resolve(`react-native/sdks/hermesc/${flavor}/${bin}`), // 1. Locally installed react-native dep (works only for osx)
+        (bin) => flavor && require.resolve(`hermes-engine-cli/${flavor}/${bin}`), // 2. Locally installed hermes-engine-cli
+        (bin) => jsvu(bin), // 3. jsvu
+        (bin) => nvm(`hermes-engine-cli/${flavor}/${bin}`), // 4. hermes-engine-cli installed in .nvm dir with npm i -g
+      ]) // 5. hermes installed in the system
+    }
 
-        // If there is no local install, look for a globally installed in nvm dir, with `npm i -g hermes-engine-cli`
-        if (process.env.NVM_BIN) prefixes.push(join(process.env.NVM_BIN, '../lib/node_modules'))
-        const dir = findDir(prefixes, '', (p) => dirname(require.resolve(join(p, pkg))))
-
-        if (dir && Object.hasOwn(platformDirs, process.platform)) {
-          process.env.PATH = `${join(dir, platformDirs[process.platform])}:${process.env.PATH}`
-        } else if (dir) {
-          console.error(`Unexpected platform for 'hermes-engine-cli': ${process.platform}`)
-        } else {
-          console.warn("'hermes-engine-cli' not installed, attempting to load global `hermes`...")
-        }
-      }
-
-      return 'hermes'
     case 'jsc':
-      if (process.platform === 'darwin') {
-        const prefix = '/System/Library/Frameworks/JavaScriptCore.framework/Versions/A'
-        const dir = findDir([`${prefix}/Helpers`, `${prefix}/Resources`], 'jsc')
-        if (dir) process.env.PATH = `${dir}:${process.env.PATH}`
-      }
-
-      return 'jsc'
+      return findFile([
+        (bin) => jsvu(bin), // prefer jsvu
+        (bin) => `/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/${bin}`,
+        (bin) => `/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Resources/${bin}`,
+      ])
+    case 'd8':
+      return findFile([() => jsvu('v8')]) // jsvu names it v8
     case 'electron':
       return require('electron')
     case 'c8':
