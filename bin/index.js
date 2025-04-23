@@ -35,9 +35,13 @@ const ENGINES = new Map(
     'electron-as-node:pure': { binary: 'electron', pure: true, hasImportLoader: true, ts: 'flag' },
     'electron-as-node:bundle': { binary: 'electron', ...bundleOpts },
     'deno:bundle': { binary: 'deno', binaryArgs: ['run'], target: 'deno1', ...bundleOpts },
+    // Barebone engines
     'd8:bundle': { binary: 'd8', ...bareboneOpts },
     'jsc:bundle': { binary: 'jsc', target: 'safari13', ...bareboneOpts },
     'hermes:bundle': { binary: 'hermes', binaryArgs: hermesAv, target: 'es2018', ...bareboneOpts },
+    'spidermonkey:bundle': { binary: 'spidermonkey', ...bareboneOpts },
+    'quickjs:bundle': { binary: 'quickjs', ...bareboneOpts },
+    'xs:bundle': { binary: 'xs', ...bareboneOpts },
     // Browser engines
     'chrome:puppeteer': { binary: 'chrome', browsers: 'puppeteer', ...bundleOpts },
     'chromium:playwright': { binary: 'chromium', browsers: 'playwright', ...bundleOpts },
@@ -478,7 +482,7 @@ if (options.coverage) {
 }
 
 if (options.binary === 'electron') setEnv('ELECTRON_RUN_AS_NODE', '1')
-if (['hermes', 'jsc', 'electron', 'd8'].includes(options.binary)) {
+if (options.barebone || options.binary === 'electron') {
   options.binary = findBinary(options.binary)
   options.binaryCanBeAbsolute = true
 }
@@ -520,7 +524,8 @@ async function launch(binary, args, opts = {}, buffering = false) {
     return browsers.run(options.browsers, args, { binary, devtools, dropNetwork, timeout })
   }
 
-  assertBinary(binary, ['node', 'bun', 'deno', 'd8', 'v8', 'jsc', 'hermes', 'electron'])
+  const barebones = ['d8', 'v8', 'jsc', 'spidermonkey', 'quickjs', 'xs', 'hermes']
+  assertBinary(binary, ['node', 'bun', 'deno', 'electron', ...barebones])
   if (options.dropNetwork) {
     switch (process.platform) {
       case 'darwin':

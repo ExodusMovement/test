@@ -14,12 +14,17 @@ function findBinaryOnce(name) {
   const addPaths = (platform, ...args) => process.platform === platform && paths.push(...args)
 
   // For js engines where we can fall back to the command name
-  const findFile = (methods) => {
+  const findFile = (methods, allowGlobal = true) => {
     for (const x of methods) {
       try {
         const file = x(process.platform === 'win32' ? `${name}.exe` : name)
         if (file && existsSync(file)) return file
       } catch {}
+    }
+
+    if (!allowGlobal) {
+      console.error(`Local ${name} not installed, refusing to run`)
+      process.exit(1)
     }
 
     console.warn(`Local ${name} not installed, attempting to load global ${name}...`)
@@ -46,6 +51,11 @@ function findBinaryOnce(name) {
       ])
     case 'd8':
       return findFile([() => jsvu('v8')]) // jsvu names it v8
+    case 'spidermonkey':
+    case 'quickjs':
+      return findFile([jsvu])
+    case 'xs':
+      return findFile([jsvu], false)
     case 'electron':
       return require('electron')
     case 'c8':

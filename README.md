@@ -1,6 +1,8 @@
 # @exodus/test
 
-A runner for `node:test`, `jest`, and `tape` test suites on top of `node:test` (and any runtime)
+A runner for `node:test`, `jest`, and `tape` test suites on top of `node:test` (and any runtime).
+
+It can run your existing tests on [all runtimes and also browsers](#engines), with snapshots and module mocks.
 
 ## Features
 
@@ -8,8 +10,8 @@ A runner for `node:test`, `jest`, and `tape` test suites on top of `node:test` (
 - Esbuild on the fly for babelified ESM interop (enable via `--esbuild`)
 - TypeScript support in both transform (through [tsx](https://tsx.is/), enable via `--esbuild`)
   and typestrip (via `--typescript`) modes
-- Runs on [node:test](https://nodejs.org/api/test.html), and (experimental) on bun, deno, d8, JSC,
-  [Hermes](https://hermesengine.dev), Chrome, Firefox and WebKit.
+- Runs on Node.js [node:test](https://nodejs.org/api/test.html), Bun, Deno, [v8 CLI](https://v8.dev/docs/d8), JSC,
+  [Hermes](https://hermesengine.dev), SpiderMonkey, Chrome, Firefox, WebKit, [QuickJS](https://github.com/quickjs-ng/quickjs) and [XS](https://github.com/Moddable-OpenSource/moddable-xst).
 - Testsuite-agnostic -- can run any file as long as it sets exit code based on test results
 - Built-in [Jest](https://jestjs.io) compatibility (with `--jest`), including `jest.*` global
   - Up to ~10x faster depending on the original setup
@@ -31,6 +33,34 @@ A runner for `node:test`, `jest`, and `tape` test suites on top of `node:test` (
   Bun leaks globals / side effects between test files ([ref](https://github.com/oven-sh/bun/issues/6024)),
   and has incompatible `test()` lifecycle / order
 - Also features a tape API for drop-in replacement
+
+## Engines
+
+Use `--engine` (or `EXODUS_TEST_ENGINE=`) to specify one of:
+
+- `node:test` — the default one, runs on top of modern Node.js [test runner API](https://nodejs.org/api/test.html)
+- `node:pure` — implementation in pure JS, runs on Node.js
+- `node:bundle` — same as `node:pure`, but bundles everything into a single file before launching
+- Other runtimes:
+  - `bun:pure` / `bun:bundle` — Bun, expects `bun` to be available
+  - `deno:bundle` — Deno (v1 or v2, whichever `deno` is)
+  - `electron-as-node:test` / `electron-as-node:pure` / `electron-as-node:bundle` — same as `node:*`, but uses `electron` binary.\
+    The usecase is mostly to test on BoringSSL instead of OpenSSL.
+- Browsers:
+  - Playwright builds (install with `exodus-test --playwright install`)
+    - `chromium:playwright` — Playwright-built Chromium
+    - `firefox:playwright` — Playwright-built Firefox
+    - `webkit:playwright` — Playwright-built WebKit, close to Safari
+  - Puppeteer (system-provided or upstream builds)
+    - `chrome:puppeteer` — Chrome
+    - `firefox:puppeteer` — Firefox
+- Barebone engines (system-provided or installed with `npx jsvu`):
+  - `d8:bundle` — [v8 CLI](https://v8.dev/docs/d8) (Chrome/Blink/Node.js JavaScript engine)
+  - `jsc:bundle` — [JavaScriptCore](https://docs.webkit.org/Deep%20Dive/JSC/JavaScriptCore.html) (Safari/WebKit JavaScript engine)
+  - `hermes:bundle` — [Hermes](https://hermesengine.dev) (React Native JavaScript engine)
+  - `spidermonkey:bundle` — [SpiderMonkey](https://spidermonkey.dev/) (Firefox/Gecko JavaScript engine)
+  - `quickjs:bundle` — [QuickJS](https://github.com/quickjs-ng/quickjs)
+  - `xs:bundle` — [XS](https://github.com/Moddable-OpenSource/moddable-xst)
 
 ## Reporter samples
 

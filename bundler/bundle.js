@@ -385,7 +385,8 @@ export const build = async (...files) => {
       'node-gyp-build': api('empty/function-throw.cjs'),
       ws: api('ws.cjs'),
     },
-    sourcemap: process.env.EXODUS_TEST_IS_BAREBONE ? 'inline' : 'linked', // FIXME?
+    sourcemap:
+      options.platform === 'xs' ? false : process.env.EXODUS_TEST_IS_BAREBONE ? 'inline' : 'linked', // FIXME?
     sourcesContent: false,
     keepNames: true,
     format: 'iife',
