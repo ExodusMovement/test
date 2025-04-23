@@ -110,6 +110,12 @@ if (process.env.EXODUS_TEST_PLATFORM === 'hermes') {
   }
 }
 
+if (process.env.EXODUS_TEST_PLATFORM === 'quickjs' && globalThis.os) {
+  const { setTimeout, setInterval, clearTimeout, clearInterval } = globalThis.os
+  Object.assign(globalThis, { setTimeout, setInterval, clearTimeout, clearInterval })
+  for (const key of ['os', 'std', 'bjson']) delete globalThis[key]
+}
+
 if (globalThis.describe) delete globalThis.describe
 
 if (typeof process === 'undefined') {

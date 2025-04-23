@@ -40,7 +40,7 @@ const ENGINES = new Map(
     'jsc:bundle': { binary: 'jsc', target: 'safari13', ...bareboneOpts },
     'hermes:bundle': { binary: 'hermes', binaryArgs: hermesAv, target: 'es2018', ...bareboneOpts },
     'spidermonkey:bundle': { binary: 'spidermonkey', ...bareboneOpts },
-    'quickjs:bundle': { binary: 'quickjs', ...bareboneOpts },
+    'quickjs:bundle': { binary: 'quickjs', binaryArgs: ['--std'], ...bareboneOpts },
     'xs:bundle': { binary: 'xs', ...bareboneOpts },
     // Browser engines
     'chrome:puppeteer': { binary: 'chrome', browsers: 'puppeteer', ...bundleOpts },
