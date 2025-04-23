@@ -7,6 +7,7 @@ if (!globalThis.Buffer) globalThis.Buffer = require('buffer').Buffer
 const consoleKeys = ['log', 'error', 'warn', 'info', 'debug', 'trace']
 const { print } = globalThis
 if (!globalThis.console) globalThis.console = Object.fromEntries(consoleKeys.map((k) => [k, print])) // eslint-disable-line no-undef
+for (const k of consoleKeys) if (!console[k]) console[k] = console.log // SpiderMonkey has console but no console.error
 
 // In browsers e.g. errors (and some other objects) are hard to unwrap via the API
 // So we just stringify everything instead on the sender side
@@ -189,6 +190,7 @@ if (
   const timers = new Map()
   const repeating = new Set()
   const { setTimeout: setTimeoutOriginal, clearTimeout: clearTimeoutOriginal } = globalThis
+  const schedule = setTimeoutOriginal || ((x) => Promise.resolve().then(() => x())) // e.g. SpiderMonkey doesn't even have setTimeout
   const dateNow = Date.now.bind(Date)
   const precision = clearTimeoutOriginal ? Infinity : 10 // have to tick this fast for clearTimeout to work
 
@@ -201,18 +203,18 @@ if (
       if (remaining < 0) {
         if (repeating.has(id)) {
           started = dateNow()
-          timers.set(id, setTimeoutOriginal(tick, Math.min(precision, time)))
+          timers.set(id, schedule(tick, Math.min(precision, time)))
         } else {
           timers.delete(id)
         }
 
         fn(...args)
       } else {
-        timers.set(id, setTimeoutOriginal(tick, Math.min(precision, remaining)))
+        timers.set(id, schedule(tick, Math.min(precision, remaining)))
       }
     }
 
-    timers.set(id, setTimeoutOriginal(tick, Math.min(precision, time)))
+    timers.set(id, schedule(tick, Math.min(precision, time)))
     return id
   }
 
