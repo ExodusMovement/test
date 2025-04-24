@@ -127,6 +127,7 @@
     "test:fetch": "./bin/index.js --jest --drop-network --engine node:pure tests/fetch.test.js tests/websocket.test.js",
     "test:jsdom": "EXODUS_TEST_JEST_CONFIG='{\"testMatch\":[\"**/*.jsdom-test.js\"],\"testEnvironment\":\"jsdom\", \"rootDir\": \".\"}' ./bin/index.js --jest",
     "coverage": "./bin/index.js --jest --esbuild --coverage",
+    "jsvu": "jsvu",
     "jest": "NODE_OPTIONS=--experimental-vm-modules jest tests/jest/ tests/jest-when/",
     "lint": "prettier --list-different . && eslint .",
     "lint:fix": "prettier --write . && eslint --fix ."
@@ -157,6 +158,7 @@
     "flow-remove-types": "^2.242.0",
     "jest-extended": "^4.0.2",
     "jsdom": "^24.1.0",
+    "jsvu": "^3.0.0",
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
     "playwright-core": "^1.52.0",
@@ -177,21 +179,16 @@
     "@typescript-eslint/eslint-plugin": "^7.15.0",
     "electron": "^35.1.4",
     "eslint": "^8.44.0",
-    "hermes-engine-cli": "^0.12.0",
     "jest": "^29.7.0",
     "jest-matcher-utils": "^29.7.0",
     "jest-serializer-ansi-escapes": "^3.0.0",
     "jest-when": "^3.6.0"
   },
   "peerDependencies": {
-    "electron": "*",
-    "hermes-engine-cli": "^0.12.0"
+    "electron": "*"
   },
   "peerDependenciesMeta": {
     "electron": {
-      "optional": true
-    },
-    "hermes-engine-cli": {
       "optional": true
     }
   },
