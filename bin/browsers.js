@@ -9,7 +9,7 @@ import { findBinary } from './find-binary.js'
 let puppeteer
 let playwright
 
-const puppeteerBrowsers = { brave: 'chrome', msedge: 'chrome' }
+const puppeteerBrowsers = { brave: 'chrome', msedge: 'chrome', opera: 'chrome' }
 const playwrightBrowsers = { chrome: 'chromium', msedge: 'chromium' }
 
 const launched = Object.create(null)

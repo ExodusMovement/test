@@ -76,6 +76,10 @@ function findBinaryOnce(name) {
       addPaths('darwin', '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge')
       addPaths('linux', '/usr/bin/msedge', '/snap/bin/msedge', '/opt/microsoft/msedge/msedge')
       break
+    case 'opera':
+      addPaths('darwin', '/Applications/Opera.app/Contents/MacOS/Opera')
+      addPaths('linux', '/usr/bin/opera', '/snap/bin/opera')
+      break
     case 'safari':
       addPaths('darwin', '/Applications/Safari.app/Contents/MacOS/Safari')
       break
