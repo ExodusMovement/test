@@ -548,7 +548,7 @@ async function launch(binary, args, opts = {}, buffering = false) {
 if (options.pure) {
   setEnv('EXODUS_TEST_CONTEXT', 'pure')
   warnHuman(`${engineName} is experimental and may not work an expected`)
-  const missUnhandled = options.platform === 'jsc' || options.browsers
+  const missUnhandled = ['jsc', 'quickjs'].includes(options.platform) || options.browsers
   if (missUnhandled) warnHuman(`Warning: ${engineName} does not have unhandled rejections tracking`)
 
   const runOne = async (inputFile) => {

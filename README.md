@@ -59,7 +59,7 @@ Use `--engine` (or `EXODUS_TEST_ENGINE=`) to specify one of:
   - `jsc:bundle` — [JavaScriptCore](https://docs.webkit.org/Deep%20Dive/JSC/JavaScriptCore.html) (Safari/WebKit JavaScript engine)
   - `hermes:bundle` — [Hermes](https://hermesengine.dev) (React Native JavaScript engine)
   - `spidermonkey:bundle` — [SpiderMonkey](https://spidermonkey.dev/) (Firefox/Gecko JavaScript engine)
-  - `quickjs:bundle` — [QuickJS](https://github.com/quickjs-ng/quickjs)
+  - `quickjs:bundle` — [QuickJS](https://github.com/quickjs-ng/quickjs) (note [quickjs-ng/quickjs#39](https://github.com/quickjs-ng/quickjs/issues/39) though)
   - `xs:bundle` — [XS](https://github.com/Moddable-OpenSource/moddable-xst)
 
 ## Reporter samples
