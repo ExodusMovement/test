@@ -9,7 +9,7 @@ import { createRequire } from 'node:module'
 import { randomUUID } from 'node:crypto'
 import { existsSync, rmSync, realpathSync } from 'node:fs'
 import { unlink } from 'node:fs/promises'
-import { tmpdir, availableParallelism } from 'node:os'
+import { tmpdir, availableParallelism, homedir } from 'node:os'
 import assert from 'node:assert/strict'
 import { Queue } from '@chalker/queue'
 import glob from 'fast-glob'
@@ -490,6 +490,19 @@ if (options.barebone || options.binary === 'electron') {
   options.binary = findBinary(options.binary)
   options.binaryCanBeAbsolute = true
 }
+
+const makeTitle = () => {
+  let title = options.browsers === 'puppeteer' ? findBinary(options.binary) : options.binary
+  if (options.browsers === 'playwright') return `${title} (Playwright-managed)`
+  if (basename(title) === title) return title
+  const dir = { '~': `${process.cwd()}/`, '.': `${homedir()}/` }
+  if (title.startsWith(dir['~']) && dir['~'].length > 1) title = `./${title.slice(dir['~'].length)}`
+  if (title.startsWith(dir['.']) && dir['.'].length > 1) title = `~/${title.slice(dir['.'].length)}`
+  return /\s/u.test(title) ? JSON.stringify(title) : title
+}
+
+const { color } = await import('./color.js') // can't load before env flags are set
+console.info(color(`Engine: ${options.engine}, running on ${makeTitle()}`, 'green'))
 
 const assertBinary = (binary, allowed) => {
   if (allowed.includes(binary)) return
