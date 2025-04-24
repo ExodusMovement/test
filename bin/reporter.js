@@ -3,23 +3,14 @@ import { inspect } from 'node:util'
 import { relative, resolve } from 'node:path'
 import { spec as SpecReporter } from 'node:test/reporters'
 import { fileURLToPath } from 'node:url'
+import { color, haveColors, dim } from './color.js'
 
-const { FORCE_COLOR, CI, GITHUB_WORKSPACE, LERNA_PACKAGE_NAME } = process.env
-const haveColors = process.stdout.hasColors?.() || FORCE_COLOR === '1' // 0 is already handled by hasColors()
-const colors = new Map(Object.entries(inspect.colors))
-const dim = CI ? 'gray' : 'dim'
+const { CI, GITHUB_WORKSPACE, LERNA_PACKAGE_NAME } = process.env
 
 const uriReplacer = (x) => `%${x.codePointAt(0).toString(16).padStart(2, '0').toUpperCase()}`
 const escapeGitHubValue = (k, v) => `${k}=${String(v ?? '').replace(/[%\r\n:,]/gu, uriReplacer)}`
 const escapeGitHub = (s) => String(s || 'Unknown error').replace(/[%\r\n]/gu, uriReplacer)
 const serializeGitHub = (entries) => entries.map(([k, v]) => escapeGitHubValue(k, v)).join(',')
-
-export const color = (text, color) => {
-  if (!haveColors || text === '') return text
-  if (!colors.has(color)) throw new Error(`Unknown color: ${color}`)
-  const [start, end] = colors.get(color)
-  return `\x1B[${start}m${text}\x1B[${end}m`
-}
 
 // Used for pure engine output formatting
 export const format = (chunk) => {

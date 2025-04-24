@@ -38,6 +38,7 @@
   "prettier": "@exodus/prettier",
   "files": [
     "bin/browsers.js",
+    "bin/color.js",
     "bin/find-binary.js",
     "bin/inband.js",
     "bin/jest.js",
