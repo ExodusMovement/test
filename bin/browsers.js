@@ -5,13 +5,12 @@ import { findBinary } from './find-binary.js'
 // See https://playwright.dev/docs/browsers
 // > Playwright doesn't work with the branded version of Firefox since it relies on patches.
 // > Playwright doesn't work with the branded version of Safari since it relies on patches.
-// We don't even attempt to use built-in engine for Chromium, just rely on Playwright to load its.
-// To run system browsers, we use Puppeteer.
 
 let puppeteer
 let playwright
 
-const puppeteerBrowsers = { brave: 'chrome' }
+const puppeteerBrowsers = { brave: 'chrome', msedge: 'chrome' }
+const playwrightBrowsers = { chrome: 'chromium', msedge: 'chromium' }
 
 const launched = Object.create(null)
 const launchers = {
@@ -21,10 +20,11 @@ const launchers = {
     assert(['chrome', 'firefox'].includes(browser))
     return puppeteer.launch({ executablePath: findBinary(binary), browser, devtools })
   },
-  async playwright({ binary, devtools }) {
+  async playwright({ binary: channel, devtools }) {
     if (!playwright) playwright = await import('playwright-core')
-    assert(['chromium', 'firefox', 'webkit'].includes(binary) && Object.hasOwn(playwright, binary))
-    return playwright[binary].launch({ devtools })
+    const type = Object.hasOwn(playwrightBrowsers, channel) ? playwrightBrowsers[channel] : channel
+    assert(['chromium', 'firefox', 'webkit'].includes(type) && Object.hasOwn(playwright, type))
+    return playwright[type].launch({ devtools, channel })
   },
 }
 

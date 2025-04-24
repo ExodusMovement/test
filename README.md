@@ -48,14 +48,17 @@ Use `--engine` (or `EXODUS_TEST_ENGINE=`) to specify one of:
     Same as `node:*`, but uses `electron` binary.\
     The usecase is mostly to test on BoringSSL instead of OpenSSL.
 - Browsers:
-  - Playwright builds (install with `exodus-test --playwright install`)
+  - Playwright builds (install Playwright-built engines with `exodus-test --playwright install`)
     - `chromium:playwright` — Playwright-built Chromium
     - `firefox:playwright` — Playwright-built Firefox
     - `webkit:playwright` — Playwright-built WebKit, close to Safari
+    - `chrome:playwright` — Chrome (system-installed)
+    - `msedge:playwright` — Microsoft Edge (system-installed)
   - Puppeteer (system-provided or upstream builds)
     - `chrome:puppeteer` — Chrome
     - `firefox:puppeteer` — Firefox
     - `brave:puppeteer` — Brave
+    - `msedge:puppeteer` — Microsoft Edge
 - Barebone engines (system-provided or installed with `npx jsvu`):
   - `d8:bundle` — [v8 CLI](https://v8.dev/docs/d8) (Chrome/Blink/Node.js JavaScript engine)
   - `jsc:bundle` — [JavaScriptCore](https://docs.webkit.org/Deep%20Dive/JSC/JavaScriptCore.html) (Safari/WebKit JavaScript engine)

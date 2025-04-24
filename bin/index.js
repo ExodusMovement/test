@@ -46,9 +46,12 @@ const ENGINES = new Map(
     'chrome:puppeteer': { binary: 'chrome', browsers: 'puppeteer', ...bundleOpts },
     'firefox:puppeteer': { binary: 'firefox', browsers: 'puppeteer', ...bundleOpts },
     'brave:puppeteer': { binary: 'brave', browsers: 'puppeteer', ...bundleOpts },
+    'msedge:puppeteer': { binary: 'msedge', browsers: 'puppeteer', ...bundleOpts },
     'chromium:playwright': { binary: 'chromium', browsers: 'playwright', ...bundleOpts },
     'firefox:playwright': { binary: 'firefox', browsers: 'playwright', ...bundleOpts },
     'webkit:playwright': { binary: 'webkit', browsers: 'playwright', ...bundleOpts },
+    'chrome:playwright': { binary: 'chrome', browsers: 'playwright', ...bundleOpts },
+    'msedge:playwright': { binary: 'msedge', browsers: 'playwright', ...bundleOpts },
   })
 )
 
