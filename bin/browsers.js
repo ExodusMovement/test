@@ -11,12 +11,15 @@ import { findBinary } from './find-binary.js'
 let puppeteer
 let playwright
 
+const puppeteerBrowsers = { brave: 'chrome' }
+
 const launched = Object.create(null)
 const launchers = {
   async puppeteer({ binary, devtools }) {
     if (!puppeteer) puppeteer = await import('puppeteer-core')
-    assert(['chrome', 'firefox'].includes(binary))
-    return puppeteer.launch({ executablePath: findBinary(binary), browser: binary, devtools })
+    const browser = Object.hasOwn(puppeteerBrowsers, binary) ? puppeteerBrowsers[binary] : binary
+    assert(['chrome', 'firefox'].includes(browser))
+    return puppeteer.launch({ executablePath: findBinary(binary), browser, devtools })
   },
   async playwright({ binary, devtools }) {
     if (!playwright) playwright = await import('playwright-core')

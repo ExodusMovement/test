@@ -68,6 +68,10 @@ function findBinaryOnce(name) {
       addPaths('darwin', '/Applications/Firefox.app/Contents/MacOS/firefox')
       addPaths('linux', '/usr/bin/firefox')
       break
+    case 'brave':
+      addPaths('darwin', '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser')
+      addPaths('linux', '/usr/bin/brave', '/snap/bin/brave', '/opt/brave-bin/brave')
+      break
     case 'safari':
       addPaths('darwin', '/Applications/Safari.app/Contents/MacOS/Safari')
       break

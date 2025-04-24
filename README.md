@@ -55,6 +55,7 @@ Use `--engine` (or `EXODUS_TEST_ENGINE=`) to specify one of:
   - Puppeteer (system-provided or upstream builds)
     - `chrome:puppeteer` — Chrome
     - `firefox:puppeteer` — Firefox
+    - `brave:puppeteer` — Brave
 - Barebone engines (system-provided or installed with `npx jsvu`):
   - `d8:bundle` — [v8 CLI](https://v8.dev/docs/d8) (Chrome/Blink/Node.js JavaScript engine)
   - `jsc:bundle` — [JavaScriptCore](https://docs.webkit.org/Deep%20Dive/JSC/JavaScriptCore.html) (Safari/WebKit JavaScript engine)

@@ -44,8 +44,9 @@ const ENGINES = new Map(
     'xs:bundle': { binary: 'xs', ...bareboneOpts },
     // Browser engines
     'chrome:puppeteer': { binary: 'chrome', browsers: 'puppeteer', ...bundleOpts },
-    'chromium:playwright': { binary: 'chromium', browsers: 'playwright', ...bundleOpts },
     'firefox:puppeteer': { binary: 'firefox', browsers: 'puppeteer', ...bundleOpts },
+    'brave:puppeteer': { binary: 'brave', browsers: 'puppeteer', ...bundleOpts },
+    'chromium:playwright': { binary: 'chromium', browsers: 'playwright', ...bundleOpts },
     'firefox:playwright': { binary: 'firefox', browsers: 'playwright', ...bundleOpts },
     'webkit:playwright': { binary: 'webkit', browsers: 'playwright', ...bundleOpts },
   })
