@@ -12,7 +12,7 @@ It can run your existing tests on [all runtimes and also browsers](#engines), wi
   and typestrip (via `--typescript`) modes
 - Runs on Node.js [node:test](https://nodejs.org/api/test.html), Bun, Deno, [v8 CLI](https://v8.dev/docs/d8), JSC,
   [Hermes](https://hermesengine.dev), SpiderMonkey, Chrome, Firefox, WebKit, [QuickJS](https://github.com/quickjs-ng/quickjs) and [XS](https://github.com/Moddable-OpenSource/moddable-xst).
-- Testsuite-agnostic -- can run any file as long as it sets exit code based on test results
+- Testsuite-agnostic — can run any file as long as it sets exit code based on test results
 - Built-in [Jest](https://jestjs.io) compatibility (with `--jest`), including `jest.*` global
   - Up to ~10x faster depending on the original setup
   - Actual `expect` module, also `jest-extended` and `jest-when` just work on top
@@ -44,7 +44,8 @@ Use `--engine` (or `EXODUS_TEST_ENGINE=`) to specify one of:
 - Other runtimes:
   - `bun:pure` / `bun:bundle` — Bun, expects `bun` to be available
   - `deno:bundle` — Deno (v1 or v2, whichever `deno` is)
-  - `electron-as-node:test` / `electron-as-node:pure` / `electron-as-node:bundle` — same as `node:*`, but uses `electron` binary.\
+  - `electron-as-node:test` / `electron-as-node:pure` / `electron-as-node:bundle`\
+    Same as `node:*`, but uses `electron` binary.\
     The usecase is mostly to test on BoringSSL instead of OpenSSL.
 - Browsers:
   - Playwright builds (install with `exodus-test --playwright install`)
@@ -117,11 +118,11 @@ See live output in [CI](https://github.com/ExodusMovement/test/actions/workflows
 
 ### List of exports
 
-- `@exodus/test/node` -- `node:test` API, working under non-Node.js platforms
+- `@exodus/test/node` — `node:test` API, working under non-Node.js platforms
 
-- `@exodus/test/jest` -- `jest` implementation
+- `@exodus/test/jest` — `jest` implementation
 
-- `@exodus/test/tape` -- `tape` mock (can also be helpful when moving from `tap`)
+- `@exodus/test/tape` — `tape` mock (can also be helpful when moving from `tap`)
 
 ## Binary
 
@@ -129,27 +130,27 @@ Just use `"test": "exodus-test"`
 
 ### Options
 
-- `--jest` -- register jest test helpers as global variables, also load `jest.config.*` configuration options
+- `--jest` — register jest test helpers as global variables, also load `jest.config.*` configuration options
 
-- `--esbuild` -- use esbuild loader, also enables Typescript support
+- `--esbuild` — use esbuild loader, also enables Typescript support
 
-- `--babel` -- use babel loader (slower than `--esbuild`, makes sense if you have a special config)
+- `--babel` — use babel loader (slower than `--esbuild`, makes sense if you have a special config)
 
-- `--coverage` -- enable coverage, prints coverage output (varies by coverage engine)
+- `--coverage` — enable coverage, prints coverage output (varies by coverage engine)
 
-- `--coverage-engine c8` -- use c8 coverage engine (default), also generates `./coverage/` dirs
+- `--coverage-engine c8` — use c8 coverage engine (default), also generates `./coverage/` dirs
 
-- `--coverage-engine node` -- use Node.js builtint coverage engine
+- `--coverage-engine node` — use Node.js builtint coverage engine
 
-- `--watch` -- operate in watch mode and re-run tests on file changes
+- `--watch` — operate in watch mode and re-run tests on file changes
 
-- `--only` -- only run the tests marked with `test.only`
+- `--only` — only run the tests marked with `test.only`
 
-- `--passWithNoTests` -- do not error when no test files were found
+- `--passWithNoTests` — do not error when no test files were found
 
-- `--write-snapshots` -- write snapshots instead of verifying them (has `--test-update-snapshots` alias)
+- `--write-snapshots` — write snapshots instead of verifying them (has `--test-update-snapshots` alias)
 
-- `--test-force-exit` -- force exit after tests are done (useful in integration tests where it could be unfeasible to resolve all open handles)
+- `--test-force-exit` — force exit after tests are done (useful in integration tests where it could be unfeasible to resolve all open handles)
 
 ## Jest compatibility
 
