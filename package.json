@@ -78,6 +78,7 @@
     "src/engine.pure.cjs",
     "src/engine.pure.snapshot.cjs",
     "src/engine.select.cjs",
+    "src/exodus.js",
     "src/expect.cjs",
     "src/jest.js",
     "src/jest.config.js",

@@ -1,13 +1,12 @@
-import { assert, utilFormat, isPromise, mock } from './engine.js'
+import { assert, utilFormat, isPromise } from './engine.js'
 import * as node from './engine.js'
 import { jestConfig } from './jest.config.js'
 import { jestFunctionMocks } from './jest.fn.js'
 import { jestModuleMocks } from './jest.mock.js'
 import * as jestTimers from './jest.timers.js'
 import { setupSnapshots } from './jest.snapshot.js'
-import { fetchReplay, fetchRecord, websocketRecord, websocketReplay } from './replay.js'
-import { createCallerLocationHook, insideEsbuild } from './dark.cjs'
-import { haveValidTimers } from './version.js'
+import { createCallerLocationHook } from './dark.cjs'
+import { exodus } from './exodus.js'
 import { expect } from './expect.cjs'
 import { format as prettyFormat } from 'pretty-format'
 
@@ -213,33 +212,18 @@ if (process.env.EXODUS_TEST_PLATFORM !== 'deno' && globalThis.process) {
   })
 }
 
-const isBundle = process.env.EXODUS_TEST_ENVIRONMENT === 'bundle' // TODO: improve mocking from bundle
 export const jest = {
   exodus: {
     __proto__: null,
-    platform: String(process.env.EXODUS_TEST_PLATFORM), // e.g. 'hermes', 'node'
-    engine: String(process.env.EXODUS_TEST_ENGINE), // e.g. 'hermes:bundle', 'node:bundle', 'node:test', 'node:pure'
-    implementation: String(node.engine), // aka process.env.EXODUS_TEST_CONTEXT, e.g. 'node:test' or 'pure'
-    features: {
-      __proto__: null,
-      timers: Boolean(mock.timers && haveValidTimers),
-      dynamicRequire: Boolean(!isBundle), // require(non-literal-non-glob), createRequire()(non-builtin)
-      esmMocks: Boolean(mock.module || isBundle), // support for ESM mocks
-      esmInterop: Boolean(insideEsbuild && !isBundle), // loading/using ESM as CJS, ESM mocks creation without a mocker function
-      esmNamedBuiltinMocks: Boolean(mock.module || insideEsbuild || isBundle), // support for named ESM imports from builtin module mocks
-      concurrency: node.engine !== 'pure', // pure engine doesn't support concurrency
-    },
+    ...exodus,
     mock: {
-      fetchRecord,
-      fetchReplay,
+      ...exodus.mock,
       fetchNoop: () => {
         // We can't use pure noop, it will break chained fetch().then(), so let's reject
         const fetch = () => Promise.reject(new Error('fetch is disabled by mock.fetchNoop()'))
         globalThis.fetch = jest.fn(fetch)
         return globalThis.fetch
       },
-      websocketRecord,
-      websocketReplay,
       websocketNoop: () => {
         globalThis.WebSocket = jest.fn()
         return globalThis.WebSocket
