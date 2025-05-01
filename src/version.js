@@ -1,7 +1,6 @@
 import { assert, nodeVersion } from './engine.js'
 
 const [major, minor, patch] = nodeVersion.split('.').map(Number)
-assert(major !== 21, 'Node.js 21.x is deprecated!') // reached EOL, no reason to even test
 // older versions are glitchy with before/after on top-level, which is a deal-breaker
 // 20.7.0 is fine for node:test but broken with tsx, so we bump to 20.8.0
 const ok = (major === 18 && minor >= 19) || (major === 20 && minor >= 8) || major >= 22
