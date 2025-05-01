@@ -310,13 +310,14 @@ function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
     likelyESM = true
   }
 
+  const mocksNodeVersionNote = `mocks are available only on Node.js >=20.18 <21 || >=22.3`
   if (likelyESM || (!okFromESM && topLevelESM)) {
     // Native module mocks is required if loading ESM or __from__ ESM
     // No good way to check the locations that import the module, but we can check top-level file
     // Built-in modules are fine though
-    assert(mock.module, 'ESM module mocks are available only on Node.js >=22.3')
+    assert(mock.module, `ESM module ${mocksNodeVersionNote}`)
   } else if (isBuiltIn && name.startsWith('node:') && !override) {
-    assert(mock.module, 'Native non-overriding node:* mocks are available only on Node.js >=22.3')
+    assert(mock.module, `Native non-overriding node:* ${mocksNodeVersionNote}`)
   }
 
   const obj = { defaultExport: value }
