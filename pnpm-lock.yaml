@@ -83,9 +83,6 @@ importers:
       jsdom:
         specifier: ^24.1.0
         version: 24.1.0
-      jsvu:
-        specifier: ^3.0.0
-        version: 3.0.0
       os-browserify:
         specifier: ^0.3.0
         version: 0.3.0
@@ -153,6 +150,9 @@ importers:
       jest-when:
         specifier: ^3.6.0
         version: 3.6.0(jest@29.7.0(@types/node@22.14.0))
+      jsvu:
+        specifier: ^3.0.0
+        version: 3.0.0
 
 packages:
 
