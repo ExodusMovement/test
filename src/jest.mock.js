@@ -255,7 +255,7 @@ function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
   const value = mocker ? expand(mocker()) : mockClone(mapActual.get(resolved))
   mapMocks.set(resolved, value)
 
-  loadExpect() // we need to do this as we don't want mocks affecting expect
+  loadExpect('jest.mock') // we need to do this as we don't want mocks affecting expect
 
   if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
     if (builtin) globalThis.EXODUS_TEST_MOCK_BUILTINS.set(builtin, value)

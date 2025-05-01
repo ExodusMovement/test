@@ -11,9 +11,11 @@ function fixupAssertions() {
   assertionsDelta = 0
 }
 
-function loadExpect() {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function loadExpect(loadReason) {
   if (expect) return expect
   expect = require('expect').expect
+  // console.log('expect load reason:', loadReason)
   const matchers = require('jest-extended')
   expect.extend(matchers)
   for (const x of extend) expect.extend(...x)
@@ -72,22 +74,22 @@ const doesNotThrow = (x) => {
 function createExpect() {
   return new Proxy(() => {}, {
     apply: (target, that, [x, ...rest]) => {
-      if (rest.length > 0) return loadExpect()(x, ...rest)
+      if (rest.length > 0) return loadExpect('rest')(x, ...rest)
       return new Proxy(Object.create(null), {
         get: (_, name) => {
           const matcher = matchers[name] || matchersFalseNegative[name]
           if (matcher) {
             return (...args) => {
-              if (!matcher(x, ...args)) return loadExpect()(x)[name](...args)
+              if (!matcher(x, ...args)) return loadExpect(`.${name} fail`)(x)[name](...args)
               assertionsDelta++
             }
           }
 
           if (name === 'toThrow') {
             return (...args) => {
-              if (args.length !== 0) return loadExpect()(x)[name](...args)
+              if (args.length > 0) return loadExpect('.toThrow args')(x)[name](...args)
               const [passed] = doesNotThrow(x)
-              if (passed) return loadExpect()(() => {})[name](...args)
+              if (passed) return loadExpect('.toThrow fail')(() => {})[name](...args)
               assertionsDelta++
             }
           }
@@ -99,28 +101,30 @@ function createExpect() {
                   return (...args) => {
                     const [passed, err] = doesNotThrow(x)
                     if (!passed) {
-                      return loadExpect()(() => {
+                      return loadExpect('.not.toThrow fail')(() => {
                         throw err
                       }).not.toThrow(...args)
                     }
+
                     assertionsDelta++
                   }
                 }
 
                 if (matchers[not]) {
                   return (...args) => {
-                    if (matchers[not](x, ...args)) return loadExpect()(x).not[not](...args)
+                    if (matchers[not](x, ...args)) {
+                      return loadExpect(`.not.${not} fail`)(x).not[not](...args)
+                    }
+
                     assertionsDelta++
                   }
                 }
 
-                // console.log ({ loadReason: 'not', name: not })
-                return loadExpect()(x).not[not]
+                return loadExpect(`.not.${not}`)(x).not[not]
               },
             })
 
-          // console.log ({ loadReason: 'expect', name })
-          return loadExpect()(x)[name]
+          return loadExpect(`.${name}`)(x)[name]
         },
       })
     },
@@ -138,8 +142,7 @@ function createExpect() {
             }
       }
 
-      // console.log({ loadReason: 'get', name })
-      return loadExpect()[name]
+      return loadExpect(`get ${name}`)[name]
     },
     set: (_, name, value) => {
       if (expect) {
