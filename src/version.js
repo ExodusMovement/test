@@ -10,7 +10,8 @@ assert(major !== 22 || minor !== 3, 'Refusing to run on Node.js 22.3.0 specifica
 
 export { major, minor, patch }
 
-export const haveModuleMocks = (major === 22 && minor >= 3) || major > 22
+export const haveModuleMocks =
+  (major === 20 && minor >= 18) || (major === 22 && minor >= 3) || major > 22
 export const haveSnapshots = (major === 22 && minor >= 3) || major > 22
 export const haveSnapshotsReportUnescaped = (major === 22 && minor >= 5) || major > 22
 export const haveForceExit = (major === 20 && minor > 13) || major >= 22
