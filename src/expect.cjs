@@ -26,7 +26,7 @@ const areNumeric = (...args) => args.every((a) => typeof a === 'number' || typeo
 
 const matchers = {
   __proto__: null,
-  toBe: (x, y) => x === y,
+  toBe: (x, y) => Object.is(x, y),
   toBeNull: (x) => x === null,
   toBeTruthy: (x) => x,
   toBeFalsy: (x) => !x,
@@ -53,8 +53,8 @@ const matchers = {
 
 const matchersFalseNegative = {
   __proto__: null,
-  toEqual: (x, y) => x === y,
-  toStrictEqual: (x, y) => x === y,
+  toEqual: (x, y) => Object.is(x, y),
+  toStrictEqual: (x, y) => Object.is(x, y),
   toContain: (x, c) => Array.isArray(x) && [...x].includes(c),
   toBeEven: (x) => Number.isSafeInteger(x) && x % 2 === 0,
   toBeOdd: (x) => Number.isSafeInteger(x) && x % 2 === 1,
