@@ -21,11 +21,11 @@ jobs:
           run_install: false
       - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b
         with:
-          node-version: '22'
+          node-version-file: '.nvmrc'
           cache: pnpm
           registry-url: 'https://registry.npmjs.org'
       - run: pnpm i --frozen-lockfile
-      - run: pnpm lint
+      - run: node --run lint
 
   check:
     runs-on: ubuntu-22.04
@@ -50,12 +50,8 @@ jobs:
 
   jest:
     runs-on: ubuntu-22.04
-    name: 'Jest on Node.js ${{ matrix.node-version }}'
+    name: 'Jest on Node.js'
     timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: ['22.8']
     steps:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - uses: pnpm/action-setup@18ac635edf3d6cd3e88d281bceecc25c4dbc1e73
@@ -63,7 +59,7 @@ jobs:
           run_install: false
       - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version-file: '.nvmrc'
           cache: pnpm
           registry-url: 'https://registry.npmjs.org'
       - run: pnpm i --frozen-lockfile
@@ -80,12 +76,12 @@ jobs:
           run_install: false
       - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b
         with:
-          node-version: 22.8
+          node-version-file: '.nvmrc'
           cache: pnpm
           registry-url: 'https://registry.npmjs.org'
       - run: pnpm i --frozen-lockfile
-      - run: pnpm run jsvu --os=linux64 --engines=hermes
-      - run: EXODUS_TEST_DROP_NETWORK=1 pnpm test:hermes
+      - run: node --run jsvu -- --os=linux64 --engines=hermes
+      - run: EXODUS_TEST_DROP_NETWORK=1 node --run test:hermes
 
   electron:
     runs-on: ubuntu-22.04
@@ -98,10 +94,10 @@ jobs:
           run_install: false
       - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b
         with:
-          node-version: 22.8
+          node-version-file: '.nvmrc'
           cache: pnpm
           registry-url: 'https://registry.npmjs.org'
       - run: pnpm i --frozen-lockfile
-      - run: pnpm test:electron
-      - run: pnpm test:electron:pure
-      - run: pnpm test:electron:bundle
+      - run: node --run test:electron
+      - run: node --run test:electron:pure
+      - run: node --run test:electron:bundle
