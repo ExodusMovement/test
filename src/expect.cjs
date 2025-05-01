@@ -60,6 +60,15 @@ const matchersFalseNegative = {
   toBeOdd: (x) => Number.isSafeInteger(x) && x % 2 === 1,
 }
 
+const doesNotThrow = (x) => {
+  try {
+    x()
+    return [true]
+  } catch (err) {
+    return [false, err]
+  }
+}
+
 function createExpect() {
   return new Proxy(() => {}, {
     apply: (target, that, [x, ...rest]) => {
@@ -67,20 +76,43 @@ function createExpect() {
       return new Proxy(Object.create(null), {
         get: (_, name) => {
           const matcher = matchers[name] || matchersFalseNegative[name]
-          if (matcher)
+          if (matcher) {
             return (...args) => {
               if (!matcher(x, ...args)) return loadExpect()(x)[name](...args)
               assertionsDelta++
             }
+          }
+
+          if (name === 'toThrow') {
+            return (...args) => {
+              if (args.length !== 0) return loadExpect()(x)[name](...args)
+              const [passed] = doesNotThrow(x)
+              if (passed) return loadExpect()(() => {})[name](...args)
+              assertionsDelta++
+            }
+          }
 
           if (name === 'not')
             return new Proxy(Object.create(null), {
               get: (_, not) => {
-                if (matchers[not])
+                if (not === 'toThrow') {
+                  return (...args) => {
+                    const [passed, err] = doesNotThrow(x)
+                    if (!passed) {
+                      return loadExpect()(() => {
+                        throw err
+                      }).not.toThrow(...args)
+                    }
+                    assertionsDelta++
+                  }
+                }
+
+                if (matchers[not]) {
                   return (...args) => {
                     if (matchers[not](x, ...args)) return loadExpect()(x).not[not](...args)
                     assertionsDelta++
                   }
+                }
 
                 // console.log ({ loadReason: 'not', name: not })
                 return loadExpect()(x).not[not]
