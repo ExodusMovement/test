@@ -295,7 +295,9 @@ function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
     require.cache[resolved] = require.cache[`node:${resolved}`] = { exports: value }
   } else if (Object.hasOwn(require.cache, resolved)) {
     if (isNodeCache(require.cache[resolved]) || !require.cache[resolved].exports?.__esModule) {
-      assert.equal(mapActual.get(resolved), require.cache[resolved].exports)
+      const { exports } = require.cache[resolved]
+      assert.equal(mapActual.get(resolved), exports)
+      if (exports?.[Symbol.toStringTag] === 'Module') likelyESM = true // required ESM in Node.js
       // If we did't have this prior but have now, it means we just loaded it and there are no leaked instances
       if (havePrior && override) overrideModule(resolved)
       require.cache[resolved].exports = value
