@@ -122,6 +122,7 @@
     "test:webkit:playwright": "EXODUS_TEST_ENGINE=webkit:playwright npm run test:_bundle --",
     "test:bundle": "EXODUS_TEST_ENGINE=node:bundle npm run test:_bundle --",
     "test:d8": "EXODUS_TEST_ENGINE=d8:bundle npm run test:_bundle --",
+    "test:javascriptcore": "npm run test:jsc --",
     "test:jsc": "EXODUS_TEST_ENGINE=jsc:bundle npm run test:_bundle --",
     "test:hermes": "EXODUS_TEST_ENGINE=hermes:bundle npm run test:_bundle --",
     "test:spidermonkey": "EXODUS_TEST_ENGINE=spidermonkey:bundle npm run test:_bundle --",
