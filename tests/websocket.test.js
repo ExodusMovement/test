@@ -18,7 +18,9 @@ test('static properties', () => {
   expect(WebSocket.CLOSED).toBe(3)
 })
 
-test('javascript.info /demo/hello', async () => {
+// XS engine bug: https://github.com/Moddable-OpenSource/moddable/issues/1490
+const testValid = process.env.EXODUS_TEST_PLATFORM === 'xs' ? test.skip : test
+testValid('javascript.info /demo/hello', async () => {
   const socket = new WebSocket('wss://javascript.info/article/websocket/demo/hello', ['test'])
   expect(socket.extensions).toBe('')
   expect(socket.protocol).toBe('')
@@ -71,7 +73,7 @@ test('javascript.info /demo/hello', async () => {
   expect(listenerMessagesAfter).toEqual(messages)
 })
 
-test('connection error', async () => {
+testValid('connection error', async () => {
   const socket = new WebSocket('wss://localhost:1/')
   expect(socket.extensions).toBe('')
   expect(socket.protocol).toBe('')
