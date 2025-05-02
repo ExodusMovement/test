@@ -106,7 +106,7 @@
     "test:native": "EXODUS_TEST_IGNORE='{**/typescript/**,**/jest-repo/**/user.test.js}' ./bin/index.js --jest 'tests/**/*.test.{js,cjs,mjs}'",
     "test:typescript": "./bin/index.js --jest --typescript tests/typescript.test.ts",
     "test:jest": "./bin/index.js --jest --esbuild",
-    "test:tape": "./bin/index.js --esbuild 'tests/tape/tests/*.js' tests/tape.test.js",
+    "test:tape": "./bin/index.js 'tests/tape/tests/*.js' tests/tape.test.js",
     "test:pure": "EXODUS_TEST_ENGINE=node:pure npm run test --",
     "test:bun:pure": "EXODUS_TEST_ENGINE=bun:pure npm run test --",
     "test:bun:bundle": "EXODUS_TEST_ENGINE=bun:pure npm run test:_bundle",
