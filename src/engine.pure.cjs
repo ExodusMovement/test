@@ -462,6 +462,7 @@ const isPromise = (x) => Boolean(x && x.then && x.catch && x.finally)
 const nodeVersion = '9999.99.99'
 const awaitForMicrotaskQueue = async () => {
   if (globalThis?.process?.nextTick) {
+    if (globalThis.Bun) await Promise.resolve() // No idea what's up with Bun microtasks
     // We are in microtasks, awaiting for "next" tick will get us out of here
     return new Promise((resolve) => globalThis.process.nextTick(resolve))
   }
