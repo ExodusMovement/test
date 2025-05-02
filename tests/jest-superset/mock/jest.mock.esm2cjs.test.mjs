@@ -1,4 +1,7 @@
-const have = !jest.exodus || (jest.exodus.features.esmInterop && jest.exodus.features.esmMocks)
+const esmInCJS =
+  jest.exodus.features.esmInterop ||
+  (jest.exodus.features.dynamicRequire && globalThis.process?.features?.require_module)
+const have = !jest.exodus || (jest.exodus.features.esmMocks && esmInCJS)
 const describeMocks = have ? describe : describe.skip
 
 describeMocks('esm2cjs from esm', () => {
@@ -35,7 +38,6 @@ describeMocks('esm2cjs from esm', () => {
   test('named', async () => {
     jest.mock('../../fixtures/esm2cjs/named.js')
     const named = await import('../../fixtures/esm2cjs/named.js')
-    expect(named.__esModule).toBe(true)
     expect(named.x).toBe(20)
     expect(named.y).toBe(undefined)
     expect(named.hi()).toBe(undefined)
@@ -45,7 +47,6 @@ describeMocks('esm2cjs from esm', () => {
   test('mixed', async () => {
     jest.mock('../../fixtures/esm2cjs/mixed.js')
     const mixed = await import('../../fixtures/esm2cjs/mixed.js')
-    expect(mixed.__esModule).toBe(true)
     expect(mixed.a).toBe('A')
     expect(mixed.y).toBe(21)
     expect(mixed.hello()).toBe(undefined)

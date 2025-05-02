@@ -190,7 +190,13 @@ function mockCloneItem(obj, cache) {
     for (let c = obj; c && c !== Object.prototype; c = Object.getPrototypeOf(c)) stack.unshift(c)
     let modified = stack.length > 1
     for (const level of stack) {
-      for (const [name, desc] of Object.entries(Object.getOwnPropertyDescriptors(level))) {
+      const descriptors = Object.getOwnPropertyDescriptors(level)
+      const entries = Object.entries(descriptors)
+      for (const sym of [Symbol.toStringTag]) {
+        if (sym && Object.hasOwn(descriptors, sym)) entries.push([sym, descriptors[sym]]) // Missed by Object.entries
+      }
+
+      for (const [name, desc] of entries) {
         if (name === 'constructor') continue
 
         for (const key of ['get', 'set', 'value']) {
@@ -320,6 +326,7 @@ function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
     assert(mock.module, `Native non-overriding node:* ${mocksNodeVersionNote}`)
   }
 
+  if (value[Symbol.toStringTag] === 'Module') value.__esModule = true
   const obj = { defaultExport: value }
   if (isBuiltIn && isObject(value)) obj.namedExports = value
   if (insideEsbuild) {
