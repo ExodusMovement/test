@@ -229,7 +229,6 @@ function parseOptions() {
 
 const isTTY = process.stdout.isTTY
 const isCI = process.env.CI
-const { options, patterns } = parseOptions()
 const warnHuman = isTTY && !isCI ? (...args) => console.warn(...args) : () => {}
 if (isCI) process.env.FORCE_COLOR = '1' // should support colored output even though not a TTY, overridable with --no-color
 
@@ -237,6 +236,11 @@ const setEnv = (name, value) => {
   const env = process.env[name]
   if (env && env !== value) throw new Error(`env conflict: ${name}="${env}", effective: "${value}"`)
   process.env[name] = value === undefined ? '' : value
+}
+
+const { options, patterns } = parseOptions()
+if (!process.env.FORCE_COLOR && process.stdout.hasColors?.() && process.stderr.hasColors?.()) {
+  setEnv('FORCE_COLOR', '1') // Default to color output for subprocesses if our stream supports it
 }
 
 const engineName = `${options.engine} engine` // used for warnings to user

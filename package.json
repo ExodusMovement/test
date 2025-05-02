@@ -100,7 +100,6 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "test:_pure": "EXODUS_TEST_IGNORE='tests/jest-extended/**' npm run test",
     "test:_bundle": "EXODUS_TEST_IGNORE='tests/{{jest-extended,inband}/**,jest-when/when.test.*,jest/jest.resetModules.*}' npm run test --",
     "test": "npm run test:jest --",
     "test:all": "npm run test:jest && npm run test:tape && npm run test:native && npm run test:pure && npm run test:typescript && npm run test:fetch && npm run test:jsdom",
@@ -108,12 +107,12 @@
     "test:typescript": "./bin/index.js --jest --typescript tests/typescript.test.ts",
     "test:jest": "./bin/index.js --jest --esbuild",
     "test:tape": "./bin/index.js --esbuild 'tests/tape/tests/*.js' tests/tape.test.js",
-    "test:pure": "EXODUS_TEST_ENGINE=node:pure npm run test:_pure",
-    "test:bun:pure": "EXODUS_TEST_ENGINE=bun:pure npm run test:_pure",
+    "test:pure": "EXODUS_TEST_ENGINE=node:pure npm run test --",
+    "test:bun:pure": "EXODUS_TEST_ENGINE=bun:pure npm run test --",
     "test:bun:bundle": "EXODUS_TEST_ENGINE=bun:pure npm run test:_bundle",
     "test:deno": "EXODUS_TEST_ENGINE=deno:bundle npm run test:_bundle --",
     "test:electron": "EXODUS_TEST_ENGINE=electron-as-node:test npm run test",
-    "test:electron:pure": "EXODUS_TEST_ENGINE=electron-as-node:pure npm run test:_pure",
+    "test:electron:pure": "EXODUS_TEST_ENGINE=electron-as-node:pure npm run test --",
     "test:electron:bundle": "EXODUS_TEST_ENGINE=electron-as-node:bundle npm run test:_bundle",
     "test:chrome:puppeteer": "EXODUS_TEST_ENGINE=chrome:puppeteer npm run test:_bundle --",
     "test:firefox:puppeteer": "EXODUS_TEST_ENGINE=firefox:puppeteer npm run test:_bundle --",
