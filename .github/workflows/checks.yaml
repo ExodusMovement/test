@@ -87,8 +87,29 @@ jobs:
       - run: node --run jsvu -- --os=linux64 --engines="${{ matrix.engine }}"
       - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
 
+  puppeteer:
+    runs-on: ubuntu-22.04
+    name: 'Test on ${{ matrix.browser }}:puppeteer'
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: ['chrome', 'firefox']
+    steps:
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+      - uses: pnpm/action-setup@18ac635edf3d6cd3e88d281bceecc25c4dbc1e73
+        with:
+          run_install: false
+      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b
+        with:
+          node-version-file: '.nvmrc'
+          cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
+      - run: pnpm i --frozen-lockfile
+      - run: node --run "test:${{ matrix.browser }}:puppeteer"
+
   playwright:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: 'Test on ${{ matrix.browser }}:playwright'
     timeout-minutes: 10
     strategy:
