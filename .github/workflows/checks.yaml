@@ -72,7 +72,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        engine: ['hermes', 'javascriptcore', 'spidermonkey']
+        engine: ['hermes', 'v8', 'javascriptcore', 'spidermonkey']
     steps:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - uses: pnpm/action-setup@18ac635edf3d6cd3e88d281bceecc25c4dbc1e73
