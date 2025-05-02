@@ -35,7 +35,9 @@ const asyncFunction = async () => {
   throw new Error('this function rejects')
 }
 
-test('reject and doesNotReject example', async (t) => {
+// QuickJS bug: https://github.com/quickjs-ng/quickjs/pull/1038#issuecomment-2846674893
+const testReject = process.env.EXODUS_TEST_PLATFORM === 'quickjs' ? test.skip : test
+testReject('reject and doesNotReject example', async (t) => {
   await t.rejects(asyncFunction)
   await t.rejects(asyncFunction())
   await t.doesNotReject(Promise.resolve())
