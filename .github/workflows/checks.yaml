@@ -130,6 +130,49 @@ jobs:
       - run: node --run playwright -- install "${{ matrix.browser }}"
       - run: node --run "test:${{ matrix.browser }}:playwright"
 
+  bun:
+    runs-on: ubuntu-22.04
+    name: 'Test on Bun'
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+      - uses: pnpm/action-setup@18ac635edf3d6cd3e88d281bceecc25c4dbc1e73
+        with:
+          run_install: false
+      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b
+        with:
+          node-version-file: '.nvmrc'
+          cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
+      - uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76
+      - run: pnpm i --frozen-lockfile
+      - run: node --run test:bun:pure
+      - run: node --run test:bun:bundle
+
+  deno:
+    runs-on: ubuntu-22.04
+    name: 'Test on Deno ${{ matrix.deno-version }}'
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        deno-version: ['v1.x', 'v2.x']
+    steps:
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+      - uses: pnpm/action-setup@18ac635edf3d6cd3e88d281bceecc25c4dbc1e73
+        with:
+          run_install: false
+      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b
+        with:
+          node-version-file: '.nvmrc'
+          cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
+      - uses: denoland/setup-deno@909cc5acb0fdd60627fb858598759246509fa755
+        with:
+          deno-version: ${{ matrix.deno-version }}
+      - run: pnpm i --frozen-lockfile
+      - run: node --run test:deno
+
   electron:
     runs-on: ubuntu-22.04
     name: 'Test on Electron'
