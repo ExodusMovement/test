@@ -46,14 +46,22 @@ function parseArgs(list, targs) {
   return result
 }
 
+// Hack for common testing with simple arrow functions
+const formatArg = (x) => {
+  if (x && x instanceof Function) {
+    if (`${x}` === '()=>{}') return '() => {}' // likely minified by esbuild
+    if (globalThis.Bun && `${x}`.replace(/\s/g, '') === '()=>{}') return '() => {}' // Bun breaks formatting
+  }
+
+  return x
+}
+
 const eachCallerLocation = []
 const makeEach =
   (impl) =>
   (list, ...rest) =>
   (template, fn, ...restArgs) => {
     eachCallerLocation.unshift(getCallerLocation())
-    // Hack for common testing with simple arrow functions, until we can disable esbuild minification
-    const formatArg = (x) => (x && x instanceof Function && `${x}` === '()=>{}' ? '() => {}' : x)
     // better than nothing
     const printed = (x) =>
       x && [null, Array.prototype, Object.prototype].includes(Object.getPrototypeOf(x))
