@@ -274,7 +274,7 @@ function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
 
   const topLevelESM = isTopLevelESM()
   let likelyESM = topLevelESM && !insideEsbuild && ![null, resolved].includes(resolveImport(name))
-  let okFromESM = false
+  let isOverridenBuiltinSynchedWithESM = false
   const isBuiltIn = builtinModules.includes(resolved)
   const isNodeCache = (x) => x && x.id && x.path && x.filename && x.children && x.paths && x.loaded
   if (isBuiltIn && !isNodeCache(require.cache[resolved])) {
@@ -288,7 +288,7 @@ function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
       overrideModule(resolved, true) // Override builtin modules
       if (syncBuiltinESMExports) {
         syncBuiltinESMExports()
-        okFromESM = true
+        isOverridenBuiltinSynchedWithESM = true
       }
     }
 
@@ -310,8 +310,8 @@ function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
     likelyESM = true
   }
 
-  const mocksNodeVersionNote = `mocks are available only on Node.js >=20.18 <21 || >=22.3`
-  if (likelyESM || (!okFromESM && topLevelESM)) {
+  const mocksNodeVersionNote = 'mocks are available only on Node.js >=20.18 <21 || >=22.3'
+  if (likelyESM || (!isOverridenBuiltinSynchedWithESM && topLevelESM)) {
     // Native module mocks is required if loading ESM or __from__ ESM
     // No good way to check the locations that import the module, but we can check top-level file
     // Built-in modules are fine though
