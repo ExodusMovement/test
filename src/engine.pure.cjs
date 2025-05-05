@@ -308,17 +308,21 @@ class MockTimers {
   }
 
   #microtick() {
-    const next =
-      this.#queue.find((x) => x.runAt === -1) || // immediates are first
-      this.#queue.find((x) => x.runAt <= this.#elapsed)
+    const next = this.#queue.find((x) => x.runAt <= this.#elapsed) // sorted
     if (!next) return null
-    if (next.interval === undefined) {
-      this.#queue = this.#queue.filter((x) => x !== next)
-    } else {
+    this.#queue = this.#queue.filter((x) => x !== next)
+    if (next.interval !== undefined) {
       next.runAt += next.interval
+      this.#schedule(next)
     }
 
     next.callback(...next.args)
+  }
+
+  #schedule(entry) {
+    const before = this.#queue.findIndex((x) => x.runAt > entry.runAt)
+    if (before === -1) return this.#queue.push(entry)
+    this.#queue.splice(before, 0, entry)
   }
 
   runAll() {
@@ -331,19 +335,19 @@ class MockTimers {
 
   #setTimeout(callback, delay, ...args) {
     const id = { callback, runAt: delay + this.#elapsed, args }
-    this.#queue.push(id)
+    this.#schedule(id)
     return id
   }
 
   #setInterval(callback, delay, ...args) {
     const id = { callback, runAt: delay + this.#elapsed, interval: delay, args }
-    this.#queue.push(id)
+    this.#schedule(id)
     return id
   }
 
   #setImmediate(callback, ...args) {
     const id = { callback, runAt: -1, args }
-    this.#queue.push(id)
+    this.#schedule(id)
     return id
   }
 
