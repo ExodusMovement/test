@@ -18,8 +18,8 @@ It can run your existing tests on [all runtimes and also browsers](#engines), wi
   - Actual `expect` module, also `jest-extended` and `jest-when` just work on top
   - Snapshots, including snapshot matchers
   - Function and timer mocks
-  - [test.concurrent]()
-  - Module mocks (on top of Node.js runtime only), including for ESM modules
+  - [test.concurrent](https://jestjs.io/docs/api#testconcurrentname-fn-timeout)
+  - Module mocks, including for ESM modules (already loaded ESM modules can be mocked only on `node:test`)
   - Loads Jest configuration
   - It works on Hermes too!
 - Built-in network record/replay for offline tests, mocking `fetch` and `WebSocket` sessions
