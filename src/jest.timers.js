@@ -66,8 +66,14 @@ export function runOnlyPendingTimers() {
 }
 
 export function advanceTimersByTime(time) {
-  assert(Number.isSafeInteger(time) && time > 0)
+  assert(Number.isSafeInteger(time) && time >= 0)
   assertEnabledTimers()
+
+  if (time === 0) {
+    mock.timers.tick(0)
+    return this
+  }
+
   // We split this into multiple steps to run timers scheduled during the time we are running
   const minSteps = Math.min(1000, time) // usually just split e.g. 5 seconds into 1000 * 5ms
   const step = Number(Math.floor(time / minSteps).toPrecision(1))
