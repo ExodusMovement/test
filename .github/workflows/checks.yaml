@@ -115,7 +115,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: ['chromium', 'firefox']
+        browser: ['chromium', 'firefox', 'webkit']
     steps:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - uses: pnpm/action-setup@18ac635edf3d6cd3e88d281bceecc25c4dbc1e73
@@ -127,7 +127,7 @@ jobs:
           cache: pnpm
           registry-url: 'https://registry.npmjs.org'
       - run: pnpm i --frozen-lockfile
-      - run: node --run playwright -- install "${{ matrix.browser }}"
+      - run: node --run playwright -- install --with-deps "${{ matrix.browser }}"
       - run: node --run "test:${{ matrix.browser }}:playwright"
 
   bun:
