@@ -9,7 +9,7 @@ export async function load(url, context, nextLoad) {
     const source = sourceBuf.toString('utf8')
     const { code: transformed } = transformSync(source, { isModule: true })
     const transformedBuf = Buffer.from(transformed)
-    if (sourceBuf.length !== transformed.length) throw new Error('length mismatch')
+    if (sourceBuf.length !== transformedBuf.length) throw new Error('length mismatch')
     // eslint-disable-next-line unicorn/no-for-loop
     for (let i = 0; i < transformedBuf.length; i++) {
       // should match either the source buffer or spaces or semicolon: https://github.com/swc-project/swc/issues/9331
