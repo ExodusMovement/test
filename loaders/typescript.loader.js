@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { transformSync } from 'amaro'
 
-const extensionsRegex = /\.ts$|\.mts$/
+const extensionsRegex = /\.[cm]?ts$/
 
 function shouldProcessUrl(s) {
   if (!s.startsWith('file://') || !s.includes('ts') || s.includes('/node_modules/')) return false
