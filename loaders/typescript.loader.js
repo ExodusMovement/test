@@ -4,8 +4,17 @@ import { transformSync } from 'amaro'
 
 const extensionsRegex = /\.ts$|\.mts$/
 
+function shouldProcessUrl(s) {
+  if (!s.startsWith('file://') || !s.includes('ts') || s.includes('/node_modules/')) return false
+  try {
+    return extensionsRegex.test(fileURLToPath(s))
+  } catch {
+    return false
+  }
+}
+
 export async function load(url, context, nextLoad) {
-  if (!url.includes('/node_modules/') && extensionsRegex.test(fileURLToPath(url))) {
+  if (shouldProcessUrl(url)) {
     const sourceBuf = await readFile(new URL(url))
     const source = sourceBuf.toString('utf8')
     const { code: transformed } = transformSync(source, { isModule: true })
