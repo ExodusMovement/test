@@ -43,7 +43,20 @@ async function newPage(runner, browser, { binary, dropNetwork }) {
     return newPage(runner, browser, { binary, dropNetwork })
   }
 
-  await page.goto('file:///dev/null') // Need to load a secure origin for e.g. crypto.subtle to be available
+  // Need to load a secure origin for e.g. crypto.subtle to be available
+  if (runner === 'playwright' && binary === 'webkit') {
+    // Can attempt to download /dev/null, so we apply a work-around
+    await page.route('https://www.secure-context-top-level-domain-for-tests/*', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'text/html; charset=utf-8',
+        body: '<!doctype html><html><body></body></html>',
+      })
+    )
+    await page.goto('https://www.secure-context-top-level-domain-for-tests/')
+  } else {
+    await page.goto('file:///dev/null')
+  }
 
   if (dropNetwork && context.setOffline) await context.setOffline(true)
   if (dropNetwork && page.setOfflineMode) await page.setOfflineMode(true)
