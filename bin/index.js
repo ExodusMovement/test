@@ -572,7 +572,7 @@ if (options.pure) {
   const missUnhandled = ['jsc'].includes(options.platform) || options.browsers
   if (missUnhandled) warnHuman(`Warning: ${engineName} does not have unhandled rejections tracking`)
 
-  const runOne = async (inputFile) => {
+  const runOne = async (inputFile, attempt = 0) => {
     const bundled = buildFile ? await buildFile(inputFile) : undefined
     if (buildFile) assert(bundled.file)
     const file = buildFile ? bundled.file : inputFile
@@ -589,6 +589,11 @@ if (options.pure) {
       const ms = Number(process.hrtime.bigint() - start) / 1e6
       return { ok: code === 0, output: [stdout, stderr], ms }
     } catch (err) {
+      if (options.engine === 'xs:bundle' && err.signal === 'SIGSEGV' && attempt < 3) {
+        // xs sometimes randomly crashes with SIGSEGV on CI. Allow 3 attempts
+        return runOne(inputFile, attempt++)
+      }
+
       const ms = Number(process.hrtime.bigint() - start) / 1e6
       const { code, stdout = '', stderr = '', signal, killed } = err
       if (code === null) {
