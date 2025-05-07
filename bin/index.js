@@ -589,9 +589,9 @@ if (options.pure) {
       const ms = Number(process.hrtime.bigint() - start) / 1e6
       return { ok: code === 0, output: [stdout, stderr], ms }
     } catch (err) {
-      if (options.engine === 'xs:bundle' && err.signal === 'SIGSEGV' && attempt < 3) {
-        // xs sometimes randomly crashes with SIGSEGV on CI. Allow 3 attempts
-        return runOne(inputFile, attempt++)
+      if (options.engine === 'xs:bundle' && err.signal === 'SIGSEGV' && attempt < 2) {
+        // xs sometimes randomly crashes with SIGSEGV on CI. Allow 3 attempts (allow 0 - 1 to fail)
+        return runOne(inputFile, attempt + 1)
       }
 
       const ms = Number(process.hrtime.bigint() - start) / 1e6
