@@ -451,7 +451,8 @@ if (options.debug.files) {
 }
 
 const tsTests = files.filter((file) => /\.[mc]?tsx?$/u.test(file))
-if (tsTests.length > 0 && !options.esbuild && !options.typescript) {
+const tsSupport = options.ts === 'auto' || options.esbuild || options.typescript || options.babel
+if (tsTests.length > 0 && !tsSupport) {
   console.error(`Some tests require --typescript or --esbuild flag:\n  ${tsTests.join('\n  ')}`)
   process.exit(1)
 } else if (!allfiles.some((file) => /\.[cm]?ts$/.test(file)) && options.typescript) {
