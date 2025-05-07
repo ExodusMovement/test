@@ -12,13 +12,14 @@ import { format as prettyFormat } from 'pretty-format'
 
 const { getCallerLocation, installLocationInNextTest } = createCallerLocationHook()
 
-let addStatefulApis = true
+let inband = false
 if (process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle') {
-  // We can't provide snapshots in inband tests yet, and mocks/timers are unsafe there
   const files = process.argv.slice(1)
-  if (files.length === 1 && files[0].endsWith('/inband.js')) addStatefulApis = false
+  if (files.length === 1 && files[0].endsWith('/inband.js')) inband = true
 }
 
+// We can't provide snapshots in inband tests yet, and mocks/timers are unsafe there
+const addStatefulApis = !inband
 if (addStatefulApis) setupSnapshots(expect)
 
 let defaultTimeout = Number(process.env.EXODUS_TEST_TIMEOUT) || jestConfig().testTimeout // overridable via jest.setTimeout()
@@ -199,7 +200,8 @@ node.afterEach(() => {
 
 if (process.env.EXODUS_TEST_PLATFORM !== 'deno' && globalThis.process) {
   // TODO: deno, other engines
-  node.after(() => {
+  // This doesn't work with async imported tests, so for inband, we delay
+  const after = () => {
     jestTimers.useRealTimers()
     const prefix = `Tests completed, but still have asynchronous activity after`
 
@@ -217,7 +219,13 @@ if (process.env.EXODUS_TEST_PLATFORM !== 'deno' && globalThis.process) {
         console.warn(`${prefix} ${warnTimeout}ms. Waiting for ${timeout}ms to pass to finish...`)
       }, warnTimeout).unref()
     }
-  })
+  }
+
+  if (inband) {
+    globalThis.EXODUS_TEST_AFTER_INBAND = after
+  } else {
+    node.after(after)
+  }
 }
 
 export const jest = {
