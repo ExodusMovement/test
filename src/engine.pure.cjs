@@ -35,6 +35,7 @@ function parseArgs(args) {
 class Context {
   test = test // todo: bind to context
   describe = describe // todo: bind to context
+  plan = plan
   children = []
   #fullName
   #assert
@@ -210,6 +211,11 @@ describe.skip = (...args) => {
 describe.only = (...args) => {
   const { name, options, fn } = parseArgs(args)
   return describe(name, { ...options, only: true }, fn)
+}
+
+function plan(count) {
+  assert(Number.isSafeInteger(count) && count >= 0)
+  console.log('note: context.plan is not yet supported')
 }
 
 function test(...args) {
