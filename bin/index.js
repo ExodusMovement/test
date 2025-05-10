@@ -141,7 +141,7 @@ function parseOptions() {
         options.flow = true
         break
       case '--esbuild':
-        options.esbuild = true
+        options.esbuild = args[0] instanceof OptionValue ? String(args.shift()) : '*'
         break
       case '--babel':
         options.babel = true
@@ -362,8 +362,10 @@ if (options.jest) {
 
 if (options.esbuild && !options.bundle) {
   assert(resolveImport)
+  setEnv('EXODUS_TEST_ESBUILD', options.esbuild)
   if (options.hasImportLoader) {
-    args.push('--import', resolveImport('../loaders/esbuild.js'))
+    const optional = options.esbuild === '*' ? '' : '.optional'
+    args.push('--import', resolveImport(`../loaders/esbuild${optional}.js`))
   } else if (options.flagEngine === false) {
     // Engine is set via env, --esbuild set via flag. Allow but warn
     console.warn(`Warning: ${engineName} does not support --esbuild option`)
