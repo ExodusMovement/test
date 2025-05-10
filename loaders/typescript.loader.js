@@ -1,6 +1,5 @@
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import { transformSync } from 'amaro'
 
 const extensionsRegex = /\.[cm]?ts$/
 
@@ -13,8 +12,15 @@ function shouldProcessUrl(s) {
   }
 }
 
+let transformSync
+
 export async function load(url, context, nextLoad) {
   if (shouldProcessUrl(url)) {
+    if (!transformSync) {
+      const amaro = await import('amaro')
+      transformSync = amaro.transformSync
+    }
+
     const sourceBuf = await readFile(new URL(url))
     const source = sourceBuf.toString('utf8')
     const { code: transformed } = transformSync(source, { isModule: true })
