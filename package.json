@@ -192,9 +192,13 @@
     "jsvu": "^3.0.0"
   },
   "peerDependencies": {
+    "crypto-browserify": "^3.12.0",
     "electron": "*"
   },
   "peerDependenciesMeta": {
+    "crypto-browserify": {
+      "optional": true
+    },
     "electron": {
       "optional": true
     }
