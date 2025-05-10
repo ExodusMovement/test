@@ -106,11 +106,13 @@ function parseOptions() {
     process.exit(0)
   }
 
+  class OptionValue extends String {}
+
   while (args[0]?.startsWith('-')) {
     const option = args.shift()
     if (option.includes('=')) {
       const [optionName, ...rest] = option.split('=')
-      args.unshift(optionName, rest.join('='))
+      args.unshift(optionName, new OptionValue(rest.join('=')))
       continue
     }
 
@@ -145,10 +147,10 @@ function parseOptions() {
         options.babel = true
         break
       case '--require':
-        options.require.push(args.shift())
+        options.require.push(String(args.shift()))
         break
       case '--coverage-engine':
-        options.coverageEngine = args.shift()
+        options.coverageEngine = String(args.shift())
         break
       case '--coverage':
         options.coverage = true
@@ -172,7 +174,7 @@ function parseOptions() {
         options.forceExit = true
         break
       case '--engine':
-        options.engine = args.shift()
+        options.engine = String(args.shift())
         options.flagEngine = true
         break
       case '--devtools':
@@ -207,7 +209,7 @@ function parseOptions() {
       case '-t':
       case '--test-name-pattern':
       case '--testNamePattern':
-        options.testNamePattern.push(args.shift())
+        options.testNamePattern.push(String(args.shift()))
         break
       case '--testTimeout':
         options.testTimeout = Number(args.shift())
@@ -218,7 +220,7 @@ function parseOptions() {
   }
 
   assert(
-    args.every((arg) => !arg.startsWith('--')),
+    args.every((arg) => typeof arg === 'string' && !arg.startsWith('--')),
     'Options should come before patterns'
   )
 
