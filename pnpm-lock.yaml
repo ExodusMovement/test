@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@chalker/queue':
-        specifier: ^1.0.0
-        version: 1.0.0
+        specifier: ^1.0.1
+        version: 1.0.1
       '@exodus/replay':
         specifier: ^1.0.0-rc.8
         version: 1.0.0-rc.8
@@ -388,8 +388,8 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
-  '@chalker/queue@1.0.0':
-    resolution: {integrity: sha512-WIIEU7B3vO1JQelTuipH5/W/HfirpDUPNzQaCY4IsSR6WEF1lKuEPon7EjQQ1iyXawU6hm0QcxxBcmKdwL1CDg==}
+  '@chalker/queue@1.0.1':
+    resolution: {integrity: sha512-j8iu20wUUgTnW3V5r5UKuUab3hT2odAGBlB7G2qxu+BFw9GFO8se2B/Su9SAtLj/CcKZzMFrwHREIG9hDIFo2Q==}
 
   '@electron/get@2.0.3':
     resolution: {integrity: sha512-Qkzpg2s9GnVV2I2BjRksUi43U5e6+zaQMcjoJy0C+C5oxaKl+fmckGDQFtRpZpZV0NQekuZZ+tGz7EA9TVnQtQ==}
@@ -4068,7 +4068,7 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@chalker/queue@1.0.0': {}
+  '@chalker/queue@1.0.1': {}
 
   '@electron/get@2.0.3':
     dependencies:

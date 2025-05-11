@@ -140,7 +140,7 @@
     "lint:fix": "prettier --write . && eslint --fix ."
   },
   "dependencies": {
-    "@chalker/queue": "^1.0.0",
+    "@chalker/queue": "^1.0.1",
     "@exodus/replay": "^1.0.0-rc.8",
     "expect": "^29.7.0",
     "fast-glob": "^3.2.11",
