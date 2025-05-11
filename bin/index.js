@@ -12,11 +12,11 @@ import { unlink } from 'node:fs/promises'
 import { tmpdir, availableParallelism, homedir } from 'node:os'
 import assert from 'node:assert/strict'
 import { Queue } from '@chalker/queue'
-import glob from 'fast-glob'
 // The following make sense only when we run the code in the same Node.js version, i.e. engineOptions.haveIsOk
 import { haveModuleMocks, haveSnapshots, haveForceExit } from '../src/version.js'
 import { findBinary } from './find-binary.js'
 import * as browsers from './browsers.js'
+import { glob } from '../src/glob.cjs'
 
 const bindir = dirname(fileURLToPath(import.meta.url))
 const DEFAULT_PATTERNS = [`**/?(*.)+(spec|test).?([cm])[jt]s?(x)`] // do not trust magic dirs by default
@@ -400,7 +400,7 @@ for (const r of options.require) {
 }
 
 if (patterns.length === 0) patterns.push(...DEFAULT_PATTERNS) // defaults
-const globbed = await glob(patterns, { ignore })
+const globbed = await glob(patterns, { exclude: ignore })
 const allfiles = filter ? globbed.filter(filter) : globbed
 
 if (allfiles.length === 0) {
@@ -415,7 +415,7 @@ if (allfiles.length === 0) {
 
 let subfiles // must be a strict subset of allfiles
 if (process.env.EXODUS_TEST_SELECT) {
-  subfiles = await glob(process.env.EXODUS_TEST_SELECT, { ignore })
+  subfiles = await glob(process.env.EXODUS_TEST_SELECT, { exclude: ignore })
 
   const allSet = new Set(allfiles)
   const stray = subfiles.filter((file) => !allSet.has(file))

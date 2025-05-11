@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict'
-import { readFile, writeFile, readdir } from 'node:fs/promises'
+import fsPromises, { readFile, writeFile, readdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { basename, dirname, extname, resolve, join, relative } from 'node:path'
 import { createRequire } from 'node:module'
 import { randomUUID as uuid, randomBytes } from 'node:crypto'
 import * as esbuild from 'esbuild'
-import glob from 'fast-glob'
+import { glob as globImplementation } from '../src/glob.cjs' // TODO: inject when separated
 
 const require = createRequire(import.meta.url)
 const resolveRequire = (query) => require.resolve(query)
@@ -108,6 +108,11 @@ const hermesSupported = {
   'for-await': false,
 }
 
+async function glob(patterns, { exclude, cwd }) {
+  if (globImplementation) return globImplementation(patterns, { exclude, cwd })
+  return Array.fromAsync(fsPromises.glob(patterns, { exclude, cwd }))
+}
+
 const getPackageFiles = async (dir) => {
   // Returns an empty list on errors
   let patterns
@@ -123,7 +128,8 @@ const getPackageFiles = async (dir) => {
 
   // Hack for now, TODO: fix this
   const expanded = patterns.flatMap((x) => (x.includes('.') ? [x] : [x, `${x}/**/*`]))
-  return glob(expanded, { ignore: ['**/node_modules'], cwd: dir, absolute: true })
+  const files = await glob(expanded, { exclude: ['**/node_modules'], cwd: dir })
+  return files.map((file) => resolve(dir, file)) // absolute
 }
 
 const loadCache = new Map()
