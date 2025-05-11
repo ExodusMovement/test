@@ -16,7 +16,7 @@ import { Queue } from '@chalker/queue'
 import { haveModuleMocks, haveSnapshots, haveForceExit } from '../src/version.js'
 import { findBinary } from './find-binary.js'
 import * as browsers from './browsers.js'
-import { glob } from '../src/glob.cjs'
+import { glob as globImplementation } from '../src/glob.cjs'
 
 const bindir = dirname(fileURLToPath(import.meta.url))
 const DEFAULT_PATTERNS = [`**/?(*.)+(spec|test).?([cm])[jt]s?(x)`] // do not trust magic dirs by default
@@ -399,8 +399,14 @@ for (const r of options.require) {
   args.push('-r', r)
 }
 
+async function glob(patterns, { ignore, cwd }) {
+  const patternsY = patterns.filter((x) => !x.startsWith('!'))
+  const patternsN = patterns.filter((x) => x.startsWith('!')).map((x) => x.slice(1))
+  return globImplementation(patternsY, { exclude: [...ignore, ...patternsN], cwd })
+}
+
 if (patterns.length === 0) patterns.push(...DEFAULT_PATTERNS) // defaults
-const globbed = await glob(patterns, { exclude: ignore })
+const globbed = await glob(patterns, { ignore })
 const allfiles = filter ? globbed.filter(filter) : globbed
 
 if (allfiles.length === 0) {
@@ -415,7 +421,7 @@ if (allfiles.length === 0) {
 
 let subfiles // must be a strict subset of allfiles
 if (process.env.EXODUS_TEST_SELECT) {
-  subfiles = await glob(process.env.EXODUS_TEST_SELECT, { exclude: ignore })
+  subfiles = await glob(process.env.EXODUS_TEST_SELECT, { ignore })
 
   const allSet = new Set(allfiles)
   const stray = subfiles.filter((file) => !allSet.has(file))
