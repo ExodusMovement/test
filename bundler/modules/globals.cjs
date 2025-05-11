@@ -118,6 +118,60 @@ if (process.env.EXODUS_TEST_PLATFORM === 'quickjs' && globalThis.os) {
 
 if (globalThis.describe) delete globalThis.describe
 
+if (
+  process.env.EXODUS_TEST_PLATFORM === 'hermes' ||
+  (process.env.EXODUS_TEST_IS_BAREBONE && !globalThis.clearTimeout)
+) {
+  // Ok, we have broken timers, let's hack them around
+  let i = 0
+  const timers = new Map()
+  const repeating = new Set()
+  const { setTimeout: setTimeoutOriginal, clearTimeout: clearTimeoutOriginal } = globalThis
+  const schedule = setTimeoutOriginal || ((x) => Promise.resolve().then(() => x())) // e.g. SpiderMonkey doesn't even have setTimeout
+  const dateNow = Date.now.bind(Date)
+  const precision = clearTimeoutOriginal ? Infinity : 10 // have to tick this fast for clearTimeout to work
+
+  const setTimeout = (fn, time, ...args) => {
+    const id = `ht${i++}`
+    let started = dateNow()
+    const tick = () => {
+      if (!timers.has(id)) return
+      const remaining = started + time - dateNow()
+      if (remaining < 0) {
+        if (repeating.has(id)) {
+          started = dateNow()
+          timers.set(id, schedule(tick, Math.min(precision, time)))
+        } else {
+          timers.delete(id)
+        }
+
+        fn(...args)
+      } else {
+        timers.set(id, schedule(tick, Math.min(precision, remaining)))
+      }
+    }
+
+    timers.set(id, schedule(tick, Math.min(precision, time)))
+    return id
+  }
+
+  globalThis.setTimeout = setTimeout
+  globalThis.setInterval = (fn, time, ...args) => {
+    const id = setTimeout(fn, time, ...args)
+    repeating.add(id)
+    return id
+  }
+
+  globalThis.clearTimeout = globalThis.clearInterval = (id) => {
+    if (!timers.has(id)) return
+    clearTimeoutOriginal?.(timers.get(id))
+    timers.delete(id)
+    repeating.delete(id)
+  }
+}
+
+const { setTimeout } = globalThis // we need non-overriden by fake timers one
+
 if (typeof process === 'undefined') {
   // Fixes process.exitCode handling
 
@@ -184,58 +238,6 @@ This activity created errors and would have caused tests to fail, but instead tr
     // We also don't print anything except the header, as browsers already print that
     // Cancelling the default behavior is less robust as we want to treat this as error
     globalThis.addEventListener('unhandledrejection', () => logHeader())
-  }
-}
-
-if (
-  process.env.EXODUS_TEST_PLATFORM === 'hermes' ||
-  (process.env.EXODUS_TEST_IS_BAREBONE && !globalThis.clearTimeout)
-) {
-  // Ok, we have broken timers, let's hack them around
-  let i = 0
-  const timers = new Map()
-  const repeating = new Set()
-  const { setTimeout: setTimeoutOriginal, clearTimeout: clearTimeoutOriginal } = globalThis
-  const schedule = setTimeoutOriginal || ((x) => Promise.resolve().then(() => x())) // e.g. SpiderMonkey doesn't even have setTimeout
-  const dateNow = Date.now.bind(Date)
-  const precision = clearTimeoutOriginal ? Infinity : 10 // have to tick this fast for clearTimeout to work
-
-  const setTimeout = (fn, time, ...args) => {
-    const id = `ht${i++}`
-    let started = dateNow()
-    const tick = () => {
-      if (!timers.has(id)) return
-      const remaining = started + time - dateNow()
-      if (remaining < 0) {
-        if (repeating.has(id)) {
-          started = dateNow()
-          timers.set(id, schedule(tick, Math.min(precision, time)))
-        } else {
-          timers.delete(id)
-        }
-
-        fn(...args)
-      } else {
-        timers.set(id, schedule(tick, Math.min(precision, remaining)))
-      }
-    }
-
-    timers.set(id, schedule(tick, Math.min(precision, time)))
-    return id
-  }
-
-  globalThis.setTimeout = setTimeout
-  globalThis.setInterval = (fn, time, ...args) => {
-    const id = setTimeout(fn, time, ...args)
-    repeating.add(id)
-    return id
-  }
-
-  globalThis.clearTimeout = globalThis.clearInterval = (id) => {
-    if (!timers.has(id)) return
-    clearTimeoutOriginal?.(timers.get(id))
-    timers.delete(id)
-    repeating.delete(id)
   }
 }
 
