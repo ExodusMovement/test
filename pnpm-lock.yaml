@@ -20,9 +20,6 @@ importers:
       fast-glob:
         specifier: ^3.2.11
         version: 3.3.2
-      jest-extended:
-        specifier: ^4.0.2
-        version: 4.0.2(jest@29.7.0(@types/node@22.14.0))
       pretty-format:
         specifier: ^29.7.0
         version: 29.7.0
@@ -84,6 +81,9 @@ importers:
       flow-remove-types:
         specifier: ^2.242.0
         version: 2.242.0
+      jest-extended:
+        specifier: ^4.0.2
+        version: 4.0.2(jest@29.7.0(@types/node@22.14.0))
       jsdom:
         specifier: ^24.1.0
         version: 24.1.0
@@ -6583,6 +6583,7 @@ snapshots:
       jest-get-type: 29.6.3
     optionalDependencies:
       jest: 29.7.0(@types/node@22.14.0)
+    optional: true
 
   jest-get-type@29.6.3: {}
 

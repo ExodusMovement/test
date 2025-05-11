@@ -144,7 +144,6 @@
     "@exodus/replay": "^1.0.0-rc.8",
     "expect": "^29.7.0",
     "fast-glob": "^3.2.11",
-    "jest-extended": "^4.0.2",
     "pretty-format": "^29.7.0"
   },
   "optionalDependencies": {
@@ -167,6 +166,7 @@
     "esbuild": "~0.25.2",
     "events": "^3.3.0",
     "flow-remove-types": "^2.242.0",
+    "jest-extended": "^4.0.2",
     "jsdom": "^24.1.0",
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
