@@ -127,7 +127,13 @@ if (
   const timers = new Map()
   const repeating = new Set()
   const { setTimeout: setTimeoutOriginal, clearTimeout: clearTimeoutOriginal } = globalThis
-  const schedule = setTimeoutOriginal || ((x) => Promise.resolve().then(() => x())) // e.g. SpiderMonkey doesn't even have setTimeout
+  const tickTimes = (n) => {
+    let x = Promise.resolve() // 0 is equivalent to one Promise.resolve()
+    for (let i = 0; i < n; i++) x = x.then(() => {}) // this is faster on cpu than await in SpiderMonkey
+    return x
+  }
+
+  const schedule = setTimeoutOriginal || ((x) => tickTimes(50).then(() => x())) // e.g. SpiderMonkey doesn't even have setTimeout
   const dateNow = Date.now.bind(Date)
   const precision = clearTimeoutOriginal ? Infinity : 10 // have to tick this fast for clearTimeout to work
 
@@ -136,7 +142,7 @@ if (
     let started = dateNow()
     const tick = () => {
       if (!timers.has(id)) return
-      const remaining = started + time - dateNow()
+      const remaining = time + started - dateNow()
       if (remaining < 0) {
         if (repeating.has(id)) {
           started = dateNow()
