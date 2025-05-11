@@ -112,10 +112,11 @@ const execArgv = process.env.EXODUS_TEST_EXECARGV
   ? JSON.parse(process.env.EXODUS_TEST_EXECARGV)
   : process.execArgv
 const esbuildLoaders = ['node_modules/tsx/dist/loader.mjs', '/loaders/esbuild.js']
-const insideEsbuild = execArgv.some((x) => esbuildLoaders.some((y) => x.endsWith(y)))
+const insideEsbuildStatic = execArgv.some((x) => esbuildLoaders.some((y) => x.endsWith(y)))
+const insideEsbuild = () => insideEsbuildStatic || globalThis.EXODUS_TEST_INSIDE_ESBUILD
 
 function makeEsbuildMockable() {
-  if (!insideEsbuild) return
+  if (!insideEsbuild()) return
   // Hook into tsx/esbuild transpiled module conversion magic to make loaded modules mockable in runtime
   // We want all modules to be .configurable = true, so we can override them
   const defineProperty = Object.defineProperty

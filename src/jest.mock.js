@@ -279,7 +279,7 @@ function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
   }
 
   const topLevelESM = isTopLevelESM()
-  let likelyESM = topLevelESM && !insideEsbuild && ![null, resolved].includes(resolveImport(name))
+  let likelyESM = topLevelESM && !insideEsbuild() && ![null, resolved].includes(resolveImport(name))
   let isOverridenBuiltinSynchedWithESM = false
   const isBuiltIn = builtinModules.includes(resolved)
   const isNodeCache = (x) => x && x.id && x.path && x.filename && x.children && x.paths && x.loaded
@@ -329,7 +329,7 @@ function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
   if (value[Symbol.toStringTag] === 'Module') value.__esModule = true
   const obj = { defaultExport: value }
   if (isBuiltIn && isObject(value)) obj.namedExports = value
-  if (insideEsbuild) {
+  if (insideEsbuild()) {
     // esbuild handles unwrapping just default exports for us
     assert(!likelyESM) // should not be reachable
     const { default: defaultExport, __esModule, ...namedExports } = value // eslint-disable-line @typescript-eslint/no-unused-vars
