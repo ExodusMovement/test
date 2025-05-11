@@ -127,10 +127,9 @@ if (
   const timers = new Map()
   const repeating = new Set()
   const { setTimeout: setTimeoutOriginal, clearTimeout: clearTimeoutOriginal } = globalThis
-  const tickTimes = (n) => {
-    let x = Promise.resolve() // 0 is equivalent to one Promise.resolve()
-    for (let i = 0; i < n; i++) x = x.then(() => {}) // this is faster on cpu than await in SpiderMonkey
-    return x
+  const tickTimes = async (n) => {
+    const promise = Promise.resolve() // tickTimes(0) is equivalent to one Promise.resolve() as it's async
+    for (let i = 0; i < n; i++) await promise
   }
 
   const schedule = setTimeoutOriginal || ((x) => tickTimes(50).then(() => x())) // e.g. SpiderMonkey doesn't even have setTimeout

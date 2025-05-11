@@ -483,9 +483,11 @@ const awaitForMicrotaskQueue = async () => {
   if (setImmediate) return new Promise((resolve) => setImmediate(resolve))
 
   // Do not rely on setTimeout here! it will tick actual time and is terribly slow (i.e. timers no longer fake)
-  // 100_000 should be enough to flush everything that's going on in the microtask queue
-  // Only JSC hits this currently
-  for (let i = 0; i < 100_000; i++) await Promise.resolve()
+  // 50_000 should be enough to flush everything that's going on in the microtask queue
+  // E.g. JSC and SpiderMonkey hit this currently
+  const promise = Promise.resolve()
+  for (let i = 0; i < 50_000; i++) await promise
+  await promise
 }
 
 let builtinModules = []
