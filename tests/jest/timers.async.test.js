@@ -1,3 +1,4 @@
+jest.setTimeout(30_000) // this test can be slow on SpiderMonkey due to it not having setTimeout
 jest.useFakeTimers()
 
 const delayTime = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
