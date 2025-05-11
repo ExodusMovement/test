@@ -1,15 +1,15 @@
 test('jest.resetModels', () => {
-  const a = require('c8')
+  const a = require('fast-glob')
   a.foo = 'bar'
   expect(a.foo).toBe('bar')
 
-  const b = require('c8')
+  const b = require('fast-glob')
   expect(a).toBe(b)
   expect(b.foo).toBe('bar')
 
   jest.resetModules()
 
-  const c = require('c8')
+  const c = require('fast-glob')
   expect(c).not.toBe(a)
   expect(c).not.toBe(b)
   expect(c.foo).toBe(undefined)
@@ -17,7 +17,7 @@ test('jest.resetModels', () => {
   expect(a).toBe(b)
   expect(b.foo).toBe('bar')
 
-  const d = require('c8')
+  const d = require('fast-glob')
   expect(d).not.toBe(a)
   expect(d).not.toBe(b)
   expect(d).toBe(c)

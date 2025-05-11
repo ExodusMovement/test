@@ -477,14 +477,14 @@ if (!options.bundle) {
 if (!Object.hasOwn(process.env, 'NODE_ENV')) process.env.NODE_ENV = 'test'
 setEnv('EXODUS_TEST_ONLY', options.only ? '1' : '')
 
-const c8 = findBinary('c8')
-if (resolveImport) assert.equal(c8, resolveImport('c8/bin/c8.js'))
-
+let c8
 if (options.coverage) {
   assert.equal(options.binary, 'node', 'Coverage is only supported with Node.js')
   if (options.coverageEngine === 'node') {
     args.push('--experimental-test-coverage')
   } else if (options.coverageEngine === 'c8') {
+    c8 = findBinary('c8')
+    if (resolveImport) assert.equal(c8, resolveImport('c8/bin/c8.js'))
     args.unshift(options.binary)
     options.binary = c8
     // perhaps use text-summary ?
@@ -517,7 +517,7 @@ const assertBinary = (binary, allowed) => {
   if (allowed.includes(binary)) return
   if (existsSync(binary)) {
     const name = basename(binary.toLowerCase()).replace(/\.exe$/u, '')
-    if (binary === c8 || (options.binaryCanBeAbsolute && allowed.includes(name))) return
+    if ((c8 && binary === c8) || (options.binaryCanBeAbsolute && allowed.includes(name))) return
   }
 
   throw new Error(`Unexpected binary: ${binary}`)

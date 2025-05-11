@@ -140,6 +140,14 @@
     "lint:fix": "prettier --write . && eslint --fix ."
   },
   "dependencies": {
+    "@chalker/queue": "^1.0.0",
+    "@exodus/replay": "^1.0.0-rc.8",
+    "expect": "^29.7.0",
+    "fast-glob": "^3.2.11",
+    "jest-extended": "^4.0.2",
+    "pretty-format": "^29.7.0"
+  },
+  "optionalDependencies": {
     "@babel/core": "^7.0.0",
     "@babel/plugin-syntax-import-attributes": "^7.0.0",
     "@babel/plugin-syntax-typescript": "^7.0.0",
@@ -148,8 +156,6 @@
     "@babel/plugin-transform-classes": "^7.0.0",
     "@babel/plugin-transform-private-methods": "^7.0.0",
     "@babel/register": "^7.0.0",
-    "@chalker/queue": "^1.0.0",
-    "@exodus/replay": "^1.0.0-rc.8",
     "@ungap/url-search-params": "^0.2.2",
     "amaro": "^0.0.5",
     "assert": "^2.1.0",
@@ -160,15 +166,11 @@
     "crypto-browserify": "^3.12.0",
     "esbuild": "~0.25.2",
     "events": "^3.3.0",
-    "expect": "^29.7.0",
-    "fast-glob": "^3.2.11",
     "flow-remove-types": "^2.242.0",
-    "jest-extended": "^4.0.2",
     "jsdom": "^24.1.0",
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
     "playwright-core": "^1.52.0",
-    "pretty-format": "^29.7.0",
     "puppeteer-core": "^24.6.0",
     "querystring-es3": "^0.2.1",
     "stream-browserify": "^3.0.0",
@@ -192,13 +194,9 @@
     "jsvu": "^3.0.0"
   },
   "peerDependencies": {
-    "crypto-browserify": "^3.12.0",
     "electron": "*"
   },
   "peerDependenciesMeta": {
-    "crypto-browserify": {
-      "optional": true
-    },
     "electron": {
       "optional": true
     }
