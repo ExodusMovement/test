@@ -326,8 +326,13 @@ class MockTimers {
 
   #schedule(entry) {
     const before = this.#queue.findIndex((x) => x.runAt > entry.runAt)
-    if (before === -1) return this.#queue.push(entry)
-    this.#queue.splice(before, 0, entry)
+    if (before === -1) {
+      this.#queue.push(entry)
+    } else {
+      this.#queue.splice(before, 0, entry)
+    }
+
+    return entry
   }
 
   runAll() {
@@ -339,21 +344,15 @@ class MockTimers {
   }
 
   #setTimeout(callback, delay, ...args) {
-    const id = { callback, runAt: delay + this.#elapsed, args }
-    this.#schedule(id)
-    return id
+    return this.#schedule({ callback, runAt: delay + this.#elapsed, args })
   }
 
   #setInterval(callback, delay, ...args) {
-    const id = { callback, runAt: delay + this.#elapsed, interval: delay, args }
-    this.#schedule(id)
-    return id
+    return this.#schedule({ callback, runAt: delay + this.#elapsed, interval: delay, args })
   }
 
   #setImmediate(callback, ...args) {
-    const id = { callback, runAt: -1, args }
-    this.#schedule(id)
-    return id
+    return this.#schedule({ callback, runAt: -1, args })
   }
 
   #clearTimeout(id) {
