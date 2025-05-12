@@ -421,7 +421,7 @@ export const build = async (...files) => {
             }
 
             const loader = extname(filepath).replace(/^\.[cm]?/, '') // TODO: a flag to force jsx/tsx perhaps
-            assert(['js', 'ts', 'jsx', 'tx'].includes(loader))
+            assert(['js', 'ts', 'jsx', 'tsx'].includes(loader))
 
             return { contents: await loadSourceFile(filepath), loader }
           })
