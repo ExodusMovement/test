@@ -136,7 +136,8 @@ if (
   const precision = clearTimeoutOriginal ? Infinity : 10 // have to tick this fast for clearTimeout to work
   let current = 0
   let loopTimeout
-
+  let publicId = 0
+  const timerMap = new Map()
   let queue = []
   const stopLoop = () => {
     clearTimeoutOriginal?.(loopTimeout)
@@ -158,6 +159,9 @@ if (
   }
 
   const queueSchedule = (entry) => {
+    if (!entry.publicId) entry.publicId = ++publicId // eslint-disable-line @exodus/mutable/no-param-reassign-prop-only
+    timerMap.set(entry.publicId, entry)
+
     const before = queue.findIndex((x) => x.runAt > entry.runAt)
     if (before === -1) {
       queue.push(entry)
@@ -166,13 +170,15 @@ if (
     }
 
     if (entry === queue[0]) restartLoop()
-    return entry
+    return entry.publicId
   }
 
   const queueMicrotick = () => {
     if (queue.length === 0 || !(queue[0].runAt <= dateNow())) return null
     const next = queue.shift()
-    if (next.interval !== undefined) {
+    if (next.interval === undefined) {
+      timerMap.delete(next.publicId)
+    } else {
       next.runAt += next.interval
       queueSchedule(next)
     }
@@ -193,7 +199,10 @@ if (
     queueSchedule({ callback, runAt: delay + dateNow(), interval: delay, args })
 
   globalThis.clearTimeout = globalThis.clearInterval = (id) => {
-    queue = queue.filter((x) => x !== id)
+    const entry = timerMap.get(id)
+    if (!entry) return
+    timerMap.delete(id)
+    queue = queue.filter((x) => x !== entry)
     if (queue.length === 0) stopLoop()
   }
 }
