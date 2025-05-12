@@ -201,7 +201,7 @@ function parseOptions() {
       case '--concurrency':
         const concurrency = args.shift()
         options.concurrency = Number(concurrency)
-        assert.equal(concurrency, `${options.concurrency}`)
+        assert.equal(`${concurrency}`, `${options.concurrency}`)
         assert(Number.isInteger(options.concurrency) && options.concurrency >= 0)
         break
       case '--bundle-entropy-size':
@@ -220,10 +220,8 @@ function parseOptions() {
     }
   }
 
-  assert(
-    args.every((arg) => typeof arg === 'string' && !arg.startsWith('--')),
-    'Options should come before patterns'
-  )
+  const argsArePlainStrings = args.every((arg) => typeof arg === 'string' && !arg.startsWith('--'))
+  assert(argsArePlainStrings, 'Options should come before patterns')
 
   const patterns = [...args]
 
