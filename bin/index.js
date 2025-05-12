@@ -34,6 +34,7 @@ const ENGINES = new Map(
     'electron-as-node:test': { binary: 'electron', pure: false, hasImportLoader: true, ts: 'flag' },
     'electron-as-node:pure': { binary: 'electron', pure: true, hasImportLoader: true, ts: 'flag' },
     'electron-as-node:bundle': { binary: 'electron', ...bundleOpts },
+    'electron:bundle': { binary: 'electron', electron: true, ...bundleOpts },
     'deno:bundle': { binary: 'deno', binaryArgs: ['run'], target: 'deno1', ...bundleOpts },
     // Barebone engines
     'd8:bundle': { binary: 'd8', ...bareboneOpts },
@@ -250,14 +251,16 @@ const engineOptions = ENGINES.get(options.engine)
 assert(engineOptions, `Unknown engine: ${options.engine}`)
 Object.assign(options, engineOptions)
 options.platform = options.binary // binary can be overriden by c8 or electron
+const isBrowserLike = options.browsers || options.electron
 setEnv('EXODUS_TEST_ENGINE', options.engine) // e.g. 'hermes:bundle', 'node:bundle', 'node:test', 'node:pure'
 setEnv('EXODUS_TEST_PLATFORM', options.binary) // e.g. 'hermes', 'node'
 setEnv('EXODUS_TEST_TIMEOUT', options.testTimeout)
-setEnv('EXODUS_TEST_IS_BROWSER', options.browsers ? '1' : '')
+setEnv('EXODUS_TEST_DEVTOOLS', options.devtools ? '1' : '')
+setEnv('EXODUS_TEST_IS_BROWSER', isBrowserLike ? '1' : '')
 setEnv('EXODUS_TEST_IS_BAREBONE', options.barebone ? '1' : '')
 setEnv('EXODUS_TEST_ENVIRONMENT', options.bundle ? 'bundle' : '') // perhaps switch to _IS_BUNDLED?
 
-assert(!options.devtools || options.browsers, '--devtools can be only used with browser engines')
+assert(!options.devtools || isBrowserLike, '--devtools can be only used with browser engines')
 
 const require = createRequire(import.meta.url)
 const resolveRequire = (query) => require.resolve(query)
@@ -500,7 +503,15 @@ if (options.coverage) {
   }
 }
 
-if (options.binary === 'electron') setEnv('ELECTRON_RUN_AS_NODE', '1')
+if (options.binary === 'electron') {
+  if (isBrowserLike) {
+    assert(!options.binaryArgs)
+    options.binaryArgs = [resolveImport('./electron.js')]
+  } else {
+    setEnv('ELECTRON_RUN_AS_NODE', '1')
+  }
+}
+
 if (options.barebone || options.binary === 'electron') {
   options.binary = findBinary(options.binary)
   options.binaryCanBeAbsolute = true
@@ -580,7 +591,7 @@ async function launch(binary, args, opts = {}, buffering = false) {
 if (options.pure) {
   setEnv('EXODUS_TEST_CONTEXT', 'pure')
   warnHuman(`${engineName} is experimental and may not work an expected`)
-  const missUnhandled = ['jsc'].includes(options.platform) || options.browsers
+  const missUnhandled = ['jsc'].includes(options.platform) || isBrowserLike
   if (missUnhandled) warnHuman(`Warning: ${engineName} does not have unhandled rejections tracking`)
 
   const runOne = async (inputFile, attempt = 0) => {

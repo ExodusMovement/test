@@ -173,6 +173,25 @@ jobs:
       - run: pnpm i --frozen-lockfile
       - run: node --run test:deno
 
+  electron-as-node:
+    runs-on: ubuntu-22.04
+    name: 'Test on Electron as Node.js'
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+      - uses: pnpm/action-setup@18ac635edf3d6cd3e88d281bceecc25c4dbc1e73
+        with:
+          run_install: false
+      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b
+        with:
+          node-version-file: '.nvmrc'
+          cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
+      - run: pnpm i --frozen-lockfile
+      - run: node --run test:electron:node
+      - run: node --run test:electron:node:pure
+      - run: node --run test:electron:node:bundle
+
   electron:
     runs-on: ubuntu-22.04
     name: 'Test on Electron'
@@ -188,6 +207,4 @@ jobs:
           cache: pnpm
           registry-url: 'https://registry.npmjs.org'
       - run: pnpm i --frozen-lockfile
-      - run: node --run test:electron
-      - run: node --run test:electron:pure
-      - run: node --run test:electron:bundle
+      - run: xvfb-run node --run test:electron:bundle

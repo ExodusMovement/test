@@ -163,7 +163,9 @@ export const build = async (...files) => {
   const importSource = async (file) => input.push(await loadSourceFile(resolveRequire(file)))
   const importFile = (...args) => input.push(`await import(${JSON.stringify(resolve(...args))});`)
 
-  if (['node', 'electron'].includes(options.platform)) {
+  const nodeApisPlatforms = new Set(['node', 'bun', 'electron'])
+  const hasNodeApis = nodeApisPlatforms.has(options.platform) && !process.env.EXODUS_TEST_IS_BROWSER
+  if (hasNodeApis && ['node', 'electron'].includes(options.platform)) {
     await importSource('./modules/globals.node.cjs')
   } else {
     if (process.env.EXODUS_TEST_IS_BAREBONE) {
@@ -311,12 +313,11 @@ export const build = async (...files) => {
     })
   }
 
-  const hasBuffer = ['node', 'bun', 'electron'].includes(options.platform)
   const api = (f) => resolveRequire(`./modules/${f}`)
   const nodeUnprefixed = {
     assert: dirname(dirname(resolveRequire('assert/'))),
     'assert/strict': api('assert-strict.cjs'),
-    buffer: hasBuffer ? api('node-buffer.cjs') : dirname(resolveRequire('buffer/')),
+    buffer: hasNodeApis ? api('node-buffer.cjs') : dirname(resolveRequire('buffer/')),
     child_process: api('child_process.cjs'),
     constants: resolveRequire('constants-browserify'),
     cluster: api('cluster.cjs'),
@@ -473,7 +474,7 @@ export const build = async (...files) => {
     config.define['process.argv'] = stringify(['exodus-test', resolve(files[0])])
   }
 
-  if (!['node', 'bun', 'electron'].includes(options.platform)) {
+  if (!hasNodeApis) {
     config.define['process.cwd'] = 'EXODUS_TEST_PROCESS.cwd'
     config.define['process.exit'] = 'EXODUS_TEST_PROCESS.exit'
   }

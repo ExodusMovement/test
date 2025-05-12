@@ -1,4 +1,5 @@
-describe('Electron', {}, () => {
+const describeNodeIntegration = globalThis.process ? describe : describe.skip
+describeNodeIntegration('Electron', {}, () => {
   const shouldBeElectron = process.env.EXODUS_TEST_PLATFORM === 'electron'
 
   test('Are we Electron', () => {
