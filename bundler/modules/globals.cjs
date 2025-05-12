@@ -123,55 +123,78 @@ if (
   (process.env.EXODUS_TEST_IS_BAREBONE && !globalThis.clearTimeout)
 ) {
   // Ok, we have broken timers, let's hack them around
-  let i = 0
-  const timers = new Map()
-  const repeating = new Set()
   const { setTimeout: setTimeoutOriginal, clearTimeout: clearTimeoutOriginal } = globalThis
   const tickTimes = async (n) => {
     const promise = Promise.resolve() // tickTimes(0) is equivalent to one Promise.resolve() as it's async
     for (let i = 0; i < n; i++) await promise
   }
 
+  // TODO: use interrupt timers on jsc
+
   const schedule = setTimeoutOriginal || ((x) => tickTimes(50).then(() => x())) // e.g. SpiderMonkey doesn't even have setTimeout
   const dateNow = Date.now.bind(Date)
   const precision = clearTimeoutOriginal ? Infinity : 10 // have to tick this fast for clearTimeout to work
+  let current = 0
+  let loopTimeout
 
-  const setTimeout = (fn, time, ...args) => {
-    const id = `ht${i++}`
-    let started = dateNow()
+  let queue = []
+  const stopLoop = () => {
+    clearTimeoutOriginal?.(loopTimeout)
+    current++
+  }
+
+  const restartLoop = () => {
+    clearTimeoutOriginal?.(loopTimeout)
+    const at = queue[0].runAt
+    const id = ++current
     const tick = () => {
-      if (!timers.has(id)) return
-      const remaining = time + started - dateNow()
-      if (remaining < 0) {
-        if (repeating.has(id)) {
-          started = dateNow()
-          timers.set(id, schedule(tick, Math.min(precision, time)))
-        } else {
-          timers.delete(id)
-        }
-
-        fn(...args)
-      } else {
-        timers.set(id, schedule(tick, Math.min(precision, remaining)))
-      }
+      if (id !== current) return
+      const remaining = at - dateNow()
+      if (remaining <= 0) return queueTick()
+      loopTimeout = schedule(tick, Math.min(precision, remaining))
     }
 
-    timers.set(id, schedule(tick, Math.min(precision, time)))
-    return id
+    loopTimeout = schedule(tick, Math.min(precision, at - dateNow()))
   }
 
-  globalThis.setTimeout = setTimeout
-  globalThis.setInterval = (fn, time, ...args) => {
-    const id = setTimeout(fn, time, ...args)
-    repeating.add(id)
-    return id
+  const queueSchedule = (entry) => {
+    const before = queue.findIndex((x) => x.runAt > entry.runAt)
+    if (before === -1) {
+      queue.push(entry)
+    } else {
+      queue.splice(before, 0, entry)
+    }
+
+    if (entry === queue[0]) restartLoop()
+    return entry
   }
+
+  const queueMicrotick = () => {
+    if (queue.length === 0 || !(queue[0].runAt <= dateNow())) return null
+    const next = queue.shift()
+    if (next.interval !== undefined) {
+      next.runAt += next.interval
+      queueSchedule(next)
+    }
+
+    next.callback(...next.args)
+  }
+
+  const queueTick = () => {
+    current++ // safeguard
+    while (queueMicrotick() !== null);
+    if (queue.length > 1) restartLoop()
+  }
+
+  globalThis.setTimeout = (callback, delay, ...args) =>
+    queueSchedule({ callback, runAt: delay + dateNow(), args })
+
+  globalThis.setInterval = (callback, delay, ...args) =>
+    queueSchedule({ callback, runAt: delay + dateNow(), interval: delay, args })
 
   globalThis.clearTimeout = globalThis.clearInterval = (id) => {
-    if (!timers.has(id)) return
-    clearTimeoutOriginal?.(timers.get(id))
-    timers.delete(id)
-    repeating.delete(id)
+    queue = queue.filter((x) => x !== id)
+    if (queue.length === 0) stopLoop()
   }
 }
 
