@@ -145,7 +145,7 @@ if (
   }
 
   const restartLoop = () => {
-    clearTimeoutOriginal?.(loopTimeout)
+    if (loopTimeout !== undefined) clearTimeoutOriginal?.(loopTimeout) // hermes clearTimeout doesn't follow spec on undefined
     const at = queue[0].runAt
     const id = ++current
     const tick = () => {
