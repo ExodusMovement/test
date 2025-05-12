@@ -314,9 +314,8 @@ class MockTimers {
   }
 
   #microtick() {
-    const next = this.#queue.find((x) => x.runAt <= this.#elapsed) // sorted
-    if (!next) return null
-    this.#queue = this.#queue.filter((x) => x !== next)
+    if (this.#queue.length === 0 || !(this.#queue[0].runAt <= this.#elapsed)) return null
+    const next = this.#queue.shift()
     if (next.interval !== undefined) {
       next.runAt += next.interval
       this.#schedule(next)
