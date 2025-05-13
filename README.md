@@ -10,8 +10,10 @@ It can run your existing tests on [all runtimes and also browsers](#engines), wi
 - Esbuild on the fly for babelified ESM interop (enable via `--esbuild`)
 - TypeScript support in both transform (through [tsx](https://tsx.is/), enable via `--esbuild`)
   and typestrip (via `--typescript`) modes
-- Runs on Node.js [node:test](https://nodejs.org/api/test.html), Bun, Deno, [v8 CLI](https://v8.dev/docs/d8), JSC,
-  [Hermes](https://hermesengine.dev), SpiderMonkey, Chrome, Firefox, WebKit, [QuickJS](https://github.com/quickjs-ng/quickjs) and [XS](https://github.com/Moddable-OpenSource/moddable-xst).
+- Runs on Node.js [node:test](https://nodejs.org/api/test.html), Bun, Deno, Electron,
+  [v8 CLI](https://v8.dev/docs/d8), JSC, [Hermes](https://hermesengine.dev), SpiderMonkey,
+  Chrome, Firefox, WebKit, Brave, Microsoft Edge,
+  [QuickJS](https://github.com/quickjs-ng/quickjs) and [XS](https://github.com/Moddable-OpenSource/moddable-xst).
 - Testsuite-agnostic — can run any file as long as it sets exit code based on test results
 - Built-in [Jest](https://jestjs.io) compatibility (with `--jest`), including `jest.*` global
   - Up to ~10x faster depending on the original setup
@@ -47,6 +49,8 @@ Use `--engine` (or `EXODUS_TEST_ENGINE=`) to specify one of:
   - `electron-as-node:test` / `electron-as-node:pure` / `electron-as-node:bundle`\
     Same as `node:*`, but uses `electron` binary.\
     The usecase is mostly to test on BoringSSL instead of OpenSSL.
+  - `electron:bundle` — run tests in Electron [BrowserWindow](https://www.electronjs.org/docs/latest/api/browser-window)
+    without Node.js integration.
 - Browsers:
   - Playwright builds (install Playwright-built engines with `exodus-test --playwright install`)
     - `chromium:playwright` — Playwright-built Chromium
