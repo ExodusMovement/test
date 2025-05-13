@@ -64,7 +64,7 @@ async function newPage(runner, browser, { binary, dropNetwork }) {
   return { context, page }
 }
 
-export async function run(runner, args, { binary, devtools, dropNetwork, timeout }) {
+export async function run(runner, args, { binary, devtools, dropNetwork, timeout, throttle }) {
   assert(args.length === 1, 'Unexpected args to browser runner')
 
   const bundle = await readFile(args[0], 'utf8')
@@ -74,6 +74,17 @@ export async function run(runner, args, { binary, devtools, dropNetwork, timeout
   assert(Object.hasOwn(launchers, runner), 'Unexpected runner')
   if (!launched[runner]) launched[runner] = launchers[runner]({ binary, devtools })
   const { page, context } = await newPage(runner, await launched[runner], { binary, dropNetwork })
+
+  if (throttle) {
+    try {
+      const cdp = await (page.createCDPSession
+        ? page.createCDPSession()
+        : context.newCDPSession(page))
+      await cdp.send('Emulation.setCPUThrottlingRate', { rate: throttle })
+    } catch (cause) {
+      throw new Error(`${binary}:${runner} does not support --throttle`, { cause })
+    }
+  }
 
   page.on('console', (message) => {
     const type = message.type()

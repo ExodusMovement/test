@@ -62,6 +62,11 @@ const getEnvFlag = (name) => {
   throw new Error(`Unexpected ${name} env value, expected '', '0', or '1'`)
 }
 
+function getNumber(arg) {
+  assert.equal(`${arg}`, `${Number(arg)}`)
+  return Number(arg)
+}
+
 function parseOptions() {
   const options = {
     concurrency: undefined, // undefined means unset (can read from config), 0 means auto
@@ -198,10 +203,12 @@ function parseOptions() {
       case '--idea-compat':
         options.ideaCompat = true
         break
+      case '--throttle':
+        options.throttle = getNumber(args.shift())
+        assert(Number.isInteger(options.throttle) && options.throttle > 0) // throttle x times, 1 is no throttle, 2 is 2x slowdown
+        break
       case '--concurrency':
-        const concurrency = args.shift()
-        options.concurrency = Number(concurrency)
-        assert.equal(`${concurrency}`, `${options.concurrency}`)
+        options.concurrency = getNumber(args.shift())
         assert(Number.isInteger(options.concurrency) && options.concurrency >= 0)
         break
       case '--bundle-entropy-size':
@@ -259,6 +266,7 @@ setEnv('EXODUS_TEST_IS_BAREBONE', options.barebone ? '1' : '')
 setEnv('EXODUS_TEST_ENVIRONMENT', options.bundle ? 'bundle' : '') // perhaps switch to _IS_BUNDLED?
 
 assert(!options.devtools || isBrowserLike, '--devtools can be only used with browser engines')
+assert(!options.throttle || options.browsers, `${engineName} does not support --throttle`)
 
 const require = createRequire(import.meta.url)
 const resolveRequire = (query) => require.resolve(query)
@@ -561,8 +569,8 @@ async function launch(binary, args, opts = {}, buffering = false) {
   if (options.browsers) {
     assert(buffering, 'Unexpected non-buffered browser run')
     const { timeout } = opts
-    const { devtools, dropNetwork } = options
-    return browsers.run(options.browsers, args, { binary, devtools, dropNetwork, timeout })
+    const { browsers: runner, devtools, dropNetwork, throttle } = options
+    return browsers.run(runner, args, { binary, devtools, dropNetwork, timeout, throttle })
   }
 
   const barebones = ['d8', 'v8', 'jsc', 'spidermonkey', 'quickjs', 'xs', 'hermes']
