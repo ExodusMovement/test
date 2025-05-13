@@ -2,8 +2,9 @@ export const specialEnvironments = {
   __proto__: null,
 
   jsdom: {
-    dependencies: ['jsdom'],
+    dependencies: process.env.EXODUS_TEST_IS_BROWSER ? [] : ['jsdom'],
     setup: async (dynamicImport) => {
+      if (process.env.EXODUS_TEST_IS_BROWSER) return // already browser env, and can't load jsdom
       const { JSDOM, VirtualConsole } = await dynamicImport('jsdom')
       const virtualConsole = new VirtualConsole()
       const dom = new JSDOM('<!DOCTYPE html>', {
