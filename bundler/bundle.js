@@ -272,10 +272,12 @@ export const build = async (...files) => {
 
     // E.g. path.join(import.meta.dirname, './fixtures/data.json'), dirname is inlined by loadPipeline already
     const dir = dirname(filepath)
-    for (const m of source.matchAll(/join\(\s*("[^"\\]+"),\s*(?:"([^"\\]+)"|'([^'\\]+)')\s*\)/gu)) {
-      if (m[1] !== JSON.stringify(dir)) continue // only allow files relative to dirname, from loadPipeline
-      const file = resolve(dir, m[2] || m[3])
-      if (aggressiveExtensions.test(file)) await fsFilesAdd(file) // only bundle path.join for specific extensions used as test fixtures
+    for (const [, readFileCall, first, secondA, secondB] of source.matchAll(
+      /(readFile(?:Sync)?\()?(?:path\.)?join\(\s*("[^"\\]+"),\s*(?:"([^"\\]+)"|'([^'\\]+)')\s*\)/gu
+    )) {
+      if (first !== JSON.stringify(dir)) continue // only allow files relative to dirname, from loadPipeline
+      const file = resolve(dir, secondA || secondB)
+      if (readFileCall || aggressiveExtensions.test(file)) await fsFilesAdd(file) // only bundle bare path.join for specific extensions used as test fixtures
     }
 
     // Both conditions should happen for deep fixtures inclusion
