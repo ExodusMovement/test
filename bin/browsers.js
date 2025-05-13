@@ -82,7 +82,7 @@ export async function run(runner, args, { binary, devtools, dropNetwork, timeout
         : context.newCDPSession(page))
       await cdp.send('Emulation.setCPUThrottlingRate', { rate: throttle })
     } catch (cause) {
-      throw new Error(`${binary}:${runner} does not support --throttle`, { cause })
+      throw new Error(`${binary}:${runner} engine does not support --throttle-cpu`, { cause })
     }
   }
 

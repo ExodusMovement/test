@@ -203,7 +203,7 @@ function parseOptions() {
       case '--idea-compat':
         options.ideaCompat = true
         break
-      case '--throttle':
+      case '--throttle-cpu':
         options.throttle = getNumber(args.shift())
         assert(Number.isInteger(options.throttle) && options.throttle > 0) // throttle x times, 1 is no throttle, 2 is 2x slowdown
         break
@@ -266,7 +266,7 @@ setEnv('EXODUS_TEST_IS_BAREBONE', options.barebone ? '1' : '')
 setEnv('EXODUS_TEST_ENVIRONMENT', options.bundle ? 'bundle' : '') // perhaps switch to _IS_BUNDLED?
 
 assert(!options.devtools || isBrowserLike, '--devtools can be only used with browser engines')
-assert(!options.throttle || options.browsers, `${engineName} does not support --throttle`)
+assert(!options.throttle || options.browsers, `${engineName} does not support --throttle-cpu`)
 
 const require = createRequire(import.meta.url)
 const resolveRequire = (query) => require.resolve(query)
