@@ -53,6 +53,7 @@ function findBinaryOnce(name) {
       return findFile([() => jsvu('v8')]) // jsvu names it v8
     case 'spidermonkey':
     case 'quickjs':
+    case 'escargot':
       return findFile([jsvu])
     case 'xs':
       return findFile([jsvu], false)
