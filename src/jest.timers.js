@@ -65,14 +65,24 @@ export function runOnlyPendingTimers() {
   return this
 }
 
+// We have to tick in divisors of 1000, or e.g. 6s will mismatch a bit from 1s + 5s
+const divisors1000 = [1000, 500, 250, 200, 125, 100, 50, 40, 25, 20, 10, 8, 5, 4, 2, 1]
+
+function divisor1000(x) {
+  if (x <= 1) return 1 // fast path
+  for (const d of divisors1000) if (x >= d) return d
+  return 1 // unreachable
+}
+
 // We split this into multiple steps to run timers scheduled during the time we are running
 function splitTime(time, min = 1000) {
   const minSteps = Math.min(min, time) // usually just split e.g. 5 seconds into 1000 * 5ms
-  const step = Number(Math.floor(time / minSteps).toPrecision(1))
+  const step = divisor1000(Math.floor(time / minSteps))
   const steps = Math.floor(time / step) // up to 2x higher than minSteps
   const last = time - steps * step
   // 1999 -> { step: 1, steps: 1999, last: 0 }
   // 2001 -> { step: 2, steps: 1000, last: 1 }
+  // 6000 -> { step: 5, steps: 1200, last: 0 }
   return { step, steps, last }
 }
 
