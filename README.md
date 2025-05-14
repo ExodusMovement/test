@@ -11,7 +11,8 @@ It can run your existing tests on [all runtimes and also browsers](#engines), wi
 - TypeScript support in both transform (through [tsx](https://tsx.is/), enable via `--esbuild`)
   and typestrip (via `--typescript`) modes
 - Runs on Node.js [node:test](https://nodejs.org/api/test.html), Bun, Deno, Electron,
-  [v8 CLI](https://v8.dev/docs/d8), JSC, [Hermes](https://hermesengine.dev), SpiderMonkey,
+  [v8 CLI](https://v8.dev/docs/d8), JSC, [Hermes](https://hermesengine.dev),
+  [SpiderMonkey](https://spidermonkey.dev/), [Escargot](https://github.com/Samsung/escargot),
   Chrome, Firefox, WebKit, Brave, Microsoft Edge,
   [QuickJS](https://github.com/quickjs-ng/quickjs) and [XS](https://github.com/Moddable-OpenSource/moddable-xst).
 - Testsuite-agnostic — can run any file as long as it sets exit code based on test results
@@ -70,6 +71,7 @@ Use `--engine` (or `EXODUS_TEST_ENGINE=`) to specify one of:
   - `spidermonkey:bundle` — [SpiderMonkey](https://spidermonkey.dev/) (Firefox/Gecko JavaScript engine)
   - `quickjs:bundle` — [QuickJS](https://github.com/quickjs-ng/quickjs) (note [quickjs-ng/quickjs#39](https://github.com/quickjs-ng/quickjs/issues/39) though)
   - `xs:bundle` — [XS](https://github.com/Moddable-OpenSource/moddable-xst)
+  - `escargot:bundle` — [Escargot](https://github.com/Samsung/escargot)
 
 ## Reporter samples
 

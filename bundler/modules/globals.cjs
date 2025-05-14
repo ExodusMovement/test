@@ -125,8 +125,16 @@ if (
   // Ok, we have broken timers, let's hack them around
   const { setTimeout: setTimeoutOriginal, clearTimeout: clearTimeoutOriginal } = globalThis
   const tickTimes = async (n) => {
-    const promise = Promise.resolve() // tickTimes(0) is equivalent to one Promise.resolve() as it's async
-    for (let i = 0; i < n; i++) await promise
+    if (process.env.EXODUS_TEST_PLATFORM === 'escargot') {
+      // escargot is _special_ (slow on await, unless we drain manually)
+      let promise = Promise.resolve()
+      for (let i = 0; i < n; i++) promise = promise.then(() => {})
+      globalThis.drainJobQueue()
+      await promise
+    } else {
+      const promise = Promise.resolve() // tickTimes(0) is equivalent to one Promise.resolve() as it's async
+      for (let i = 0; i < n; i++) await promise
+    }
   }
 
   // TODO: use interrupt timers on jsc
