@@ -65,6 +65,17 @@ export function runOnlyPendingTimers() {
   return this
 }
 
+// We split this into multiple steps to run timers scheduled during the time we are running
+function splitTime(time, min = 1000) {
+  const minSteps = Math.min(min, time) // usually just split e.g. 5 seconds into 1000 * 5ms
+  const step = Number(Math.floor(time / minSteps).toPrecision(1))
+  const steps = Math.floor(time / step) // up to 2x higher than minSteps
+  const last = time - steps * step
+  // 1999 -> { step: 1, steps: 1999, last: 0 }
+  // 2001 -> { step: 2, steps: 1000, last: 1 }
+  return { step, steps, last }
+}
+
 export function advanceTimersByTime(time) {
   assert(Number.isSafeInteger(time) && time >= 0)
   assertEnabledTimers()
@@ -74,13 +85,7 @@ export function advanceTimersByTime(time) {
     return this
   }
 
-  // We split this into multiple steps to run timers scheduled during the time we are running
-  const minSteps = Math.min(1000, time) // usually just split e.g. 5 seconds into 1000 * 5ms
-  const step = Number(Math.floor(time / minSteps).toPrecision(1))
-  const steps = Math.floor(time / step) // up to 2x higher than minSteps
-  const last = time - steps * step
-  // 1999 -> { step: 1, steps: 1999, last: 0 }
-  // 2001 -> { step: 2, steps: 1000, last: 1 }
+  const { step, steps, last } = splitTime(time)
   for (let i = 0; i < steps; i++) {
     if (!enabled) break // got disabled while looping
     mock.timers.tick(step)
@@ -109,11 +114,15 @@ export async function advanceTimersByTimeAsync(time) {
   if (mock.timers.tickAsync) {
     await mock.timers.tickAsync(time)
   } else {
-    for (let i = 0; i < time; i++) {
+    const { step, steps, last } = splitTime(time)
+    for (let i = 0; i < steps; i++) {
       await awaitForMicrotaskQueue()
       if (!enabled) break // got disabled while looping
-      mock.timers.tick(1)
+      mock.timers.tick(step)
     }
+
+    if (last > 0 && enabled) await awaitForMicrotaskQueue()
+    if (last > 0 && enabled) mock.timers.tick(last)
   }
 
   await awaitForMicrotaskQueue() // jest doc is misleading and it also does this after running timers
