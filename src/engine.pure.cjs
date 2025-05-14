@@ -485,7 +485,6 @@ const awaitForMicrotaskQueue = async () => {
   // E.g. JSC and SpiderMonkey hit this currently
   const promise = Promise.resolve()
   for (let i = 0; i < 50_000; i++) await promise
-  await promise
 }
 
 let builtinModules = []
