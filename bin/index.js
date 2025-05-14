@@ -616,7 +616,8 @@ if (options.pure) {
       const fullArgs = [...binaryArgs, ...args, file]
       const { code = 0, stdout, stderr } = await launch(options.binary, fullArgs, { timeout }, true)
       const ms = Number(process.hrtime.bigint() - start) / 1e6
-      return { ok: code === 0, output: [stdout, stderr], ms }
+      const ok = code === 0 && !/^(✖ FAIL|‼ FATAL) /mu.test(stdout)
+      return { ok, output: [stdout, stderr], ms }
     } catch (err) {
       const retryOnXS = new Set(['SIGSEGV', 'SIGBUS'])
       if (options.engine === 'xs:bundle' && retryOnXS.has(err.signal) && attempt < 2) {
