@@ -243,6 +243,7 @@ if (typeof process === 'undefined') {
       if (process._exitHook) return process._exitHook(process._exitCode)
       if (process._exitCode !== 0) {
         setTimeout(() => {
+          if (process.env.EXODUS_TEST_IS_BAREBONE) print('EXODUS_TEST_FAILED_EXIT_CODE_1')
           const err = new Error('Test failed')
           err.stack = ''
           throw err
