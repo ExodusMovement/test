@@ -43,6 +43,7 @@ const ENGINES = new Map(
     'spidermonkey:bundle': { binary: 'spidermonkey', ...bareboneOpts },
     'quickjs:bundle': { binary: 'quickjs', binaryArgs: ['--std'], ...bareboneOpts },
     'xs:bundle': { binary: 'xs', ...bareboneOpts },
+    'graaljs:bundle': { binary: 'graaljs', ...bareboneOpts },
     'escargot:bundle': { binary: 'escargot', ...bareboneOpts },
     // Browser engines
     'chrome:puppeteer': { binary: 'chrome', browsers: 'puppeteer', ...bundleOpts },
@@ -574,8 +575,8 @@ async function launch(binary, args, opts = {}, buffering = false) {
     return browsers.run(runner, args, { binary, devtools, dropNetwork, timeout, throttle })
   }
 
-  const barebones = ['d8', 'v8', 'jsc', 'spidermonkey', 'quickjs', 'xs', 'escargot', 'hermes']
-  assertBinary(binary, ['node', 'bun', 'deno', 'electron', ...barebones])
+  const barebones = ['d8', 'jsc', 'spidermonkey', 'quickjs', 'xs', 'escargot', 'graaljs', 'hermes']
+  assertBinary(binary, ['node', 'bun', 'deno', 'electron', ...barebones, 'v8']) // v8 is an alias to d8
   if (options.dropNetwork) {
     switch (process.platform) {
       case 'darwin':
@@ -598,7 +599,7 @@ async function launch(binary, args, opts = {}, buffering = false) {
 if (options.pure) {
   setEnv('EXODUS_TEST_CONTEXT', 'pure')
   warnHuman(`${engineName} is experimental and may not work an expected`)
-  const missUnhandled = ['jsc', 'escargot'].includes(options.platform) || isBrowserLike
+  const missUnhandled = ['jsc', 'escargot', 'graaljs'].includes(options.platform) || isBrowserLike
   if (missUnhandled) warnHuman(`Warning: ${engineName} does not have unhandled rejections tracking`)
 
   const runOne = async (inputFile, attempt = 0) => {

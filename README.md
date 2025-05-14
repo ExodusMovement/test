@@ -13,8 +13,8 @@ It can run your existing tests on [all runtimes and also browsers](#engines), wi
 - Runs on Node.js [node:test](https://nodejs.org/api/test.html), Bun, Deno, Electron,
   [v8 CLI](https://v8.dev/docs/d8), JSC, [Hermes](https://hermesengine.dev), [SpiderMonkey](https://spidermonkey.dev/),
   Chrome, Firefox, WebKit, Brave, Microsoft Edge,
-  [QuickJS](https://github.com/quickjs-ng/quickjs), [XS](https://github.com/Moddable-OpenSource/moddable-xst)
-  and [Escargot](https://github.com/Samsung/escargot).
+  [QuickJS](https://github.com/quickjs-ng/quickjs), [XS](https://github.com/Moddable-OpenSource/moddable-xst),
+  [GraalJS](https://github.com/oracle/graaljs) and [Escargot](https://github.com/Samsung/escargot).
 - Testsuite-agnostic — can run any file as long as it sets exit code based on test results
 - Built-in [Jest](https://jestjs.io) compatibility (with `--jest`), including `jest.*` global
   - Up to ~10x faster depending on the original setup
@@ -71,6 +71,7 @@ Use `--engine` (or `EXODUS_TEST_ENGINE=`) to specify one of:
   - `spidermonkey:bundle` — [SpiderMonkey](https://spidermonkey.dev/) (Firefox/Gecko JavaScript engine)
   - `quickjs:bundle` — [QuickJS](https://github.com/quickjs-ng/quickjs) (note [quickjs-ng/quickjs#39](https://github.com/quickjs-ng/quickjs/issues/39) though)
   - `xs:bundle` — [XS](https://github.com/Moddable-OpenSource/moddable-xst)
+  - `graaljs:bundle` — [GraalJS](https://github.com/oracle/graaljs)
   - `escargot:bundle` — [Escargot](https://github.com/Samsung/escargot)
 
 ## Reporter samples
