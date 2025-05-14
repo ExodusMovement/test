@@ -11,10 +11,10 @@ It can run your existing tests on [all runtimes and also browsers](#engines), wi
 - TypeScript support in both transform (through [tsx](https://tsx.is/), enable via `--esbuild`)
   and typestrip (via `--typescript`) modes
 - Runs on Node.js [node:test](https://nodejs.org/api/test.html), Bun, Deno, Electron,
-  [v8 CLI](https://v8.dev/docs/d8), JSC, [Hermes](https://hermesengine.dev),
-  [SpiderMonkey](https://spidermonkey.dev/), [Escargot](https://github.com/Samsung/escargot),
+  [v8 CLI](https://v8.dev/docs/d8), JSC, [Hermes](https://hermesengine.dev), [SpiderMonkey](https://spidermonkey.dev/),
   Chrome, Firefox, WebKit, Brave, Microsoft Edge,
-  [QuickJS](https://github.com/quickjs-ng/quickjs) and [XS](https://github.com/Moddable-OpenSource/moddable-xst).
+  [QuickJS](https://github.com/quickjs-ng/quickjs), [XS](https://github.com/Moddable-OpenSource/moddable-xst)
+  and [Escargot](https://github.com/Samsung/escargot).
 - Testsuite-agnostic — can run any file as long as it sets exit code based on test results
 - Built-in [Jest](https://jestjs.io) compatibility (with `--jest`), including `jest.*` global
   - Up to ~10x faster depending on the original setup
