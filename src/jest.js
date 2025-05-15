@@ -11,6 +11,7 @@ import { expect } from './expect.cjs'
 import { format as prettyFormat } from 'pretty-format'
 
 const { getCallerLocation, installLocationInNextTest } = createCallerLocationHook()
+const { setTimeout } = globalThis
 
 let inband = false
 if (process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle') {
