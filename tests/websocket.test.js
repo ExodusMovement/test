@@ -1,4 +1,5 @@
 /* eslint-disable unicorn/prefer-add-event-listener */
+/* global WebSocket */
 
 jest.exodus.mock.websocketReplay()
 // jest.exodus.mock.websocketRecord()

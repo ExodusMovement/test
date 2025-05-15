@@ -6,6 +6,10 @@ module.exports = {
   },
   overrides: [
     {
+      files: ['**/*.?([cm])js'],
+      parser: 'espree',
+    },
+    {
       files: ['**/__test__/**/*.?([cm])[jt]s?(x)', '*.{spec,test}.?([cm])[jt]s?(x)'],
       rules: {
         // Subpath exports support is missing: https://github.com/import-js/eslint-plugin-import/issues/1810
