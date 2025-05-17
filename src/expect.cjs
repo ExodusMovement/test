@@ -11,10 +11,14 @@ function fixupAssertions() {
   assertionsDelta = 0
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function loadExpect(loadReason) {
   if (expect) return expect
-  expect = require('expect').expect
+  try {
+    expect = require('expect').expect
+  } catch {
+    throw new Error(`Failed to load 'expect', required for ${loadReason}`)
+  }
+
   // console.log('expect load reason:', loadReason)
   try {
     expect.extend(require('jest-extended'))
@@ -82,7 +86,7 @@ function createExpect() {
           const matcher = matchers[name] || matchersFalseNegative[name]
           if (matcher) {
             return (...args) => {
-              if (!matcher(x, ...args)) return loadExpect(`.${name} fail`)(x)[name](...args)
+              if (!matcher(x, ...args)) return loadExpect(`.${name} check`)(x)[name](...args)
               assertionsDelta++
             }
           }
