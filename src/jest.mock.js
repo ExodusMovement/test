@@ -9,6 +9,7 @@ import {
 } from './engine.js'
 import { jestfn } from './jest.fn.js'
 import { loadExpect } from './expect.cjs'
+import { loadPrettyFormat } from './pretty-format.cjs'
 import { makeEsbuildMockable, insideEsbuild } from './dark.cjs'
 
 const mapMocks = new Map()
@@ -262,6 +263,7 @@ function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
   mapMocks.set(resolved, value)
 
   loadExpect('jest.mock') // we need to do this as we don't want mocks affecting expect
+  loadPrettyFormat() // same reason
 
   if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
     if (builtin) globalThis.EXODUS_TEST_MOCK_BUILTINS.set(builtin, value)

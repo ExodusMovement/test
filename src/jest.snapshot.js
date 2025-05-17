@@ -6,15 +6,16 @@ import {
   readSnapshot,
   relativeRequire,
 } from './engine.js'
-import { format, plugins as builtinPlugins } from 'pretty-format'
+import { formatWithAllPlugins } from './pretty-format.cjs'
 import { jestConfig } from './jest.config.js'
 import { getTestNamePath } from './dark.cjs'
 import { haveSnapshotsReportUnescaped } from './version.js'
 import { matchSnapshot, escapeSnapshot } from './engine.pure.snapshot.cjs'
 
 const { snapshotFormat, snapshotSerializers } = jestConfig()
-const plugins = Object.values(builtinPlugins)
-const serialize = (val) => format(val, { ...snapshotFormat, plugins }).replaceAll(/\r\n|\r/gu, '\n')
+const plugins = []
+const serialize = (val) =>
+  formatWithAllPlugins(val, { ...snapshotFormat, plugins }).replaceAll(/\r\n|\r/gu, '\n')
 
 let serializersAreSetup = false
 let snapshotsAreJest = false

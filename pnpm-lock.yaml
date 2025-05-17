@@ -11,9 +11,6 @@ importers:
       '@exodus/replay':
         specifier: ^1.0.0-rc.8
         version: 1.0.0-rc.8
-      pretty-format:
-        specifier: ^29.7.0
-        version: 29.7.0
     optionalDependencies:
       '@babel/core':
         specifier: ^7.0.0
@@ -96,6 +93,9 @@ importers:
       playwright-core:
         specifier: ^1.52.0
         version: 1.52.0
+      pretty-format:
+        specifier: ^29.7.0
+        version: 29.7.0
       puppeteer-core:
         specifier: ^24.6.0
         version: 24.6.0

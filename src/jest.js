@@ -8,7 +8,7 @@ import { setupSnapshots } from './jest.snapshot.js'
 import { createCallerLocationHook } from './dark.cjs'
 import { exodus } from './exodus.js'
 import { expect } from './expect.cjs'
-import { format as prettyFormat } from 'pretty-format'
+import { format as prettyFormat } from './pretty-format.cjs'
 import { timersTrack, timersDebug } from './timers-track.js'
 
 const { getCallerLocation, installLocationInNextTest } = createCallerLocationHook()
