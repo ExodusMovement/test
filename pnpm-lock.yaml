@@ -7,10 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      '@exodus/replay':
-        specifier: ^1.0.0-rc.8
-        version: 1.0.0-rc.8
     optionalDependencies:
       '@babel/core':
         specifier: ^7.0.0
@@ -39,6 +35,9 @@ importers:
       '@chalker/queue':
         specifier: ^1.0.1
         version: 1.0.1
+      '@exodus/replay':
+        specifier: ^1.0.0-rc.8
+        version: 1.0.0-rc.8
       '@ungap/url-search-params':
         specifier: ^0.2.2
         version: 0.2.2
@@ -4255,7 +4254,8 @@ snapshots:
     dependencies:
       prettier: 3.3.2
 
-  '@exodus/replay@1.0.0-rc.8': {}
+  '@exodus/replay@1.0.0-rc.8':
+    optional: true
 
   '@humanwhocodes/config-array@0.11.14':
     dependencies:

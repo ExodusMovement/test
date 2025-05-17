@@ -1,16 +1,10 @@
-import {
-  fetchRecorder,
-  fetchReplayer,
-  WebSocketRecorder,
-  WebSocketReplayer,
-  prettyJSON,
-} from '@exodus/replay'
-
 const recordingResolver = (type) => (dir, name) => [dir, '__recordings__', type, `${name}.json`]
 
+let replay
 let readRecordingRaw, writeRecording
 
 if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
+  replay = require('@exodus/replay') // we can do this in bundle
   // eslint-disable-next-line no-undef
   const files = EXODUS_TEST_FILES
   const baseFile = files.length === 1 ? files[0] : undefined
@@ -19,6 +13,11 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
   const resolveRecording = (resolver, f) => resolver(f[0], f[1]).join('/')
   readRecordingRaw = (resolver) => (baseFile ? map.get(resolveRecording(resolver, baseFile)) : null)
 } else {
+  try {
+    // TODO: we can synchronously lazy-load it under process.features.require_module
+    replay = await import('@exodus/replay')
+  } catch {}
+
   const fsSync = await import('node:fs')
   const { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, rmdirSync } = fsSync
   const { dirname, basename, normalize, join: pathJoin } = await import('node:path')
@@ -46,7 +45,7 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
     const file = resolveRecording(resolver)
     if (entries.length > 0) {
       mkdirSync(dirname(file), { recursive: true })
-      writeFileSync(file, `${prettyJSON(entries)}\n`)
+      writeFileSync(file, `${replay.prettyJSON(entries)}\n`)
     } else {
       try {
         rmSync(file)
@@ -67,37 +66,41 @@ function readRecording(resolver) {
 const log = { websocket: undefined, fetch: undefined }
 
 export function fetchRecord(options) {
+  if (!replay) throw new Error('Failed to load @exodus/replay')
   if (log.fetch) throw new Error('Can not record again: already recording or replaying!')
   if (!writeRecording) throw new Error('Writing fetch log is not supported on this engine')
   log.fetch = []
   process.on('exit', () => writeRecording(recordingResolver('fetch'), log.fetch))
-  const fetch = fetchRecorder(log.fetch, options)
+  const fetch = replay.fetchRecorder(log.fetch, options)
   globalThis.fetch = fetch
   return fetch
 }
 
 export function fetchReplay() {
+  if (!replay) throw new Error('Failed to load @exodus/replay')
   if (log.fetch) throw new Error('Can not replay: already recording or replaying!')
   log.fetch = readRecording(recordingResolver('fetch')) // Re-initialized from start on each call
-  const fetch = fetchReplayer(log.fetch)
+  const fetch = replay.fetchReplayer(log.fetch)
   globalThis.fetch = fetch
   return fetch
 }
 
 export function websocketRecord(options) {
+  if (!replay) throw new Error('Failed to load @exodus/replay')
   if (log.websocket) throw new Error('Can not record: already recording or replaying!')
   if (!writeRecording) throw new Error('Writing WebSocket log is not supported on this engine')
   log.websocket = []
   process.on('exit', () => writeRecording(recordingResolver('websocket'), log.websocket))
-  const WebSocket = WebSocketRecorder(log.websocket, options)
+  const WebSocket = replay.WebSocketRecorder(log.websocket, options)
   globalThis.WebSocket = WebSocket
   return WebSocket
 }
 
 export function websocketReplay(options) {
+  if (!replay) throw new Error('Failed to load @exodus/replay')
   if (log.websocket) throw new Error('Can not replay: already recording or replaying!')
   log.websocket = readRecording(recordingResolver('websocket')) // Re-initialized from start on each call
-  const WebSocket = WebSocketReplayer(log.websocket, options)
+  const WebSocket = replay.WebSocketReplayer(log.websocket, options)
   globalThis.WebSocket = WebSocket
   return WebSocket
 }
