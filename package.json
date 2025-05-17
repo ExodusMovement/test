@@ -96,6 +96,7 @@
     "src/replay.js",
     "src/tape.js",
     "src/tape.cjs",
+    "src/timers-track.js",
     "src/version.js",
     "expect.cjs",
     "jest.js",

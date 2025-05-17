@@ -1,6 +1,7 @@
 import { mock } from './engine.js'
 import * as node from './engine.js'
 import { fetchReplay, fetchRecord, websocketRecord, websocketReplay } from './replay.js'
+import { timersTrack, timersList, timersDebug, timersAssert } from './timers-track.js'
 import { insideEsbuild } from './dark.cjs'
 import { haveValidTimers } from './version.js'
 
@@ -20,9 +21,8 @@ export const exodus = {
     concurrency: node.engine !== 'pure', // pure engine doesn't support concurrency
   },
   mock: {
-    fetchRecord,
-    fetchReplay,
-    websocketRecord,
-    websocketReplay,
+    ...{ timersTrack, timersList, timersDebug, timersAssert }, // eslint-disable-line unicorn/no-useless-spread
+    ...{ fetchRecord, fetchReplay }, // eslint-disable-line unicorn/no-useless-spread
+    ...{ websocketRecord, websocketReplay }, // eslint-disable-line unicorn/no-useless-spread
   },
 }
