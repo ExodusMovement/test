@@ -3,7 +3,6 @@ import * as node from './engine.js'
 import { fetchReplay, fetchRecord, websocketRecord, websocketReplay } from './replay.js'
 import { timersTrack, timersList, timersDebug, timersAssert } from './timers-track.js'
 import { insideEsbuild } from './dark.cjs'
-import { haveValidTimers } from './version.js'
 
 const isBundle = process.env.EXODUS_TEST_ENVIRONMENT === 'bundle' // TODO: improve mocking from bundle
 export const exodus = {
@@ -13,7 +12,6 @@ export const exodus = {
   implementation: String(node.engine), // aka process.env.EXODUS_TEST_CONTEXT, e.g. 'node:test' or 'pure'
   features: {
     __proto__: null,
-    timers: Boolean(mock.timers && haveValidTimers),
     dynamicRequire: Boolean(!isBundle), // require(non-literal-non-glob), createRequire()(non-builtin)
     esmMocks: Boolean(mock.module || isBundle), // support for ESM mocks
     esmNamedBuiltinMocks: Boolean(mock.module || isBundle || insideEsbuild()), // support for named ESM imports from builtin module mocks: also fine in --esbuild
