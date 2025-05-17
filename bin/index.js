@@ -11,7 +11,6 @@ import { existsSync, rmSync, realpathSync } from 'node:fs'
 import { unlink } from 'node:fs/promises'
 import { tmpdir, availableParallelism, homedir } from 'node:os'
 import assert from 'node:assert/strict'
-import { Queue } from '@chalker/queue'
 // The following make sense only when we run the code in the same Node.js version, i.e. engineOptions.haveIsOk
 import { haveModuleMocks, haveSnapshots, haveForceExit } from '../src/version.js'
 import { findBinary } from './find-binary.js'
@@ -652,6 +651,7 @@ if (options.pure) {
     }
   }
 
+  const { Queue } = await import('@chalker/queue')
   const queue = new Queue(options.concurrency || availableParallelism() - 1)
   const runConcurrent = async (file) => {
     await queue.claim()

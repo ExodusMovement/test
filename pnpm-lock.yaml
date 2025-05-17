@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@chalker/queue':
-        specifier: ^1.0.1
-        version: 1.0.1
       '@exodus/replay':
         specifier: ^1.0.0-rc.8
         version: 1.0.0-rc.8
@@ -42,6 +39,9 @@ importers:
       '@babel/register':
         specifier: ^7.0.0
         version: 7.24.6(@babel/core@7.24.9)
+      '@chalker/queue':
+        specifier: ^1.0.1
+        version: 1.0.1
       '@ungap/url-search-params':
         specifier: ^0.2.2
         version: 0.2.2
@@ -4068,7 +4068,8 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@chalker/queue@1.0.1': {}
+  '@chalker/queue@1.0.1':
+    optional: true
 
   '@electron/get@2.0.3':
     dependencies:
