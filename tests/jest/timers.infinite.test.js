@@ -17,10 +17,8 @@ function infiniteTimerGame(callback) {
 jest.useFakeTimers()
 jest.spyOn(global, 'setTimeout')
 
-const testTimers = !jest.exodus || jest.exodus.features.timers ? test : test.skip
-
 describe('infiniteTimerGame', () => {
-  testTimers('schedules a 10-second timer after 1 second', () => {
+  test('schedules a 10-second timer after 1 second', () => {
     const callback = jest.fn()
 
     infiniteTimerGame(callback)

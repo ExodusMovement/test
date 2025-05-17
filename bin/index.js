@@ -294,9 +294,7 @@ assert(!options.throttle || options.browsers, engineFlagError('throttle-cpu'))
 
 const args = []
 
-if (have.haveModuleMocks && engineOptions.haveIsOk) {
-  args.push('--experimental-test-module-mocks')
-}
+if (engineOptions.haveIsOk) args.push('--experimental-test-module-mocks')
 
 if (options.pure) {
   if (options.bundle) {
@@ -322,11 +320,7 @@ if (options.pure) {
     args.push('--test-update-snapshots')
   }
 
-  if (options.forceExit) {
-    assert(have.haveForceExit && engineOptions.haveIsOk, 'For forceExit, use Node.js >= 20.14.0')
-    args.push('--test-force-exit')
-  }
-
+  if (options.forceExit) args.push('--test-force-exit')
   if (options.watch) args.push('--watch')
   if (options.only) args.push('--test-only')
 
@@ -766,8 +760,7 @@ if (options.pure) {
   assert(files.length > 0) // otherwise we can run recursively
   if (options.concurrency) args.push('--test-concurrency', options.concurrency)
   if (['--inspect', '--inspect-brk', '--inspect-wait'].includes(options.devtools)) {
-    args.push(options.devtools)
-    if (have.haveNetworkInspection) args.push('--experimental-network-inspection')
+    args.push(options.devtools, '--experimental-network-inspection')
     console.warn(
       ['--inspect-brk', '--inspect-wait'].includes(options.devtools)
         ? 'Open chrome://inspect/ to connect devtools, waiting'

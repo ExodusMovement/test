@@ -34,4 +34,4 @@ function matchSnapshot(readSnapshot, assert, name, serialized) {
   return assert.fail(`Could not match "${key}" in snapshot. ${addFail}`)
 }
 
-module.exports = { escapeSnapshot, matchSnapshot }
+module.exports = { matchSnapshot }
