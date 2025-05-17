@@ -170,7 +170,7 @@ This tool does not hoist mocks, so it is important that a mock is defined before
 In ESM, this can be achieved with dynamic imports:
 
 ```js
-jest.mock('./hogwarts.js', () => {
+jest.doMock('./hogwarts.js', () => {
   return {
     __esModule: true,
     default: jest.fn(),
