@@ -9,9 +9,12 @@ import { createCallerLocationHook } from './dark.cjs'
 import { exodus } from './exodus.js'
 import { expect } from './expect.cjs'
 import { format as prettyFormat } from 'pretty-format'
+import { timersTrack, timersDebug } from './timers-track.js'
 
 const { getCallerLocation, installLocationInNextTest } = createCallerLocationHook()
 const { setTimeout } = globalThis
+
+if (process.env.EXODUS_TEST_TIMERS_TRACK) timersTrack()
 
 let inband = false
 if (process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle') {
@@ -209,6 +212,7 @@ if (process.env.EXODUS_TEST_PLATFORM !== 'deno' && globalThis.process) {
     // give everything additional (configurable) defaultTimeout time to finish, otherwide fail
     const timeout = defaultTimeout
     setTimeout(() => {
+      if (process.env.EXODUS_TEST_TIMERS_TRACK) timersDebug()
       console.error(`${prefix} additional ${timeout}ms. Terminating with a failure...`)
       process.exit(1)
     }, timeout).unref()
@@ -217,6 +221,7 @@ if (process.env.EXODUS_TEST_PLATFORM !== 'deno' && globalThis.process) {
     const warnTimeout = 5000
     if (warnTimeout < timeout + 1000) {
       setTimeout(() => {
+        if (process.env.EXODUS_TEST_TIMERS_TRACK) timersDebug()
         console.warn(`${prefix} ${warnTimeout}ms. Waiting for ${timeout}ms to pass to finish...`)
       }, warnTimeout).unref()
     }

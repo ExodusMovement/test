@@ -209,6 +209,9 @@ function parseOptions() {
         options.throttle = getNumber(args.shift())
         assert(Number.isInteger(options.throttle) && options.throttle > 0) // throttle x times, 1 is no throttle, 2 is 2x slowdown
         break
+      case '--debug-timers':
+        setEnv('EXODUS_TEST_TIMERS_TRACK', '1')
+        break
       case '--concurrency':
         options.concurrency = getNumber(args.shift())
         assert(Number.isInteger(options.concurrency) && options.concurrency >= 0)
