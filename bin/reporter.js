@@ -155,7 +155,7 @@ export default async function nodeTestReporterExodus(source) {
         break
       case 'test:fail':
         if (!pskip(path)) print(`${color('✖ FAIL ', 'red')}${pathstr(path)}${formatSuffix(data)}`)
-        assert(path.pop() === data.name)
+        if (path.length > 0) assert(path.pop() === data.name) // afterAll can generate failures too, with an empty path
         if (!data.todo) failedFiles.add(file)
         if (!notPrintedError(data.details.error)) {
           const { body, loc } = extractError(data, relative(cwd, data.file || data.name)) // might be different from current file if in subimport
