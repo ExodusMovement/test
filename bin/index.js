@@ -256,6 +256,7 @@ if (!process.env.FORCE_COLOR && process.stdout.hasColors?.() && process.stderr.h
 }
 
 const engineName = `${options.engine} engine` // used for warnings to user
+const engineFlagError = (flag) => `${engineName} does not support --${flag}`
 const engineOptions = ENGINES.get(options.engine)
 assert(engineOptions, `Unknown engine: ${options.engine}`)
 Object.assign(options, engineOptions)
@@ -269,8 +270,8 @@ setEnv('EXODUS_TEST_IS_BROWSER', isBrowserLike ? '1' : '')
 setEnv('EXODUS_TEST_IS_BAREBONE', options.barebone ? '1' : '')
 setEnv('EXODUS_TEST_ENVIRONMENT', options.bundle ? 'bundle' : '') // perhaps switch to _IS_BUNDLED?
 
-assert(!options.devtools || isBrowserLike, '--devtools can be only used with browser engines')
-assert(!options.throttle || options.browsers, `${engineName} does not support --throttle-cpu`)
+assert(!options.devtools || isBrowserLike || !options.pure, engineFlagError('devtools'))
+assert(!options.throttle || options.browsers, engineFlagError('throttle-cpu'))
 
 const require = createRequire(import.meta.url)
 const resolveRequire = (query) => require.resolve(query)
@@ -690,6 +691,11 @@ if (options.pure) {
   assert(files.length > 0) // otherwise we can run recursively
   assert(!options.binaryArgs)
   if (options.concurrency) args.push('--test-concurrency', options.concurrency)
+  if (options.devtools) {
+    args.push('--inspect-brk')
+    console.warn('Open chrome://inspect/ to connect devtools')
+  }
+
   const { code } = await launch(options.binary, [...args, ...files])
   process.exitCode = code
 }
