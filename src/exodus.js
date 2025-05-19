@@ -5,9 +5,8 @@ import { timersTrack, timersList, timersDebug, timersAssert } from './timers-tra
 import { insideEsbuild } from './dark.cjs'
 import { haveValidTimers } from './version.js'
 
-const timersSpeedup = ({ apis = [], rate } = {}) => {
-  if (!(typeof rate === 'number' && rate > 0)) throw new TypeError('Expected a positive number')
-  if (!(Array.isArray(apis) && apis.length > 0)) throw new Error('Expected a list of target apis')
+const timersSpeedup = (rate, { apis = ['setTimeout', 'setInterval', 'Date'] } = {}) => {
+  if (!(typeof rate === 'number' && rate > 0)) throw new TypeError('Expected a positive rate')
   const { setTimeout, setInterval, Date: OrigDate } = globalThis
   for (const api of apis) {
     // eslint-disable-next-line unicorn/prefer-switch
