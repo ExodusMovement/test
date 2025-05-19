@@ -52,9 +52,11 @@ export function useFakeTimers({ doNotFake = doNotFakeDefault, ...rest } = {}) {
   return this
 }
 
+const runAllTimersTime = 100_000_000_000 // > 3 years
+const runAllTimersSplit = { step: 50_000_000, steps: 2000, last: 0 }
 export function runAllTimers() {
   assertEnabledTimers()
-  advanceTimersByTime(100_000_000_000) // > 3 years
+  advanceTimersByTime(runAllTimersTime) // > 3 years
   return this
 }
 
@@ -95,7 +97,7 @@ export function advanceTimersByTime(time) {
     return this
   }
 
-  const { step, steps, last } = splitTime(time)
+  const { step, steps, last } = time === runAllTimersTime ? runAllTimersSplit : splitTime(time)
   for (let i = 0; i < steps; i++) {
     if (!enabled) break // got disabled while looping
     mock.timers.tick(step)
