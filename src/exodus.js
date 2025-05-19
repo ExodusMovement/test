@@ -5,6 +5,30 @@ import { timersTrack, timersList, timersDebug, timersAssert } from './timers-tra
 import { insideEsbuild } from './dark.cjs'
 import { haveValidTimers } from './version.js'
 
+const timersSpeedup = ({ apis = [], rate } = {}) => {
+  if (!(typeof rate === 'number' && rate > 0)) throw new TypeError('Expected a positive number')
+  if (!(Array.isArray(apis) && apis.length > 0)) throw new Error('Expected a list of target apis')
+  const { setTimeout, setInterval, Date: OrigDate } = globalThis
+  for (const api of apis) {
+    // eslint-disable-next-line unicorn/prefer-switch
+    if (api === 'setTimeout') {
+      globalThis.setTimeout = (fn, ms, ...args) => setTimeout(fn, Math.ceil(ms / rate), ...args)
+    } else if (api === 'setInterval') {
+      globalThis.setInterval = (fn, ms, ...args) => setInterval(fn, Math.ceil(ms / rate), ...args)
+    } else if (api === 'Date') {
+      const base = OrigDate.now()
+      globalThis.Date = class Date extends OrigDate {
+        static now = () => base + Math.floor((OrigDate.now() - base) * rate)
+        constructor(first = globalThis.Date.now(), ...rest) {
+          super(first, ...rest)
+        }
+      }
+    } else {
+      throw new Error(`Unknown or unsupported API in timersSpeedup(): ${api}`)
+    }
+  }
+}
+
 const isBundle = process.env.EXODUS_TEST_ENVIRONMENT === 'bundle' // TODO: improve mocking from bundle
 export const exodus = {
   __proto__: null,
@@ -21,7 +45,7 @@ export const exodus = {
     concurrency: node.engine !== 'pure', // pure engine doesn't support concurrency
   },
   mock: {
-    ...{ timersTrack, timersList, timersDebug, timersAssert }, // eslint-disable-line unicorn/no-useless-spread
+    ...{ timersTrack, timersList, timersDebug, timersAssert, timersSpeedup }, // eslint-disable-line unicorn/no-useless-spread
     ...{ fetchRecord, fetchReplay }, // eslint-disable-line unicorn/no-useless-spread
     ...{ websocketRecord, websocketReplay }, // eslint-disable-line unicorn/no-useless-spread
   },
