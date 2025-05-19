@@ -185,7 +185,11 @@ function parseOptions() {
         options.flagEngine = true
         break
       case '--devtools':
-        options.devtools = true
+      case '--inspect-brk':
+        options.devtools = '--inspect-brk'
+        break
+      case '--inspect':
+        if (!options.devtools) options.devtools = '--inspect'
         break
       case '--debug-files':
         options.debug.files = true
@@ -691,9 +695,13 @@ if (options.pure) {
   assert(files.length > 0) // otherwise we can run recursively
   assert(!options.binaryArgs)
   if (options.concurrency) args.push('--test-concurrency', options.concurrency)
-  if (options.devtools) {
-    args.push('--inspect-brk')
-    console.warn('Open chrome://inspect/ to connect devtools')
+  if (['--inspect', '--inspect-brk'].includes(options.devtools)) {
+    args.push(options.devtools)
+    console.warn(
+      options.devtools === '--inspect-brk'
+        ? 'Open chrome://inspect/ to connect devtools, waiting'
+        : 'Open chrome://inspect/ to connect devtools\nUse --inspect-brk to wait for inspector'
+    )
   }
 
   const { code } = await launch(options.binary, [...args, ...files])
