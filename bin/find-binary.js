@@ -6,6 +6,7 @@ import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
 const nvm = process.env.NVM_BIN ? (x) => join(process.env.NVM_BIN, '../lib/node_modules', x) : null
 const jsvu = (x) => join(homedir(), '.jsvu/bin', x)
+const esvu = (x) => join(homedir(), '.esvu/bin', x)
 
 // Can modify PATH to add the binary to it!
 function findBinaryOnce(name) {
@@ -46,18 +47,21 @@ function findBinaryOnce(name) {
     case 'jsc':
       return findFile([
         (bin) => jsvu(bin), // prefer jsvu
+        (bin) => esvu(bin),
         (bin) => `/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/${bin}`,
         (bin) => `/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Resources/${bin}`,
       ])
     case 'd8':
-      return findFile([() => jsvu('v8')]) // jsvu names it v8
+      return findFile([() => jsvu('v8'), () => esvu('v8')]) // jsvu/esvu name it v8
     case 'spidermonkey':
     case 'quickjs':
     case 'graaljs':
     case 'escargot':
-      return findFile([jsvu])
+    case 'ladybird-js': // naming by esvu
+    case 'engine262':
+      return findFile([jsvu, esvu])
     case 'xs':
-      return findFile([jsvu], false)
+      return findFile([jsvu, esvu], false)
     case 'electron':
       return require('electron')
     case 'c8':
