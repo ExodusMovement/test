@@ -6,6 +6,7 @@ if (!globalThis.Buffer) globalThis.Buffer = require('buffer').Buffer
 
 const consoleKeys = ['log', 'error', 'warn', 'info', 'debug', 'trace']
 const { print } = globalThis
+if (process.env.EXODUS_TEST_PLATFORM === 'engine262') delete globalThis.console // prints [object Object] on everything
 if (!globalThis.console) globalThis.console = Object.fromEntries(consoleKeys.map((k) => [k, print])) // eslint-disable-line no-undef
 for (const k of consoleKeys) if (!console[k]) console[k] = console.log // SpiderMonkey has console but no console.error
 

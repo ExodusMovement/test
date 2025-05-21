@@ -38,6 +38,14 @@ const loadPipeline = [
       .replace(/\b(__dirname|import\.meta\.dirname)\b/g, JSON.stringify(dirname(filepath)))
       .replace(/\b(__filename|import\.meta\.filename)\b/g, JSON.stringify(filepath))
 
+    if (filepath.endsWith('/node_modules/chalk/source/templates.js')) {
+      // It has an invalid regex on which engine262 fails
+      res = res.replace(
+        'const ESCAPE_REGEX = /\\\\(u(?:[a-f\\d]{4}|{[a-f\\d]{1,6}})|x[a-f\\d]{2}|.)|([^\\\\])/gi;',
+        'const ESCAPE_REGEX = /\\\\(u(?:[a-f\\d]{4}|\\{[a-f\\d]{1,6}\\})|x[a-f\\d]{2}|.)|([^\\\\])/giu;'
+      )
+    }
+
     // Unneded polyfills
     for (const [a, b] of Object.entries({
       'is-nan': 'Number.isNaN', // https://www.npmjs.com/package/is-nan description: ES2015-compliant shim for Number.isNaN
