@@ -204,6 +204,19 @@ node.afterEach(() => {
 
 if (process.env.EXODUS_TEST_PLATFORM !== 'deno' && globalThis.process) {
   // TODO: deno, other engines
+
+  const reportActivity = () => {
+    if (process.env.EXODUS_TEST_TIMERS_TRACK) timersDebug()
+    if (process?.getActiveResourcesInfo) {
+      const all = process.getActiveResourcesInfo().filter((r) => r !== 'PipeWrap')
+      if (all.length > 0) {
+        const entries = [...new Set(all)].map((k) => [k, all.filter((x) => x === k).length])
+        const pretty = prettyFormat(Object.fromEntries(entries), { min: true })
+        console.log(`Active resources: { ${pretty.slice(1, -1).replaceAll('"', '')} }`)
+      }
+    }
+  }
+
   // This doesn't work with async imported tests, so for inband, we delay
   const after = () => {
     jestTimers.useRealTimers()
@@ -212,7 +225,7 @@ if (process.env.EXODUS_TEST_PLATFORM !== 'deno' && globalThis.process) {
     // give everything additional (configurable) defaultTimeout time to finish, otherwide fail
     const timeout = defaultTimeout
     setTimeout(() => {
-      if (process.env.EXODUS_TEST_TIMERS_TRACK) timersDebug()
+      reportActivity()
       console.error(`${prefix} additional ${timeout}ms. Terminating with a failure...`)
       process.exit(1)
     }, timeout).unref()
@@ -221,7 +234,7 @@ if (process.env.EXODUS_TEST_PLATFORM !== 'deno' && globalThis.process) {
     const warnTimeout = 5000
     if (warnTimeout < timeout + 1000) {
       setTimeout(() => {
-        if (process.env.EXODUS_TEST_TIMERS_TRACK) timersDebug()
+        reportActivity()
         console.warn(`${prefix} ${warnTimeout}ms. Waiting for ${timeout}ms to pass to finish...`)
       }, warnTimeout).unref()
     }
