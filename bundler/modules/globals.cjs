@@ -198,7 +198,7 @@ if (
   const queueTick = () => {
     current++ // safeguard
     while (queueMicrotick() !== null);
-    if (queue.length > 1) restartLoop()
+    if (queue.length > 0) restartLoop()
   }
 
   globalThis.setTimeout = (callback, delay, ...args) =>
