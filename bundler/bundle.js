@@ -44,6 +44,9 @@ const loadPipeline = [
         'const ESCAPE_REGEX = /\\\\(u(?:[a-f\\d]{4}|{[a-f\\d]{1,6}})|x[a-f\\d]{2}|.)|([^\\\\])/gi;',
         'const ESCAPE_REGEX = /\\\\(u(?:[a-f\\d]{4}|\\{[a-f\\d]{1,6}\\})|x[a-f\\d]{2}|.)|([^\\\\])/giu;'
       )
+    } else if (filepath.endsWith('/node_modules/qs/lib/parse.js')) {
+      res = res.replace('var brackets = /(\\[[^[\\]]*])/;', 'var brackets = /(\\[[^[\\]]*\\])/;')
+      res = res.replace('var child = /(\\[[^[\\]]*])/g;', 'var child = /(\\[[^[\\]]*\\])/g;')
     }
 
     // Unneded polyfills
