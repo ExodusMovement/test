@@ -14,7 +14,8 @@ It can run your existing tests on [all runtimes and also browsers](#engines), wi
   [v8 CLI](https://v8.dev/docs/d8), JSC, [Hermes](https://hermesengine.dev), [SpiderMonkey](https://spidermonkey.dev/),
   Chrome, Firefox, WebKit, Brave, Microsoft Edge,
   [QuickJS](https://github.com/quickjs-ng/quickjs), [XS](https://github.com/Moddable-OpenSource/moddable-xst),
-  [GraalJS](https://github.com/oracle/graaljs) and [Escargot](https://github.com/Samsung/escargot).
+  [GraalJS](https://github.com/oracle/graaljs), [Escargot](https://github.com/Samsung/escargot),
+  and even [engine262](https://github.com/engine262/engine262).
 - Testsuite-agnostic — can run any file as long as it sets exit code based on test results
 - Built-in [Jest](https://jestjs.io) compatibility (with `--jest`), including `jest.*` global
   - Up to ~10x faster depending on the original setup
@@ -24,7 +25,6 @@ It can run your existing tests on [all runtimes and also browsers](#engines), wi
   - [test.concurrent](https://jestjs.io/docs/api#testconcurrentname-fn-timeout)
   - Module mocks, including for ESM modules (already loaded ESM modules can be mocked only on `node:test`)
   - Loads Jest configuration
-  - It works on Hermes too!
 - Built-in network record/replay for offline tests, mocking `fetch` and `WebSocket` sessions
 - `--drop-network` support for guaranteed offline testing
 - Native code coverage via v8 (Node.js or [c8](https://github.com/bcoe/c8)), with istanbul reporters
@@ -64,15 +64,17 @@ Use `--engine` (or `EXODUS_TEST_ENGINE=`) to specify one of:
     - `firefox:puppeteer` — Firefox
     - `brave:puppeteer` — Brave
     - `msedge:puppeteer` — Microsoft Edge
-- Barebone engines (system-provided or installed with `npx jsvu`):
+- Barebone engines (system-provided or installed with `npx jsvu` / `npx esvu`):
   - `d8:bundle` — [v8 CLI](https://v8.dev/docs/d8) (Chrome/Blink/Node.js JavaScript engine)
   - `jsc:bundle` — [JavaScriptCore](https://docs.webkit.org/Deep%20Dive/JSC/JavaScriptCore.html) (Safari/WebKit JavaScript engine)
   - `hermes:bundle` — [Hermes](https://hermesengine.dev) (React Native JavaScript engine)
   - `spidermonkey:bundle` — [SpiderMonkey](https://spidermonkey.dev/) (Firefox/Gecko JavaScript engine)
-  - `quickjs:bundle` — [QuickJS](https://github.com/quickjs-ng/quickjs) (note [quickjs-ng/quickjs#39](https://github.com/quickjs-ng/quickjs/issues/39) though)
+  - `quickjs:bundle` — [QuickJS](https://github.com/quickjs-ng/quickjs)
   - `xs:bundle` — [XS](https://github.com/Moddable-OpenSource/moddable-xst)
   - `graaljs:bundle` — [GraalJS](https://github.com/oracle/graaljs)
   - `escargot:bundle` — [Escargot](https://github.com/Samsung/escargot)
+  - `engine262:bundle` - [engine262](https://github.com/engine262/engine262), the per-spec implementation of ECMA-262
+    (install with [esvu](https://npmjs.com/package/esvu))
 
 ## Reporter samples
 
