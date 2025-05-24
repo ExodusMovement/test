@@ -140,7 +140,8 @@ if (
 
   // TODO: use interrupt timers on jsc
 
-  const schedule = setTimeoutOriginal || ((x) => tickTimes(50).then(() => x())) // e.g. SpiderMonkey doesn't even have setTimeout
+  const tickPromiseInterval = process.env.EXODUS_TEST_PLATFORM === 'engine262' ? 5 : 50 // engine262 is slow
+  const schedule = setTimeoutOriginal || ((x) => tickTimes(tickPromiseInterval).then(() => x())) // e.g. SpiderMonkey doesn't even have setTimeout
   const dateNow = Date.now.bind(Date)
   const precision = clearTimeoutOriginal ? Infinity : 10 // have to tick this fast for clearTimeout to work
   let current = 0

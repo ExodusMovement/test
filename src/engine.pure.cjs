@@ -133,6 +133,12 @@ async function runContext(context) {
     const guard = { id: null, failed: false }
     const timeout = options.timeout || Number(process.env.EXODUS_TEST_TIMEOUT) || 5000
     guard.promise = new Promise((resolve) => {
+      if (process.env.EXODUS_TEST_PLATFORM === 'engine262') {
+        // parallel timeouts are slowing down everything on engine262
+        // so we let only the host timeout to catch us, not individual test timeout
+        return
+      }
+
       guard.id = setTimeout(() => {
         guard.failed = true
         resolve()
@@ -484,8 +490,10 @@ const awaitForMicrotaskQueue = async () => {
   // Do not rely on setTimeout here! it will tick actual time and is terribly slow (i.e. timers no longer fake)
   // 50_000 should be enough to flush everything that's going on in the microtask queue
   // E.g. JSC and SpiderMonkey hit this currently
+  // engine262 is extremely slow, tick just above 100 on it
   const promise = Promise.resolve()
-  for (let i = 0; i < 50_000; i++) await promise
+  const tickPromiseRounds = process.env.EXODUS_TEST_PLATFORM === 'engine262' ? 110 : 50_000
+  for (let i = 0; i < tickPromiseRounds; i++) await promise
 }
 
 let builtinModules = []
