@@ -4,7 +4,7 @@ jest.exodus.mock.fetchReplay()
 // Gecko: "JSON.parse: unexpected character at line {} column {} of the JSON data"
 // Safari: "The string did not match the expected pattern."
 const JSON_ERROR_REGEX =
-  /(not valid JSON|^JSON Parse error|^Failed to parse JSON|^Unexpected token .* in JSON|^JSON\.parse: unexpected character|^The string did not match the expected pattern\.$|invalid character \(in JSON\.parse\))|^unexpected token: '.'$|^Invalid value\.$/
+  /(not valid JSON|^JSON Parse error|^Failed to parse JSON|^Unexpected (token|character) .* in JSON|^JSON\.parse: unexpected character|^The string did not match the expected pattern\.$|invalid character \(in JSON\.parse\))|^unexpected token: '.'$|^Invalid value\.$/
 
 describe('fetch replay', () => {
   test('https://example.com', async () => {
