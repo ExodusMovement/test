@@ -1,5 +1,5 @@
 const fs = require('fs')
-const crypto = require('crypto').webcrypto
+const crypto = globalThis.crypto || require('crypto').webcrypto
 
 jest.mock('fs')
 
