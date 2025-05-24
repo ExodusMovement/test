@@ -38,15 +38,26 @@ const loadPipeline = [
       .replace(/\b(__dirname|import\.meta\.dirname)\b/g, JSON.stringify(dirname(filepath)))
       .replace(/\b(__filename|import\.meta\.filename)\b/g, JSON.stringify(filepath))
 
-    if (filepath.endsWith('/node_modules/chalk/source/templates.js')) {
-      // It has an invalid regex on which engine262 fails
-      res = res.replace(
-        'const ESCAPE_REGEX = /\\\\(u(?:[a-f\\d]{4}|{[a-f\\d]{1,6}})|x[a-f\\d]{2}|.)|([^\\\\])/gi;',
-        'const ESCAPE_REGEX = /\\\\(u(?:[a-f\\d]{4}|\\{[a-f\\d]{1,6}\\})|x[a-f\\d]{2}|.)|([^\\\\])/giu;'
-      )
-    } else if (filepath.endsWith('/node_modules/qs/lib/parse.js')) {
-      res = res.replace('var brackets = /(\\[[^[\\]]*])/;', 'var brackets = /(\\[[^[\\]]*\\])/;')
-      res = res.replace('var child = /(\\[[^[\\]]*])/g;', 'var child = /(\\[[^[\\]]*\\])/g;')
+    if (options.platform === 'engine262') {
+      if (filepath.endsWith('/node_modules/chalk/source/templates.js')) {
+        // It has an invalid regex on which engine262 fails
+        res = res.replace(
+          'const ESCAPE_REGEX = /\\\\(u(?:[a-f\\d]{4}|{[a-f\\d]{1,6}})|x[a-f\\d]{2}|.)|([^\\\\])/gi;',
+          'const ESCAPE_REGEX = /\\\\(u(?:[a-f\\d]{4}|\\{[a-f\\d]{1,6}\\})|x[a-f\\d]{2}|.)|([^\\\\])/giu;'
+        )
+      } else if (filepath.endsWith('/node_modules/qs/lib/parse.js')) {
+        res = res.replace('var brackets = /(\\[[^[\\]]*])/;', 'var brackets = /(\\[[^[\\]]*\\])/;')
+        res = res.replace('var child = /(\\[[^[\\]]*])/g;', 'var child = /(\\[[^[\\]]*\\])/g;')
+      } else if (filepath.endsWith('/node_modules/url/url.js')) {
+        // .substr is not part of the main ECMA-262 spec
+        // We need this module for pathToFileURL
+        res = res.replace('&& protocol.substr(-1) !==', '&& protocol[protocol.length - 1] !==')
+        res = res.replace('= rest.substr(proto.length);', '= rest.substring(proto.length);')
+        res = res.replace('= rest.substr(2);', '= rest.substring(2);')
+        res = res.replace('= rest.substr(0, 2) ===', '= rest.substring(0, 2) ===')
+      } else if (filepath.endsWith('/node_modules/buffer/index.js')) {
+        res = res.replace('.substr(i * 2, 2)', '.substring(i * 2, i * 2 + 2)')
+      }
     }
 
     // Unneded polyfills
