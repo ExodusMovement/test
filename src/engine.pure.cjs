@@ -304,13 +304,14 @@ class MockTimers {
   }
 
   async tickAsync(milliseconds = 1) {
-    let shouldAwait = true
-    for (let i = 0; i < milliseconds; i++) {
-      if (shouldAwait) await awaitForMicrotaskQueue()
-      this.#elapsed += 1
-      shouldAwait = this.#microtick() !== null
-      if (shouldAwait) while (this.#microtick() !== null);
+    const finish = this.#elapsed + milliseconds
+    await awaitForMicrotaskQueue()
+    while (this.#queue[0] && this.#queue[0].runAt <= finish) {
+      this.#elapsed = Math.max(this.#elapsed, this.#queue[0].runAt)
+      while (this.#microtick() !== null) await awaitForMicrotaskQueue()
     }
+
+    this.#elapsed = finish
   }
 
   #microtick() {

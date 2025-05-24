@@ -124,7 +124,7 @@ export async function runOnlyPendingTimersAsync() {
 export async function advanceTimersByTimeAsync(time) {
   assertEnabledTimers()
   if (mock.timers.tickAsync) {
-    await mock.timers.tickAsync(time)
+    await mock.timers.tickAsync(time) // runs microtasks at start and end
   } else {
     const { step, steps, last } = splitTime(time)
     for (let i = 0; i < steps; i++) {
@@ -135,9 +135,9 @@ export async function advanceTimersByTimeAsync(time) {
 
     if (last > 0 && enabled) await awaitForMicrotaskQueue()
     if (last > 0 && enabled) mock.timers.tick(last)
+    await awaitForMicrotaskQueue() // jest doc is misleading and it also does this after running timers
   }
 
-  await awaitForMicrotaskQueue() // jest doc is misleading and it also does this after running timers
   return this
 }
 
