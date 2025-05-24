@@ -36,8 +36,8 @@ importers:
         specifier: ^1.0.1
         version: 1.0.1
       '@exodus/replay':
-        specifier: ^1.0.0-rc.8
-        version: 1.0.0-rc.8
+        specifier: ^1.0.0-rc.9
+        version: 1.0.0-rc.9
       '@ungap/url-search-params':
         specifier: ^0.2.2
         version: 0.2.2
@@ -590,8 +590,8 @@ packages:
     peerDependencies:
       prettier: ^3.0.3
 
-  '@exodus/replay@1.0.0-rc.8':
-    resolution: {integrity: sha512-+jk3LF4hzgaVuFlKw/KGcu6FnDoWbbSbVWpIJBMbx8J+RQGHeLCox/Lk1PXQts6JyIQQ4xZGhINWHMKWWprtNA==}
+  '@exodus/replay@1.0.0-rc.9':
+    resolution: {integrity: sha512-16nwUaYRg00/50MF+RDlEqymBQIq6xUEfskCbOmXqqbzylZDErfMHN1ApNWB3yxeFVZaHRSpA49e9mOQ10y0dg==}
 
   '@humanwhocodes/config-array@0.11.14':
     resolution: {integrity: sha512-3T8LkOmg45BV5FICb15QQMsyUSWrQ8AygVfC7ZG32zOalnqrilm018ZVCw0eapXux8FtA33q8PSRSstjee3jSg==}
@@ -4254,7 +4254,7 @@ snapshots:
     dependencies:
       prettier: 3.3.2
 
-  '@exodus/replay@1.0.0-rc.8':
+  '@exodus/replay@1.0.0-rc.9':
     optional: true
 
   '@humanwhocodes/config-array@0.11.14':
