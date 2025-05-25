@@ -475,21 +475,49 @@ const after = (fn) => context.addHook('after', fn)
 
 const isPromise = (x) => Boolean(x && x.then && x.catch && x.finally)
 const nodeVersion = '9999.99.99'
+
+function getMacrotick() {
+  const { scheduler, MessageChannel } = globalThis
+  if (scheduler?.yield) return () => scheduler.yield()
+  if (setImmediate) return () => new Promise((resolve) => setImmediate(resolve))
+  if (MessageChannel) {
+    return async () => {
+      const { port1, port2 } = new MessageChannel()
+      await new Promise((resolve) => {
+        // eslint-disable-next-line unicorn/prefer-add-event-listener
+        port1.onmessage = resolve // also starts
+        port2.postMessage(0)
+      })
+      port2.close()
+    }
+  }
+
+  return null // no fallback
+}
+
+const macrotick = getMacrotick()
+
 const awaitForMicrotaskQueue = async () => {
+  // Scheduling an event at the end of current microtasks queue
   if (globalThis?.process?.nextTick) {
     if (globalThis.Bun) await Promise.resolve() // No idea what's up with Bun microtasks
-    // We are in microtasks, awaiting for "next" tick will get us out of here
+    // We are in microtasks, scheduling a low-priority one will allow everything else to pass
+    // Except recursive process.nextTick calls, but that's acceptable
     return new Promise((resolve) => globalThis.process.nextTick(resolve))
   }
 
   // If that is not available, we can wait for the actual next cycle
-  // For Hermes, we use -Xmicrotask-queue for this to act not like just a Promise.resolve().then(
+  // For Hermes, we use -Xmicrotask-queue for setImmediate to act not like just a Promise.resolve().then(
   // TODO: recheck if setImmediate is not faked with setTimeout if we enable a polyfill for it for JSC?
-  if (setImmediate) return new Promise((resolve) => setImmediate(resolve))
+  // Browsers have scheduler.yield and/or MessageChannel which also perform macroticks
+  if (macrotick) return macrotick()
 
+  // If the above is not available, just create a chain of (high-priority) microtasks,
+  // hoping that'll allow other high-priority ones to pass
+  // Barebones like JSC and SpiderMonkey hit this currently
+  //
   // Do not rely on setTimeout here! it will tick actual time and is terribly slow (i.e. timers no longer fake)
   // 50_000 should be enough to flush everything that's going on in the microtask queue
-  // E.g. JSC and SpiderMonkey hit this currently
   // engine262 is extremely slow, tick just above 100 on it
   const promise = Promise.resolve()
   const tickPromiseRounds = process.env.EXODUS_TEST_PLATFORM === 'engine262' ? 110 : 50_000
