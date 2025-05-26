@@ -202,10 +202,10 @@ if (
     if (queue.length > 0) restartLoop()
   }
 
-  globalThis.setTimeout = (callback, delay, ...args) =>
+  globalThis.setTimeout = (callback, delay = 0, ...args) =>
     queueSchedule({ callback, runAt: delay + dateNow(), args })
 
-  globalThis.setInterval = (callback, delay, ...args) =>
+  globalThis.setInterval = (callback, delay = 0, ...args) =>
     queueSchedule({ callback, runAt: delay + dateNow(), interval: delay, args })
 
   globalThis.clearTimeout = globalThis.clearInterval = (id) => {

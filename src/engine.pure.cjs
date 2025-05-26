@@ -350,11 +350,11 @@ class MockTimers {
     this.#base = milliseconds
   }
 
-  #setTimeout(callback, delay, ...args) {
+  #setTimeout(callback, delay = 0, ...args) {
     return this.#schedule({ callback, runAt: delay + this.#elapsed, args })
   }
 
-  #setInterval(callback, delay, ...args) {
+  #setInterval(callback, delay = 0, ...args) {
     return this.#schedule({ callback, runAt: delay + this.#elapsed, interval: delay, args })
   }
 
