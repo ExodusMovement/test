@@ -17,6 +17,10 @@ const abstractProcess = globalThis.process || globalThis.EXODUS_TEST_PROCESS
 
 if (process.env.EXODUS_TEST_IS_BROWSER) {
   globalThis.EXODUS_TEST_PROMISE = new Promise((resolve) => (abstractProcess._exitHook = resolve))
+  if (!abstractProcess._maybeProcessExitCode && abstractProcess === globalThis.process) {
+    // Electron with Node.js integration has real process
+    process._maybeProcessExitCode = () => process._exitHook(process.exitCode ?? 0)
+  }
 }
 
 // assert module is slower
