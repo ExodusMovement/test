@@ -228,7 +228,7 @@ if (process.env.EXODUS_TEST_PLATFORM !== 'deno' && globalThis.process) {
       reportActivity()
       console.error(`${prefix} additional ${timeout}ms. Terminating with a failure...`)
       process.exit(1)
-    }, timeout).unref()
+    }, timeout).unref?.()
 
     // Warn after 5s that something is going on
     const warnTimeout = 5000
@@ -236,7 +236,7 @@ if (process.env.EXODUS_TEST_PLATFORM !== 'deno' && globalThis.process) {
       setTimeout(() => {
         reportActivity()
         console.warn(`${prefix} ${warnTimeout}ms. Waiting for ${timeout}ms to pass to finish...`)
-      }, warnTimeout).unref()
+      }, warnTimeout).unref?.()
     }
   }
 
