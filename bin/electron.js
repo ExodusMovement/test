@@ -27,11 +27,14 @@ protocol.registerSchemesAsPrivileged([
   },
 ])
 
+const enableIntegration = process.env.EXODUS_TEST_ENGINE === 'electron:pure'
 const devtools = process.env.EXODUS_TEST_DEVTOOLS === '1'
 const preload = fileURLToPath(import.meta.resolve('./electron.preload.cjs'))
 const partition = 'tmp' // not persistent
-const staticPreferences = { sandbox: true, contextIsolation: true, spellcheck: false }
-const webPreferences = { ...staticPreferences, partition, preload }
+const securityPreferences = enableIntegration
+  ? { sandbox: false, contextIsolation: false, nodeIntegration: true }
+  : { sandbox: true, contextIsolation: true, preload }
+const webPreferences = { ...securityPreferences, partition, spellcheck: false }
 const html = '<!doctype html><html><body></body></html>'
 const headers = { 'content-type': 'text/html' }
 
