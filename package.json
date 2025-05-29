@@ -156,7 +156,6 @@
     "@babel/plugin-transform-class-properties": "^7.0.0",
     "@babel/plugin-transform-classes": "^7.0.0",
     "@babel/plugin-transform-private-methods": "^7.0.0",
-    "@babel/register": "^7.0.0",
     "@chalker/queue": "^1.0.1",
     "@exodus/replay": "^1.0.0-rc.9",
     "@ungap/url-search-params": "^0.2.2",
@@ -202,9 +201,13 @@
     "prettier": "^3.0.3"
   },
   "peerDependencies": {
+    "@babel/register": "^7.0.0",
     "electron": "*"
   },
   "peerDependenciesMeta": {
+    "@babel/register": {
+      "optional": true
+    },
     "electron": {
       "optional": true
     }

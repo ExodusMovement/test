@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      '@babel/register':
+        specifier: ^7.0.0
+        version: 7.24.6(@babel/core@7.24.9)
     devDependencies:
       '@exodus/eslint-config':
         specifier: ^5.24.0
@@ -69,9 +73,6 @@ importers:
       '@babel/plugin-transform-private-methods':
         specifier: ^7.0.0
         version: 7.24.7(@babel/core@7.24.9)
-      '@babel/register':
-        specifier: ^7.0.0
-        version: 7.24.6(@babel/core@7.24.9)
       '@chalker/queue':
         specifier: ^1.0.1
         version: 1.0.1
@@ -4040,7 +4041,6 @@ snapshots:
       make-dir: 2.1.0
       pirates: 4.0.6
       source-map-support: 0.5.21
-    optional: true
 
   '@babel/template@7.27.0':
     dependencies:
@@ -5182,7 +5182,6 @@ snapshots:
       is-plain-object: 2.0.4
       kind-of: 6.0.3
       shallow-clone: 3.0.1
-    optional: true
 
   clone-response@1.0.3:
     dependencies:
@@ -5211,8 +5210,7 @@ snapshots:
 
   comment-parser@1.4.1: {}
 
-  commondir@1.0.1:
-    optional: true
+  commondir@1.0.1: {}
 
   concat-map@0.0.1: {}
 
@@ -5924,12 +5922,10 @@ snapshots:
       commondir: 1.0.1
       make-dir: 2.1.0
       pkg-dir: 3.0.0
-    optional: true
 
   find-up@3.0.0:
     dependencies:
       locate-path: 3.0.0
-    optional: true
 
   find-up@4.1.0:
     dependencies:
@@ -6386,7 +6382,6 @@ snapshots:
   is-plain-object@2.0.4:
     dependencies:
       isobject: 3.0.1
-    optional: true
 
   is-potential-custom-element-name@1.0.1:
     optional: true
@@ -6428,8 +6423,7 @@ snapshots:
 
   isexe@2.0.0: {}
 
-  isobject@3.0.1:
-    optional: true
+  isobject@3.0.1: {}
 
   istanbul-lib-coverage@3.2.2: {}
 
@@ -6897,8 +6891,7 @@ snapshots:
     dependencies:
       json-buffer: 3.0.1
 
-  kind-of@6.0.3:
-    optional: true
+  kind-of@6.0.3: {}
 
   kleur@3.0.3: {}
 
@@ -6919,7 +6912,6 @@ snapshots:
     dependencies:
       p-locate: 3.0.0
       path-exists: 3.0.0
-    optional: true
 
   locate-path@5.0.0:
     dependencies:
@@ -6957,7 +6949,6 @@ snapshots:
     dependencies:
       pify: 4.0.1
       semver: 5.7.2
-    optional: true
 
   make-dir@4.0.0:
     dependencies:
@@ -7171,7 +7162,6 @@ snapshots:
   p-locate@3.0.0:
     dependencies:
       p-limit: 2.3.0
-    optional: true
 
   p-locate@4.1.0:
     dependencies:
@@ -7247,8 +7237,7 @@ snapshots:
   path-browserify@1.0.1:
     optional: true
 
-  path-exists@3.0.0:
-    optional: true
+  path-exists@3.0.0: {}
 
   path-exists@4.0.0: {}
 
@@ -7281,8 +7270,7 @@ snapshots:
 
   pify@3.0.0: {}
 
-  pify@4.0.1:
-    optional: true
+  pify@4.0.1: {}
 
   pirates@3.0.2:
     dependencies:
@@ -7294,7 +7282,6 @@ snapshots:
   pkg-dir@3.0.0:
     dependencies:
       find-up: 3.0.0
-    optional: true
 
   pkg-dir@4.2.0:
     dependencies:
@@ -7632,7 +7619,6 @@ snapshots:
   shallow-clone@3.0.1:
     dependencies:
       kind-of: 6.0.3
-    optional: true
 
   shebang-command@1.2.0:
     dependencies:
@@ -7691,7 +7677,6 @@ snapshots:
     dependencies:
       buffer-from: 1.1.2
       source-map: 0.6.1
-    optional: true
 
   source-map@0.6.1: {}
 
