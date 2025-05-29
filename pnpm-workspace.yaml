@@ -1,0 +1,6 @@
+lockfileIncludeTarballUrl: true
+packages:
+  - .
+onlyBuiltDependencies:
+  - electron
+  - esbuild
