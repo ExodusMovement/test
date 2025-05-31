@@ -502,6 +502,9 @@ export const build = async (...files) => {
     config.define['process.argv'] = stringify(['exodus-test', resolve(files[0])])
   }
 
+  if (options.platform !== 'bun') config.define['process.versions.bun'] = 'undefined'
+  if (options.platform !== 'deno') config.define['process.versions.deno'] = 'undefined'
+  if (options.platform !== 'electron') config.define['process.versions.electron'] = 'undefined'
   if (!hasNodeApis) {
     config.define['process.cwd'] = 'EXODUS_TEST_PROCESS.cwd'
     config.define['process.exit'] = 'EXODUS_TEST_PROCESS.exit'
