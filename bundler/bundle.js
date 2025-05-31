@@ -245,7 +245,7 @@ export const build = async (...files) => {
   const fsFilesDirs = new Map()
   const cwd = process.cwd()
   const fixturesRegex = /(fixtures|samples|vectors|wycheproof)/u
-  const aggressiveExtensions = /\.(json|txt|hex|wasm)$/u // These are bundled when just used in path.join and by wildcard from fixtures/
+  const aggressiveExtensions = /\.(json|txt|hex|wasm)(\.gz)?$/u // These are bundled when just used in path.join and by wildcard from fixtures/
   const fileAllowed = (f) =>
     f && f.startsWith(`${cwd}/`) && resolve(f) === f && /^[a-z0-9@_./-]+$/iu.test(relative(cwd, f))
 
