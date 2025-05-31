@@ -618,6 +618,8 @@ if (options.pure) {
     const file = buildFile ? bundled.file : inputFile
     if (bundled?.errors.length > 0) return { ok: false, output: bundled.errors }
 
+    const failedBare = 'EXODUS_TEST_FAILED_EXIT_CODE_1'
+    const cleanOut = (out) => out.replaceAll(`\n${failedBare}\n`, '\n').replaceAll(failedBare, '')
     const { binaryArgs = [] } = options
     // Timeout is fallback if timeout in script hangs, 50x as it can be adjusted per-script inside them
     // Do we want to extract timeouts from script code instead? Also, hermes might be slower, so makes sense to increase
@@ -627,12 +629,7 @@ if (options.pure) {
       const fullArgs = [...binaryArgs, ...args, file]
       const { code = 0, stdout, stderr } = await launch(options.binary, fullArgs, { timeout }, true)
       const ms = Number(process.hrtime.bigint() - start) / 1e6
-      const failedBare = 'EXODUS_TEST_FAILED_EXIT_CODE_1'
-      if (stdout.includes(failedBare)) {
-        const stdoutClean = stdout.replaceAll(`\n${failedBare}\n`, '\n').replaceAll(failedBare, '')
-        return { ok: false, output: [stdoutClean, stderr], ms }
-      }
-
+      if (stdout.includes(failedBare)) return { ok: false, output: [cleanOut(stdout), stderr], ms }
       const ok = code === 0 && !/^(✖ FAIL|‼ FATAL) /mu.test(stdout)
       return { ok, output: [stdout, stderr], ms }
     } catch (err) {
@@ -643,7 +640,8 @@ if (options.pure) {
       }
 
       const ms = Number(process.hrtime.bigint() - start) / 1e6
-      const { code, stdout = '', stderr = '', signal, killed } = err
+      const { code, stderr = '', signal, killed } = err
+      const stdout = cleanOut(err.stdout || '')
       if (code === null) {
         assert(signal)
         const message = `  ${signal}${killed ? ' (killed)' : ''}`
