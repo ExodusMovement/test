@@ -345,7 +345,6 @@ export const build = async (...files) => {
     child_process: api('child_process.cjs'),
     constants: resolveRequire('constants-browserify'),
     cluster: api('cluster.cjs'),
-    crypto: api('crypto.cjs'),
     events: dirname(resolveRequire('events/')),
     fs: api('fs.cjs'),
     'fs/promises': api('fs-promises.cjs'),
@@ -363,6 +362,10 @@ export const build = async (...files) => {
     zlib: resolveRequire('browserify-zlib'),
   }
 
+  try {
+    if (require.resolve('crypto-browserify')) nodeUnprefixed.crypto = api('crypto.cjs')
+  } catch {}
+
   const config = {
     logLevel: 'silent',
     stdin: {
@@ -372,7 +375,8 @@ export const build = async (...files) => {
     bundle: true,
     outdir: options.outdir,
     entryNames: filename,
-    platform: 'neutral',
+    platform: 'browser', // Need to follow "browser" field of package.json
+    // conditions: ['browser', 'react-native'], // TODO
     mainFields: ['browser', 'module', 'main'],
     define: {
       'process.browser': stringify(true),
