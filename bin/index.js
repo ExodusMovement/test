@@ -12,7 +12,7 @@ import { unlink } from 'node:fs/promises'
 import { tmpdir, availableParallelism, homedir } from 'node:os'
 import assert from 'node:assert/strict'
 // The following make sense only when we run the code in the same Node.js version, i.e. engineOptions.haveIsOk
-import { haveModuleMocks, haveSnapshots, haveForceExit } from '../src/version.js'
+import { haveSnapshots } from '../src/version.js'
 import { findBinary } from './find-binary.js'
 import * as browsers from './browsers.js'
 import { glob as globImplementation } from '../src/glob.cjs'
@@ -286,9 +286,7 @@ const resolveImport = import.meta.resolve && ((query) => fileURLToPath(import.me
 
 const args = []
 
-if (haveModuleMocks && engineOptions.haveIsOk) {
-  args.push('--experimental-test-module-mocks')
-}
+if (engineOptions.haveIsOk) args.push('--experimental-test-module-mocks')
 
 if (options.pure) {
   if (options.bundle) {
@@ -313,11 +311,7 @@ if (options.pure) {
     args.push('--test-update-snapshots')
   }
 
-  if (options.forceExit) {
-    assert(haveForceExit && engineOptions.haveIsOk, 'For forceExit, use Node.js >= 20.14.0')
-    args.push('--test-force-exit')
-  }
-
+  if (options.forceExit) args.push('--test-force-exit')
   if (options.watch) args.push('--watch')
   if (options.only) args.push('--test-only')
 
