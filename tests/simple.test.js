@@ -1,6 +1,9 @@
+import { describe, test } from '@exodus/test/node'
+import assert from 'node:assert/strict'
+
 describe('example test', () => {
   test('first test', () => {
-    expect(1).toBe(1)
-    expect(1).not.toBe(2)
+    assert.strictEqual(1, 1)
+    assert.notStrictEqual(1, 2)
   })
 })
