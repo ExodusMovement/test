@@ -282,9 +282,6 @@ assert(!options.devtools || isBrowserLike || !options.pure, engineFlagError('dev
 assert(!options.throttle || options.browsers, engineFlagError('throttle-cpu'))
 
 const require = createRequire(import.meta.url)
-const resolveRequire = (query) => require.resolve(query)
-const resolveImport = import.meta.resolve && ((query) => fileURLToPath(import.meta.resolve(query)))
-
 const args = []
 
 if (haveModuleMocks && engineOptions.haveIsOk) {
@@ -304,7 +301,7 @@ if (options.pure) {
   assert(!options.watch, `Can not use --watch with with ${engineName}`)
   assert(options.testNamePattern.length === 0, '--test-name-pattern requires node:test engine now')
 } else if (options.engine === 'node:test' || options.engine === 'electron-as-node:test') {
-  const reporter = resolveRequire('./reporter.js')
+  const reporter = require.resolve('./reporter.js')
   args.push('--test', '--no-warnings=ExperimentalWarning', '--test-reporter', reporter)
 
   if (haveSnapshots && engineOptions.haveIsOk) args.push('--experimental-test-snapshots')
@@ -418,11 +415,10 @@ if (options.concurrency) {
 }
 
 if (options.esbuild && !options.bundle) {
-  assert(resolveImport)
   setEnv('EXODUS_TEST_ESBUILD', options.esbuild)
   if (options.hasImportLoader) {
     const optional = options.esbuild === '*' ? '' : '.optional'
-    args.push('--import', resolveImport(`../loaders/esbuild${optional}.js`))
+    args.push('--import', fileURLToPath(import.meta.resolve(`../loaders/esbuild${optional}.js`)))
   } else if (options.flagEngine === false) {
     // Engine is set via env, --esbuild set via flag. Allow but warn
     console.warn(`Warning: ${engineName} does not support --esbuild option`)
@@ -434,7 +430,7 @@ if (options.esbuild && !options.bundle) {
 
 if (options.babel) {
   assert(!options.esbuild, 'Options --babel and --esbuild are mutually exclusive')
-  args.push('-r', resolveRequire('../loaders/babel.cjs'))
+  args.push('-r', require.resolve('../loaders/babel.cjs'))
 }
 
 if (options.typescript) {
@@ -442,10 +438,9 @@ if (options.typescript) {
   assert(!options.babel, 'Options --typescript and --babel are mutually exclusive')
 
   if (options.ts === 'flag') {
-    assert(resolveImport)
     assert(options.hasImportLoader)
     // TODO: switch to native --experimental-strip-types where available
-    args.push('--import', resolveImport('../loaders/typescript.js'))
+    args.push('--import', fileURLToPath(import.meta.resolve('../loaders/typescript.js')))
   } else if (options.ts !== 'auto') {
     throw new Error(`Processing --typescript is not possible with ${engineName}`)
   }
@@ -547,7 +542,7 @@ if (options.coverage) {
     args.push('--experimental-test-coverage')
   } else if (options.coverageEngine === 'c8') {
     c8 = findBinary('c8')
-    if (resolveImport) assert.equal(c8, resolveImport('c8/bin/c8.js'))
+    assert.equal(c8, fileURLToPath(import.meta.resolve('c8/bin/c8.js')))
     args.unshift(options.binary)
     options.binary = c8
     // perhaps use text-summary ?
@@ -560,7 +555,7 @@ if (options.coverage) {
 if (options.binary === 'electron') {
   if (isBrowserLike) {
     assert(!options.binaryArgs)
-    options.binaryArgs = [resolveImport('./electron.js')]
+    options.binaryArgs = [fileURLToPath(import.meta.resolve('./electron.js'))]
   } else {
     setEnv('ELECTRON_RUN_AS_NODE', '1')
   }
