@@ -18,9 +18,6 @@
     "node-test"
   ],
   "license": "MIT",
-  "engines": {
-    "node": "^18.19.0 || ^20.8.0 || >=22.0.0"
-  },
   "type": "module",
   "exports": {
     "./bundle": "./bundle.js"
