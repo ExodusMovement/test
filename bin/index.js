@@ -61,7 +61,7 @@ const barebonesOk = ['d8', 'spidermonkey', 'quickjs', 'xs', 'hermes']
 const barebonesUnhandled = ['jsc', 'escargot', 'graaljs', 'engine262']
 
 const getEnvFlag = (name) => {
-  if (!Object.hasOwn(process.env, name)) return false
+  if (!Object.hasOwn(process.env, name)) return
   if ([undefined, '', '0', '1'].includes(process.env[name])) return process.env[name] === '1'
   throw new Error(`Unexpected ${name} env value, expected '', '0', or '1'`)
 }
@@ -162,6 +162,9 @@ function parseOptions() {
         break
       case '--coverage':
         options.coverage = true
+        break
+      case '--no-coverage':
+        options.coverage = false
         break
       case '--watch':
         options.watch = true
@@ -379,6 +382,7 @@ if (options.jest) {
     }
   }
 
+  if (config.collectCoverage && options.coverage === undefined) options.coverage = true
   if (config.maxWorkers && options.concurrency === undefined) {
     options.concurrency = config.maxWorkers
   }
