@@ -4,8 +4,7 @@ import { spawn, execFile as execFileCallback } from 'node:child_process'
 import { promisify } from 'node:util'
 import { once } from 'node:events'
 import { fileURLToPath } from 'node:url'
-import { basename, dirname, resolve, join } from 'node:path'
-import { createRequire } from 'node:module'
+import { basename, join } from 'node:path'
 import { randomUUID } from 'node:crypto'
 import { existsSync, rmSync, realpathSync } from 'node:fs'
 import { unlink } from 'node:fs/promises'
@@ -17,9 +16,7 @@ import { findBinary } from './find-binary.js'
 import * as browsers from './browsers.js'
 import { glob as globImplementation } from '../src/glob.cjs'
 
-const bindir = dirname(fileURLToPath(import.meta.url))
 const DEFAULT_PATTERNS = [`**/?(*.)+(spec|test).?([cm])[jt]s?(x)`] // do not trust magic dirs by default
-
 const bundleOpts = { pure: true, bundle: true, esbuild: true, ts: 'auto' }
 const bareboneOpts = { ...bundleOpts, barebone: true }
 const hermesAv = ['-Og', '-Xmicrotask-queue']
@@ -281,7 +278,6 @@ setEnv('EXODUS_TEST_ENVIRONMENT', options.bundle ? 'bundle' : '') // perhaps swi
 assert(!options.devtools || isBrowserLike || !options.pure, engineFlagError('devtools'))
 assert(!options.throttle || options.browsers, engineFlagError('throttle-cpu'))
 
-const require = createRequire(import.meta.url)
 const args = []
 
 if (haveModuleMocks && engineOptions.haveIsOk) {
@@ -301,7 +297,7 @@ if (options.pure) {
   assert(!options.watch, `Can not use --watch with with ${engineName}`)
   assert(options.testNamePattern.length === 0, '--test-name-pattern requires node:test engine now')
 } else if (options.engine === 'node:test' || options.engine === 'electron-as-node:test') {
-  const reporter = require.resolve('./reporter.js')
+  const reporter = import.meta.resolve('./reporter.js')
   args.push('--test', '--no-warnings=ExperimentalWarning', '--test-reporter', reporter)
 
   if (haveSnapshots && engineOptions.haveIsOk) args.push('--experimental-test-snapshots')
@@ -345,7 +341,7 @@ if (options.jest) {
   if (options.bundle) {
     setEnv('EXODUS_TEST_JEST_CONFIG', JSON.stringify(jestConfig))
   } else {
-    args.push(options.hasImportLoader ? '--import' : '-r', resolve(bindir, 'jest.js'))
+    args.push(options.hasImportLoader ? '--import' : '-r', import.meta.resolve('./jest.js'))
   }
 
   if (config.testFailureExitCode !== undefined) {
@@ -418,7 +414,7 @@ if (options.esbuild && !options.bundle) {
   setEnv('EXODUS_TEST_ESBUILD', options.esbuild)
   if (options.hasImportLoader) {
     const optional = options.esbuild === '*' ? '' : '.optional'
-    args.push('--import', fileURLToPath(import.meta.resolve(`../loaders/esbuild${optional}.js`)))
+    args.push('--import', import.meta.resolve(`../loaders/esbuild${optional}.js`))
   } else if (options.flagEngine === false) {
     // Engine is set via env, --esbuild set via flag. Allow but warn
     console.warn(`Warning: ${engineName} does not support --esbuild option`)
@@ -430,7 +426,7 @@ if (options.esbuild && !options.bundle) {
 
 if (options.babel) {
   assert(!options.esbuild, 'Options --babel and --esbuild are mutually exclusive')
-  args.push('-r', require.resolve('../loaders/babel.cjs'))
+  args.push('-r', import.meta.resolve('../loaders/babel.cjs'))
 }
 
 if (options.typescript) {
@@ -440,7 +436,7 @@ if (options.typescript) {
   if (options.ts === 'flag') {
     assert(options.hasImportLoader)
     // TODO: switch to native --experimental-strip-types where available
-    args.push('--import', fileURLToPath(import.meta.resolve('../loaders/typescript.js')))
+    args.push('--import', import.meta.resolve('../loaders/typescript.js'))
   } else if (options.ts !== 'auto') {
     throw new Error(`Processing --typescript is not possible with ${engineName}`)
   }
