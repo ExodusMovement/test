@@ -337,6 +337,7 @@ if (process.env.EXODUS_TEST_IGNORE) {
 // The comment below is disabled, we don't auto-mock @jest/globals anymore, and having our loader first is faster
 // [Disabled] Our loader should be last, as enabling module mocks confuses other loaders
 let jestConfig = null
+let globalTeardown
 if (options.jest) {
   const { loadJestConfig } = await import('../src/jest.config.js')
   const config = await loadJestConfig(process.cwd())
@@ -380,6 +381,18 @@ if (options.jest) {
 
   if (config.maxWorkers && options.concurrency === undefined) {
     options.concurrency = config.maxWorkers
+  }
+
+  for (const key of ['globalSetup', 'globalTeardown']) {
+    if (!config[key]) continue
+    const { default: method } = await import(config[key])
+    assert(method, `config.${key} does not export a default method`)
+    assert(method.length === 0, `Arguments for config.${key} are not supported yet`)
+    if (key === 'globalTeardown') {
+      globalTeardown = method
+    } else {
+      await method() // globalSetup
+    }
   }
 }
 
@@ -727,3 +740,5 @@ if (options.pure) {
   const { code } = await launch(options.binary, [...args, ...files])
   process.exitCode = code
 }
+
+if (globalTeardown) await globalTeardown()

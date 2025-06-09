@@ -2,37 +2,6 @@
 import assert from 'node:assert/strict'
 import { specialEnvironments } from './jest.environment.js'
 
-let dynamicImport
-let dynamicImportRoot
-
-async function makeDynamicImport(rootDir) {
-  if (dynamicImport) {
-    assert(rootDir === dynamicImportRoot, 'Unexpected rootDir change from preset loading')
-    return dynamicImport
-  }
-
-  dynamicImportRoot = rootDir
-  if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
-    const preloaded = new Map(EXODUS_TEST_PRELOADED) // eslint-disable-line no-undef
-    dynamicImport = async (name) => {
-      if (preloaded.has(name)) return preloaded.get(name)()
-      assert.fail('Requiring non-bundled plugins from bundle is unsupported')
-    }
-  } else if (rootDir) {
-    const { resolve } = await import('node:path')
-    const { createRequire } = await import('node:module')
-    const require = createRequire(resolve(rootDir, 'package.json'))
-    dynamicImport = (path) => {
-      // FIXME: fix linter to allow this
-      // const meta = path.toLowerCase().endsWith('.json') ? { with: { type: 'json' } } : undefined
-      // return import(require.resolve(path), meta)
-      return import(require.resolve(path))
-    }
-  } else {
-    dynamicImport = async () => assert.fail('Unreachable: importing plugins without a rootDir')
-  }
-}
-
 const skipPreset = new Set(['ts-jest'])
 const EXTS = `.?([cm])[jt]s?(x)` // we differ from jest, allowing [cm] before everything
 const normalizeJestConfig = (config) => ({
@@ -81,7 +50,7 @@ function verifyJestConfig(c) {
   assert(!c.preset || skipPreset.has(c.preset.split('/')[0]), 'Jest config.preset is not supported')
 
   // TODO
-  const TODO = ['globalSetup', 'globalTeardown', 'randomize', 'projects', 'roots']
+  const TODO = ['randomize', 'projects', 'roots']
   TODO.push('resolver', 'unmockedModulePathPatterns', 'watchPathIgnorePatterns', 'snapshotResolver')
   for (const key of TODO) assert.equal(c[key], undefined, `Jest config.${key} is not supported yet`)
 }
@@ -105,23 +74,57 @@ export async function loadJestConfig(...args) {
     rawConfig = JSON.parse(process.env.EXODUS_TEST_JEST_CONFIG)
   }
 
-  while (rawConfig.preset && !skipPreset.has(rawConfig.preset)) {
-    await makeDynamicImport(rawConfig.rootDir)
-    const suffixes = rawConfig.preset.startsWith('.')
-      ? ['']
-      : ['/jest-preset.json', '/jest-preset.js', '/jest-preset.cjs', '/jest-preset.mjs']
+  const needPreset = ({ preset }) => preset && !skipPreset.has(preset)
+  const resolveGlobalSetup = (config, req) => {
+    if (config.globalSetup) config.globalSetup = req.resolve(config.globalSetup) // eslint-disable-line @exodus/mutable/no-param-reassign-prop-only
+    if (config.globalTeardown) config.globalTeardown = req.resolve(config.globalTeardown) // eslint-disable-line @exodus/mutable/no-param-reassign-prop-only
+  }
 
-    let baseConfig
-    for (const suffix of suffixes) {
-      if (baseConfig) break
-      try {
-        const presetModule = await dynamicImport(`${rawConfig.preset}${suffix}`)
-        baseConfig = presetModule.default
-      } catch {}
+  if (needPreset(rawConfig) || rawConfig.globalSetup || rawConfig.globalTeardown) {
+    if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
+      throw new Error('jest preset and globalSetup/Teardown not yet supported in bundles')
+    } else {
+      assert(rawConfig.rootDir)
+      const { resolve } = await import('node:path')
+      const { createRequire } = await import('node:module')
+      let requireConfig = createRequire(resolve(rawConfig.rootDir, 'package.json'))
+      resolveGlobalSetup(rawConfig, requireConfig)
+      while (needPreset(rawConfig)) {
+        const suffixes = rawConfig.preset.startsWith('.')
+          ? ['']
+          : ['/jest-preset.json', '/jest-preset.js', '/jest-preset.cjs', '/jest-preset.mjs']
+
+        let baseConfig
+        for (const suffix of suffixes) {
+          if (baseConfig) break
+          try {
+            const resolved = requireConfig.resolve(`${rawConfig.preset}${suffix}`)
+            // FIXME: fix linter to allow this
+            // const meta = resolved.toLowerCase().endsWith('.json') ? { with: { type: 'json' } } : undefined
+            // const presetModule = await import(require.resolve(path), meta)
+            const presetModule = await import(resolved)
+            requireConfig = createRequire(resolved)
+            baseConfig = presetModule.default
+          } catch {}
+        }
+
+        assert(baseConfig, `Could not load preset: ${rawConfig.preset} `)
+        resolveGlobalSetup(baseConfig, requireConfig)
+        rawConfig = {
+          ...baseConfig,
+          ...rawConfig,
+          preset: baseConfig.preset,
+          setupFiles: [
+            ...(baseConfig.setupFiles || []).map((file) => requireConfig.resolve(file)),
+            ...(rawConfig.setupFiles || []),
+          ],
+          setupFilesAfterEnv: [
+            ...(baseConfig.setupFilesAfterEnv || []).map((file) => requireConfig.resolve(file)),
+            ...(rawConfig.setupFilesAfterEnv || []),
+          ],
+        }
+      }
     }
-
-    assert(baseConfig, `Could not load preset: ${rawConfig.preset} `)
-    rawConfig = { ...baseConfig, ...rawConfig, preset: baseConfig.preset }
   }
 
   config = normalizeJestConfig(rawConfig)
@@ -152,7 +155,27 @@ export async function installJestEnvironment(jestGlobals) {
   if (c.restoreMocks) beforeEach(() => jest.restoreAllMocks())
   if (c.resetModules) beforeEach(() => jest.resetModules())
 
-  await makeDynamicImport(config.rootDir)
+  let dynamicImport
+  if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
+    const preloaded = new Map(EXODUS_TEST_PRELOADED) // eslint-disable-line no-undef
+    dynamicImport = async (name) => {
+      if (preloaded.has(name)) return preloaded.get(name)()
+      assert.fail('Requiring non-bundled plugins from bundle is unsupported')
+    }
+  } else if (config.rootDir) {
+    const { resolve } = await import('node:path')
+    const { createRequire } = await import('node:module')
+    const require = createRequire(resolve(config.rootDir, 'package.json'))
+    dynamicImport = (path) => {
+      // FIXME: fix linter to allow this
+      // const meta = path.toLowerCase().endsWith('.json') ? { with: { type: 'json' } } : undefined
+      // return import(require.resolve(path), meta)
+      return import(require.resolve(path))
+    }
+  } else {
+    dynamicImport = async () => assert.fail('Unreachable: importing plugins without a rootDir')
+  }
+
   for (const file of c.setupFiles || []) await dynamicImport(file)
 
   if (Object.hasOwn(specialEnvironments, c.testEnvironment)) {
