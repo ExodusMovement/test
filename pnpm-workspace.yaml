@@ -1,6 +1,9 @@
 lockfileIncludeTarballUrl: true
+linkWorkspacePackages: true
+preferWorkspacePackages: true
 packages:
   - .
+  - bundler
 onlyBuiltDependencies:
   - electron
   - esbuild
