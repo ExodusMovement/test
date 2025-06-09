@@ -385,8 +385,8 @@ export const build = async (...files) => {
       'process.stdout': 'undefined',
       'process.type': 'undefined',
       'process.platform': 'undefined',
-      'process.version': stringify('v22.5.1'), // shouldn't depend on currently used Node.js version
-      'process.versions.node': stringify('22.5.1'), // see line above
+      'process.version': stringify('v22.15.0'), // shouldn't depend on currently used Node.js version
+      'process.versions.node': stringify('22.15.0'), // see line above
       EXODUS_TEST_PROCESS_CWD: stringify(process.cwd()),
       EXODUS_TEST_FILES: stringify(files.map((f) => [dirname(f), basename(f)])),
       EXODUS_TEST_SNAPSHOTS: stringify(EXODUS_TEST_SNAPSHOTS),
