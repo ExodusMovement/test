@@ -207,8 +207,10 @@ function mockCloneItem(obj, cache) {
           if (orig !== desc[key]) modified = true
         }
 
-        desc.enumerable = desc.configurable = true
-        if (desc.value !== undefined || desc.get || desc.set) definitions.push([name, desc])
+        if (desc.value !== undefined || ((desc.get || desc.set) && desc.enumerable !== false)) {
+          desc.enumerable = desc.configurable = true
+          definitions.push([name, desc])
+        }
       }
     }
 
