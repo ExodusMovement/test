@@ -670,8 +670,8 @@ if (options.pure) {
       return { ok, output: [stdout, stderr], ms }
     } catch (err) {
       const retryOnXS = new Set(['SIGSEGV', 'SIGBUS'])
-      if (options.engine === 'xs:bundle' && retryOnXS.has(err.signal) && attempt < 2) {
-        // xs sometimes randomly crashes with SIGSEGV on CI. Allow 3 attempts (allow 0 - 1 to fail)
+      if (options.engine === 'xs:bundle' && retryOnXS.has(err.signal) && attempt < 3) {
+        // xs sometimes randomly crashes with SIGSEGV on CI. Allow 4 attempts (allow 0 - 2 to fail)
         return runOne(inputFile, attempt + 1)
       }
 
