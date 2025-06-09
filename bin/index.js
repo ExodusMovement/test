@@ -77,7 +77,7 @@ function parseOptions() {
     esbuild: false,
     babel: false,
     coverage: getEnvFlag('EXODUS_TEST_COVERAGE'),
-    coverageEngine: 'c8', // c8 or node
+    coverageEngine: process.platform === 'win32' ? 'node' : 'c8', // c8 or node. TODO: can we use c8 on win?
     watch: false,
     only: false,
     passWithNoTests: false,
@@ -614,6 +614,10 @@ async function launch(binary, args, opts = {}, buffering = false) {
 
   const barebones = [...barebonesOk, ...barebonesUnhandled]
   assertBinary(binary, ['node', 'bun', 'deno', 'electron', ...barebones, 'v8']) // v8 is an alias to d8
+  if (binary === c8 && process.platform === 'win32') {
+    ;[binary, args] = ['node', [binary, ...args]]
+  }
+
   if (options.dropNetwork) {
     switch (process.platform) {
       case 'darwin':
