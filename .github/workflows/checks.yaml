@@ -27,6 +27,33 @@ jobs:
       - run: pnpm i --frozen-lockfile
       - run: node --run lint
 
+  windows:
+    runs-on: windows-latest
+    name: 'Windows with Node.js ${{ matrix.node-version }}'
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ['24.1', '22.15', '20.8.0', '18.19.0']
+    steps:
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
+        with:
+          run_install: false
+      - run: pnpm env use -g ${{ matrix.node-version }}
+      - run: pnpm i --frozen-lockfile
+      - run: node ./tests/simple.test.js
+      - run: node ./bin/index.js ./tests/simple.test.js
+      - run: node ./bin/index.js --jest ./tests/jest/simple.test.js
+      - run: node ./bin/index.js --esbuild ./tests/simple.test.js
+      - run: node ./bin/index.js --esbuild --jest ./tests/jest/simple.test.js
+      - run: node ./bin/index.js --coverage ./tests/simple.test.js
+      - run: node ./bin/index.js --coverage --jest ./tests/jest/simple.test.js
+      - run: node ./bin/index.js --coverage --esbuild ./tests/simple.test.js
+      - run: node ./bin/index.js --coverage --esbuild --jest ./tests/jest/simple.test.js
+      - run: node ./bin/index.js 'tests/*.test.js'
+      - run: node ./bin/index.js --jest --esbuild=ts,user.test.js,sum.test.js
+
   check:
     runs-on: ubuntu-22.04
     name: 'Test on Node.js ${{ matrix.node-version }}'
