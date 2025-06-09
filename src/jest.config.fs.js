@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 
 async function getJestConfig(dir) {
   if (!dir) return
@@ -16,7 +17,7 @@ async function getJestConfig(dir) {
       if (type === 'json') {
         configs.push(JSON.parse(await readFile(configPath('json'), 'utf8')))
       } else {
-        const { default: config } = await import(configPath(type))
+        const { default: config } = await import(pathToFileURL(configPath(type)))
         configs.push(config)
       }
     } catch (e) {

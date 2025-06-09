@@ -87,6 +87,7 @@ export async function loadJestConfig(...args) {
       assert(rawConfig.rootDir)
       const { resolve } = await import('node:path')
       const { createRequire } = await import('node:module')
+      const { pathToFileURL } = await import('node:url')
       let requireConfig = createRequire(resolve(rawConfig.rootDir, 'package.json'))
       resolveGlobalSetup(rawConfig, requireConfig)
       while (needPreset(rawConfig)) {
@@ -101,8 +102,8 @@ export async function loadJestConfig(...args) {
             const resolved = requireConfig.resolve(`${rawConfig.preset}${suffix}`)
             // FIXME: fix linter to allow this
             // const meta = resolved.toLowerCase().endsWith('.json') ? { with: { type: 'json' } } : undefined
-            // const presetModule = await import(require.resolve(path), meta)
-            const presetModule = await import(resolved)
+            // const presetModule = await import(pathToFileURL(resolved), meta)
+            const presetModule = await import(pathToFileURL(resolved))
             requireConfig = createRequire(resolved)
             baseConfig = presetModule.default
           } catch {}
@@ -165,12 +166,13 @@ export async function installJestEnvironment(jestGlobals) {
   } else if (config.rootDir) {
     const { resolve } = await import('node:path')
     const { createRequire } = await import('node:module')
+    const { pathToFileURL } = await import('node:url')
     const require = createRequire(resolve(config.rootDir, 'package.json'))
     dynamicImport = (path) => {
       // FIXME: fix linter to allow this
       // const meta = path.toLowerCase().endsWith('.json') ? { with: { type: 'json' } } : undefined
-      // return import(require.resolve(path), meta)
-      return import(require.resolve(path))
+      // return import(pathToFileURL(require.resolve(path)), meta)
+      return import(pathToFileURL(require.resolve(path)))
     }
   } else {
     dynamicImport = async () => assert.fail('Unreachable: importing plugins without a rootDir')
