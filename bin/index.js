@@ -377,6 +377,27 @@ if (options.jest) {
       return !ignoreRegexes.some((r) => r.test(resolved))
     }
   }
+
+  if (config.maxWorkers && options.concurrency === undefined) {
+    options.concurrency = config.maxWorkers
+  }
+}
+
+if (options.concurrency) {
+  const raw = options.concurrency
+  let concurrency = raw
+  if (typeof raw === 'string') {
+    if (/^\d{1,15}%$/u.test(raw)) {
+      const perc = Number(raw.slice(0, -1))
+      concurrency = Math.max(1, Math.round((perc * availableParallelism()) / 100))
+    } else {
+      assert(/^\d{1,15}$/u.test(raw), `Wrong concurrency: ${raw}`)
+      concurrency = Number(raw)
+    }
+  }
+
+  assert(Number.isSafeInteger(concurrency) && concurrency >= 1, `Wrong concurrency: ${raw}`)
+  options.concurrency = concurrency
 }
 
 if (options.esbuild && !options.bundle) {

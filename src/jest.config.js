@@ -43,7 +43,8 @@ const normalizeJestConfig = (config) => ({
   passWithNoTests: false,
   snapshotSerializers: [],
   injectGlobals: true,
-  maxConcurrency: 5,
+  maxConcurrency: 10, // jest has 5, seems too low?
+  maxWorkers: undefined, // jest has 50%, also too low, we default to CPUs - 1
   ...config,
   snapshotFormat: {
     // jest-snapshot defaults
