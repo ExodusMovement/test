@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict'
+import { spawnSync } from 'node:child_process'
 import { readFile } from 'node:fs/promises'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { findBinary } from './find-binary.js'
 
 // See https://playwright.dev/docs/browsers
@@ -125,4 +128,10 @@ export async function run(runner, args, { binary, devtools, dropNetwork, timeout
     clearTimeout(timer)
     await context.close()
   }
+}
+
+export function runPlaywrightCommand(args) {
+  const playwright = dirname(fileURLToPath(import.meta.resolve('playwright-core/package.json')))
+  const cli = resolve(playwright, 'cli.js')
+  return spawnSync(cli, args, { stdio: 'inherit' })
 }
