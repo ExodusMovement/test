@@ -100,8 +100,8 @@ function parseOptions() {
   const args = [...process.argv]
 
   // First argument should be node
-  assert.equal(basename(args.shift()), 'node')
-  assert.equal(basename(process.argv0), 'node')
+  assert(['node', 'node.exe'].includes(basename(args.shift())))
+  assert(['node', 'node.exe'].includes(basename(process.argv0)))
 
   // Second argument should be this script
   const jsname = args.shift()
