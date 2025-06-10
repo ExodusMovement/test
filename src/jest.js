@@ -18,8 +18,8 @@ if (process.env.EXODUS_TEST_TIMERS_TRACK) timersTrack()
 
 let inband = false
 if (process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle') {
-  const argv = process.argv.slice(1)
-  inband = argv.length === 1 && (argv[0].endsWith('/inband.js') || argv[0].endsWith('\\inband.js'))
+  const files = process.argv.slice(1)
+  inband = files.length === 1 && ['/inband.js', '\\inband.js'].some((s) => files[0].endsWith(s))
 }
 
 // We can't provide snapshots in inband tests yet, and mocks/timers are unsafe there
