@@ -77,6 +77,20 @@ const doesNotThrow = (x) => {
   }
 }
 
+const wrapAssertion = (f) => {
+  const wrapped = (...args) => {
+    if (!Error.captureStackTrace) return f(...args)
+    try {
+      return f(...args)
+    } catch (err) {
+      Error.captureStackTrace(err, wrapped)
+      throw err
+    }
+  }
+
+  return wrapped
+}
+
 function createExpect() {
   return new Proxy(() => {}, {
     apply: (target, that, [x, ...rest]) => {
@@ -85,26 +99,26 @@ function createExpect() {
         get: (_, name) => {
           const matcher = matchers[name] || matchersFalseNegative[name]
           if (matcher) {
-            return (...args) => {
+            return wrapAssertion((...args) => {
               if (!matcher(x, ...args)) return loadExpect(`.${name} check`)(x)[name](...args)
               assertionsDelta++
-            }
+            })
           }
 
           if (name === 'toThrow') {
-            return (...args) => {
+            return wrapAssertion((...args) => {
               if (args.length > 0) return loadExpect('.toThrow args')(x)[name](...args)
               const [passed] = doesNotThrow(x)
               if (passed) return loadExpect('.toThrow fail')(() => {})[name](...args)
               assertionsDelta++
-            }
+            })
           }
 
           if (name === 'not')
             return new Proxy(Object.create(null), {
               get: (_, not) => {
                 if (not === 'toThrow') {
-                  return (...args) => {
+                  return wrapAssertion((...args) => {
                     const [passed, err] = doesNotThrow(x)
                     if (!passed) {
                       return loadExpect('.not.toThrow fail')(() => {
@@ -113,17 +127,17 @@ function createExpect() {
                     }
 
                     assertionsDelta++
-                  }
+                  })
                 }
 
                 if (matchers[not]) {
-                  return (...args) => {
+                  return wrapAssertion((...args) => {
                     if (matchers[not](x, ...args)) {
                       return loadExpect(`.not.${not} fail`)(x).not[not](...args)
                     }
 
                     assertionsDelta++
-                  }
+                  })
                 }
 
                 return loadExpect(`.not.${not}`)(x).not[not]
