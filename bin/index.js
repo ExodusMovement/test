@@ -341,7 +341,7 @@ if (options.jest) {
   if (options.bundle) {
     setEnv('EXODUS_TEST_JEST_CONFIG', JSON.stringify(jestConfig))
   } else {
-    args.push(options.hasImportLoader ? '--import' : '-r', import.meta.resolve('./jest.js'))
+    args.push(options.hasImportLoader ? '--import' : '-r', import.meta.resolve('../loader/jest.js'))
   }
 
   if (config.testFailureExitCode !== undefined) {
@@ -414,7 +414,7 @@ if (options.esbuild && !options.bundle) {
   setEnv('EXODUS_TEST_ESBUILD', options.esbuild)
   if (options.hasImportLoader) {
     const optional = options.esbuild === '*' ? '' : '.optional'
-    args.push('--import', import.meta.resolve(`../loaders/esbuild${optional}.js`))
+    args.push('--import', import.meta.resolve(`../loader/esbuild${optional}.js`))
   } else if (options.flagEngine === false) {
     // Engine is set via env, --esbuild set via flag. Allow but warn
     console.warn(`Warning: ${engineName} does not support --esbuild option`)
@@ -426,7 +426,7 @@ if (options.esbuild && !options.bundle) {
 
 if (options.babel) {
   assert(!options.esbuild, 'Options --babel and --esbuild are mutually exclusive')
-  args.push('-r', import.meta.resolve('../loaders/babel.cjs'))
+  args.push('-r', import.meta.resolve('../loader/babel.cjs'))
 }
 
 if (options.typescript) {
@@ -436,7 +436,7 @@ if (options.typescript) {
   if (options.ts === 'flag') {
     assert(options.hasImportLoader)
     // TODO: switch to native --experimental-strip-types where available
-    args.push('--import', import.meta.resolve('../loaders/typescript.js'))
+    args.push('--import', import.meta.resolve('../loader/typescript.js'))
   } else if (options.ts !== 'auto') {
     throw new Error(`Processing --typescript is not possible with ${engineName}`)
   }
