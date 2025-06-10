@@ -601,7 +601,7 @@ if (options.bundle) {
 
   if (options.binary === 'node') args.unshift('--enable-source-maps') // FIXME
 
-  const bundle = await import('../bundler/bundle.js')
+  const bundle = await import('@exodus/test-bundler/bundle')
   await bundle.init({ ...options, outdir, jestConfig })
   buildFile = (file) => bundle.build(file)
 }
