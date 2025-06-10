@@ -16,6 +16,7 @@ export const jestFunctionMocks = {
   spyOn: (obj, name, accessType) => {
     assert(!accessType, `accessType "${accessType}" is not supported`)
     assert(obj && name && name in obj && !(name in {}) && !(name in Object.prototype))
+    if (obj[name]?._isMockFunction === true) return obj[name]
     const fn = jestfn(obj[name], obj, name)
     // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
     obj[name] = fn

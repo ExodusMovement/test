@@ -79,6 +79,30 @@ test('mockRestore with spyOn', () => {
   expect(obj.x).not.toBe(fn)
 })
 
+test('mockRestore with spyOn works when spyOn is called more than once', () => {
+  const obj = { x: () => 2 }
+
+  const fn = jest.spyOn(obj, 'x')
+  fn.mockImplementation(() => 3)
+  expect(obj.x()).toBe(3)
+  expect(fn()).toBe(3)
+  expect(obj.x).toBe(fn)
+
+  // Repeated spyOn returns existing mock
+  const fn2 = jest.spyOn(obj, 'x')
+  expect(fn2).toBe(fn)
+  expect(obj.x()).toBe(3)
+  fn2.mockImplementation(() => 4)
+  expect(obj.x()).toBe(4)
+  expect(fn()).toBe(4)
+  expect(obj.x).toBe(fn2)
+
+  fn.mockRestore()
+  expect(obj.x()).toBe(2)
+  expect(fn()).toBe(undefined)
+  expect(obj.x).not.toBe(fn)
+})
+
 test('properties are transparent', () => {
   const Socket = jest.fn()
   let ping
