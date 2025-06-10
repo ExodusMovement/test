@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { inspect } from 'node:util'
-import { relative, resolve } from 'node:path'
+import { relative, resolve, normalize } from 'node:path'
 import { spec as SpecReporter } from 'node:test/reporters'
 import { fileURLToPath } from 'node:url'
 import { color, haveColors, dim } from './color.js'
@@ -134,7 +134,7 @@ export default async function nodeTestReporterExodus(source) {
     switch (type) {
       case 'test:dequeue':
         if (data.nesting === 0 && data.name?.startsWith?.(INBAND_PREFIX)) {
-          files.add(data.name.slice(INBAND_PREFIX.length))
+          files.add(normalize(data.name.slice(INBAND_PREFIX.length)))
         } else if (data.nesting === 0 && !Object.hasOwn(data, 'file')) {
           files.add(relative(cwd, data.name)) // old-style
         } else if (isTopLevelTest(data)) {
