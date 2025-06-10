@@ -11,7 +11,7 @@ import { unlink } from 'node:fs/promises'
 import { tmpdir, availableParallelism, homedir } from 'node:os'
 import assert from 'node:assert/strict'
 // The following make sense only when we run the code in the same Node.js version, i.e. engineOptions.haveIsOk
-import { haveModuleMocks, haveSnapshots, haveForceExit } from '../src/version.js'
+import { haveModuleMocks, haveSnapshots, haveForceExit, haveCoverExclude } from '../src/version.js'
 import { findBinary } from './find-binary.js'
 import * as browsers from './browsers.js'
 import { glob as globImplementation } from '../src/glob.cjs'
@@ -536,6 +536,12 @@ if (options.coverage) {
   assert.equal(options.binary, 'node', 'Coverage is only supported with Node.js')
   if (options.coverageEngine === 'node') {
     args.push('--experimental-test-coverage')
+    if (haveCoverExclude && engineOptions.haveIsOk) {
+      args.push(
+        `--test-coverage-exclude=**/@exodus/test/src/**`,
+        `--test-coverage-exclude=${DEFAULT_PATTERNS[0]}`
+      )
+    }
   } else if (options.coverageEngine === 'c8') {
     c8 = findBinary('c8')
     assert.equal(c8, fileURLToPath(import.meta.resolve('c8/bin/c8.js')))
