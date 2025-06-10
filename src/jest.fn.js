@@ -18,6 +18,9 @@ export const jestFunctionMocks = {
     assert(obj && name && name in obj && !(name in {}) && !(name in Object.prototype))
     if (obj[name]?._isMockFunction === true) return obj[name]
     const fn = jestfn(obj[name], obj, name)
+    const desc = Object.getOwnPropertyDescriptor(obj, name)
+    // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
+    if (desc?.get && !desc.set && desc.configurable && desc.enumerable) delete obj[name] // e.g. a wrapped module
     // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
     obj[name] = fn
     return fn
