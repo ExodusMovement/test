@@ -1,5 +1,5 @@
 import {
-  mock,
+  mockModule,
   assert,
   requireIsRelative,
   relativeRequire as require,
@@ -97,7 +97,7 @@ function requireMock(name) {
 
 function resetModules() {
   for (const [, ctx] of nodeMocks) {
-    if (mock.module) ctx.restore()
+    if (mockModule) ctx.restore()
   }
 
   assert(process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle', 'resetModules() unsupported from bundle')
@@ -110,7 +110,7 @@ function resetModules() {
 function unmock(name) {
   const resolved = resolveModule(name)
   assert(mapMocks.has(resolved), 'Module is not mocked')
-  if (mock.module) nodeMocks.get(resolved).restore()
+  if (mockModule) nodeMocks.get(resolved).restore()
   delete require.cache[resolved]
   delete require.cache[`node:${resolved}`]
   mapMocks.delete(resolved)
@@ -325,9 +325,9 @@ function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
     // Native module mocks is required if loading ESM or __from__ ESM
     // No good way to check the locations that import the module, but we can check top-level file
     // Built-in modules are fine though
-    assert(mock.module, `ESM module ${mocksNodeVersionNote}`)
+    assert(mockModule, `ESM module ${mocksNodeVersionNote}`)
   } else if (isBuiltIn && name.startsWith('node:') && !override) {
-    assert(mock.module, `Native non-overriding node:* ${mocksNodeVersionNote}`)
+    assert(mockModule, `Native non-overriding node:* ${mocksNodeVersionNote}`)
   }
 
   if (value[Symbol.toStringTag] === 'Module') value.__esModule = true
@@ -348,8 +348,7 @@ function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
     if (obj.defaultExport === undefined) delete obj.defaultExport
   }
 
-  nodeMocks.set(resolved, mock.module?.(resolved, obj))
-
+  nodeMocks.set(resolved, mockModule?.(resolved, obj))
   return this
 }
 

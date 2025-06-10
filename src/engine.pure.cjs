@@ -586,7 +586,7 @@ module.exports = {
   ...{ mock, describe, test, beforeEach, afterEach, before, after },
   ...{ builtinModules, syncBuiltinESMExports },
   ...{ utilFormat, isPromise, nodeVersion, awaitForMicrotaskQueue },
-  ...{ requireIsRelative, relativeRequire, isTopLevelESM },
+  ...{ requireIsRelative, relativeRequire, isTopLevelESM, mockModule: mock.module },
   ...{ readSnapshot, setSnapshotSerializers, setSnapshotResolver },
 }
 /* eslint-enable unicorn/no-useless-spread */

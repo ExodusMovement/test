@@ -3,6 +3,7 @@ const assertLoose = require('node:assert')
 const { types, format: utilFormat } = require('node:util')
 const { existsSync, readFileSync } = require('node:fs')
 const { normalize, basename, dirname, join: pathJoin } = require('node:path')
+const { pathToFileURL } = require('node:url')
 const { createRequire, builtinModules, syncBuiltinESMExports } = require('node:module')
 const nodeTest = require('node:test')
 
@@ -28,6 +29,10 @@ const setSnapshotResolver = (fn) => {
   snapshot?.setResolveSnapshotPath(resolveSnapshot)
 }
 
+const mockModule = mock.module
+  ? (t, o) => mock.module(t.includes('\\') ? pathToFileURL(t) : t, o) // resolve windows-looking paths
+  : undefined
+
 /* eslint-disable unicorn/no-useless-spread */
 module.exports = {
   engine: 'node:test',
@@ -35,7 +40,7 @@ module.exports = {
   ...{ mock, describe, test, beforeEach, afterEach, before, after },
   ...{ builtinModules, syncBuiltinESMExports },
   ...{ utilFormat, isPromise, nodeVersion, awaitForMicrotaskQueue },
-  ...{ requireIsRelative, relativeRequire, isTopLevelESM },
+  ...{ requireIsRelative, relativeRequire, isTopLevelESM, mockModule },
   ...{ readSnapshot, setSnapshotSerializers, setSnapshotResolver },
 }
 /* eslint-enable unicorn/no-useless-spread */
