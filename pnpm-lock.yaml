@@ -62,7 +62,7 @@ importers:
         specifier: ^1.0.0-rc.9
         version: 1.0.0-rc.9
       '@exodus/test-bundler':
-        specifier: 1.0.0-rc.1
+        specifier: 1.0.0-rc.2
         version: link:bundler
       amaro:
         specifier: ^0.0.5

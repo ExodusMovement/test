@@ -128,7 +128,7 @@
   "optionalDependencies": {
     "@chalker/queue": "^1.0.1",
     "@exodus/replay": "^1.0.0-rc.9",
-    "@exodus/test-bundler": "1.0.0-rc.1",
+    "@exodus/test-bundler": "1.0.0-rc.2",
     "amaro": "^0.0.5",
     "c8": "^9.1.0",
     "expect": "^29.7.0",
