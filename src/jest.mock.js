@@ -28,6 +28,7 @@ function wrap(impl) {
 export const jestModuleMocks = {
   mock: wrap((name, mock) => jestmock(name, mock, { override: true })),
   doMock: wrap((name, mock) => jestmock(name, mock)),
+  setMock: wrap((name, mock) => jestmock(name, () => mock)), // like doMock, does not hoist to top, tested
   unmock: wrap(unmock),
   dontMock: wrap(unmock),
   createMockFromModule: (name) => mockClone(requireActual(name)),
@@ -44,6 +45,9 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
     ),
     __doMockBundle: wrap((name, builtin, actual, mock) =>
       jestmock(name, mock, { actual, builtin })
+    ),
+    __setMockBundle: wrap((name, builtin, actual, mock) =>
+      jestmock(name, () => mock, { actual, builtin })
     ),
   })
 }

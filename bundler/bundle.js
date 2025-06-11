@@ -480,13 +480,13 @@ export const build = async (...files) => {
 
     // 'await import' is replaced only in files with mocks (likely toplevel there)
     // Otherwise we don't patch module system at all
-    if (!source.includes('jest.doMock(') && !source.includes('jest.mock(')) return source
+    if (!/jest\.(mock|doMock|setMock)\(/u.test(source)) return source
     shouldInstallMocks = true
     const filepathRequire = createRequire(filepath)
     return source
       .replaceAll(/\bawait (import\((?:"[^"\\]+"|'[^'\\]+')\))/gu, 'EXODUS_TEST_SYNC_IMPORT($1)')
       .replaceAll(
-        /\bjest\.(doMock|mock|requireActual|requireMock)\(\s*("[^"\\]+"|'[^'\\]+')/gu,
+        /\bjest\.(mock|doMock|setMock|requireActual|requireMock)\(\s*("[^"\\]+"|'[^'\\]+')/gu,
         (_, method, raw) => {
           try {
             const arg = JSON.parse(raw[0] === "'" ? raw.replaceAll("'", '"') : raw) // fine because it doesn't have quotes or \
