@@ -3,6 +3,7 @@ import {
   assert,
   requireIsRelative,
   relativeRequire as require,
+  baseFile,
   isTopLevelESM,
   builtinModules,
   syncBuiltinESMExports,
@@ -222,6 +223,60 @@ function mockCloneItem(obj, cache) {
   return null
 }
 
+// TODO: implement for bundles or add a guard against bundles if __mocks__ dir exists
+let loadMocksDirMock
+if (process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle') {
+  const { existsSync, readdirSync, statSync } = require('node:fs')
+  const { dirname, join, extname } = require('node:path')
+  const dirs = []
+  let dir = baseFile ? dirname(baseFile) : undefined
+  while (dir) {
+    const file = join(dir, '__mocks__')
+    if (existsSync(file)) dirs.push(file)
+    if (dir === process.env.PROJECT_CWD) break // e.g. yarn sets this
+    if (existsSync(join(dir, '.git'))) break // don't go higher than the repo root
+    if (existsSync(join(dir, 'pnpm-workspace.yaml'))) break // pnpm workspace root
+    const parent = dirname(dir)
+    if (!parent || parent === dir) break
+    dir = parent
+  }
+
+  const mocks = new Map()
+  const shouldAutoMock = new Set()
+  for (const dir of dirs) {
+    for (const file of readdirSync(dir, { recursive: true })) {
+      const ext = extname(file)
+      if (!['.js', '.cjs', '.mjs', '.jsx'].includes(ext)) continue
+      const absolute = join(dir, file)
+      if (!statSync(absolute).isFile()) continue
+      const name = file.slice(0, -ext.length)
+      if (!mocks.has(name)) mocks.set(name, absolute)
+      if (!builtinModules.includes(name)) shouldAutoMock.add(name)
+    }
+  }
+
+  if (mocks.size > 0) {
+    loadMocksDirMock = (name) => {
+      if (name.startsWith('.') || !mocks.has(name)) return
+      return require(mocks.get(name))
+    }
+  }
+
+  // Automock does't work on import() in jest anyway, so it's ok to let that require manual jest.mock()
+  if (shouldAutoMock.size > 0) {
+    const { Module } = require('node:module')
+    const _require = Module.prototype.require
+    Module.prototype.require = function (...args) {
+      if (shouldAutoMock.has(args[0])) {
+        shouldAutoMock.delete(args[0])
+        jestmock(args[0])
+      }
+
+      return _require.apply(this, args)
+    }
+  }
+}
+
 function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
   // Loaded ESM: isn't mocked
   // Loaded CJS: mocked via object overriding
@@ -233,7 +288,11 @@ function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
   // [Bundled] New ESM, doMock ESM: isn't mocked
   // [Bundled] New built-ins: mocked via bundle hook
 
+  const mockFromMocks = mocker ? undefined : loadMocksDirMock?.(name)
+
   const resolved = resolveModule(name)
+  const isBuiltIn = builtinModules.includes(resolved)
+  if (!mocker && mockFromMocks && mapMocks.get(resolved) === mockFromMocks) return
   assert(!mapMocks.has(resolved), 'Re-mocking the same module is not supported')
   assert(
     !overridenBuiltins.has(resolved),
@@ -254,14 +313,15 @@ function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
   // Can be ESM, so let it fail silently
   try {
     assert(!resolved.endsWith('.exodus-test-mock.cjs')) // actual() would attempt to load non-wrapped ESM here
-    mapActual.set(resolved, actual ? actual() : require(resolved))
+    const shouldLoadActual = !mockFromMocks || havePrior || isBuiltIn
+    if (shouldLoadActual) mapActual.set(resolved, actual ? actual() : require(resolved))
   } catch {
     const reason = actual ? 'in bundle' : 'without --esbuild or newer Node.js'
-    assert(mocker, `Can not auto-clone a native ESM module ${reason}`)
+    assert(mocker || mockFromMocks, `Can not auto-clone a native ESM module ${reason}`)
   }
 
   const expand = (obj) => (isObject(obj) ? { ...obj } : obj)
-  const value = mocker ? expand(mocker()) : mockClone(mapActual.get(resolved))
+  const value = mockFromMocks ?? (mocker ? expand(mocker()) : mockClone(mapActual.get(resolved)))
   mapMocks.set(resolved, value)
 
   loadExpect('jest.mock') // we need to do this as we don't want mocks affecting expect
@@ -285,7 +345,6 @@ function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
   const topLevelESM = isTopLevelESM()
   let likelyESM = topLevelESM && !insideEsbuild() && ![null, resolved].includes(resolveImport(name))
   let isOverridenBuiltinSynchedWithESM = false
-  const isBuiltIn = builtinModules.includes(resolved)
   const isNodeCache = (x) => x && x.id && x.path && x.filename && x.children && x.paths && x.loaded
   if (isBuiltIn && !isNodeCache(require.cache[resolved])) {
     if (!value.default && !value.__esModule) {
@@ -315,6 +374,8 @@ function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
       // If it's non-Node.js and has __esModule tag, assume it's ESM
       likelyESM = true
     }
+  } else if (mockFromMocks) {
+    require.cache[resolved] = { exports: value }
   } else {
     // The module doesn't exist or is ESM
     likelyESM = true
