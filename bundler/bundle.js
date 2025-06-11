@@ -6,13 +6,12 @@ import { basename, dirname, extname, resolve, join, relative } from 'node:path'
 import { createRequire } from 'node:module'
 import { randomUUID as uuid, randomBytes } from 'node:crypto'
 import * as esbuild from 'esbuild'
-import { glob as globImplementation } from '../src/glob.cjs' // TODO: inject when separated
 
 const require = createRequire(import.meta.url)
 const resolveRequire = (query) => require.resolve(query)
-const resolveImport = import.meta.resolve && ((query) => fileURLToPath(import.meta.resolve(query)))
 const cjsMockRegex = /\.exodus-test-mock\.cjs$/u
 const cjsMockFallback = `throw new Error('Mocking loaded ESM modules in not possible in bundles')`
+let resolveSrc, globLib
 
 const readSnapshots = async (files, resolvers) => {
   const snapshots = []
@@ -131,8 +130,13 @@ const hermesSupported = {
 }
 
 async function glob(patterns, { exclude, cwd }) {
-  if (globImplementation) return globImplementation(patterns, { exclude, cwd })
+  if (!globLib) globLib = await import(pathToFileURL(resolveSrc('glob.cjs')))
+  if (globLib.glob) return globLib.glob(patterns, { exclude, cwd }) // always set for now, could be separated further
   return Array.fromAsync(fsPromises.glob(patterns, { exclude, cwd }))
+}
+
+export const setResolver = (resolver) => {
+  resolveSrc = resolver
 }
 
 const getPackageFiles = async (dir) => {
@@ -202,7 +206,7 @@ export const build = async (...files) => {
     const { jestConfig } = options
     const preload = [...(jestConfig.setupFiles || []), ...(jestConfig.setupFilesAfterEnv || [])]
     if (jestConfig.testEnvironment && jestConfig.testEnvironment !== 'node') {
-      const { specialEnvironments } = await import('../src/jest.environment.js')
+      const { specialEnvironments } = await import(pathToFileURL(resolveSrc('jest.environment.js')))
       assert(Object.hasOwn(specialEnvironments, jestConfig.testEnvironment))
       preload.push(...(specialEnvironments[jestConfig.testEnvironment].dependencies || []))
     }
@@ -216,7 +220,7 @@ export const build = async (...files) => {
       input.push(`globalThis.EXODUS_TEST_PRELOADED = [${preload.map((f) => w(f)).join(', ')}]`)
     }
 
-    await importSource('../loader/jest.js')
+    await importSource(resolveSrc('../loader/jest.js')) // TODO: refactror this
   }
 
   for (const file of files) importFile(file)
@@ -397,15 +401,15 @@ export const build = async (...files) => {
     },
     alias: {
       // Jest, tape and node:test
-      '@jest/globals': resolveImport('../src/jest.js'),
-      tape: resolveImport('../src/tape.cjs'),
-      'tape-promise/tape': resolveImport('../src/tape.cjs'),
-      'node:test': resolveImport('../src/node.js'),
-      'micro-should': resolveImport('../src/jest.js'),
+      '@jest/globals': resolveSrc('jest.js'),
+      tape: resolveSrc('tape.cjs'),
+      'tape-promise/tape': resolveSrc('tape.cjs'),
+      'node:test': resolveSrc('node.js'),
+      'micro-should': resolveSrc('jest.js'),
       // For cross-dir usage
-      '@exodus/test/jest': resolveImport('../src/jest.js'),
-      '@exodus/test/tape': resolveImport('../src/tape.cjs'),
-      '@exodus/test/node': resolveImport('../src/node.js'),
+      '@exodus/test/jest': resolveSrc('jest.js'),
+      '@exodus/test/tape': resolveSrc('tape.cjs'),
+      '@exodus/test/node': resolveSrc('node.js'),
       // Inner
       'exodus-test:text-encoding-utf': api('text-encoding-utf.cjs'),
       'exodus-test:util-format': api('util-format.cjs'),
