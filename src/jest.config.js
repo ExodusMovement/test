@@ -168,12 +168,7 @@ export async function installJestEnvironment(jestGlobals) {
     const { createRequire } = await import('node:module')
     const { pathToFileURL } = await import('node:url')
     const require = createRequire(resolve(config.rootDir, 'package.json'))
-    dynamicImport = (path) => {
-      // FIXME: fix linter to allow this
-      // const meta = path.toLowerCase().endsWith('.json') ? { with: { type: 'json' } } : undefined
-      // return import(pathToFileURL(require.resolve(path)), meta)
-      return import(pathToFileURL(require.resolve(path)))
-    }
+    dynamicImport = (path) => import(pathToFileURL(require.resolve(path))) // does not need json imports
   } else {
     dynamicImport = async () => assert.fail('Unreachable: importing plugins without a rootDir')
   }
