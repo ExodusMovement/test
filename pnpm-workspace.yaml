@@ -7,3 +7,6 @@ packages:
 onlyBuiltDependencies:
   - electron
   - esbuild
+overrides:
+  'eslint>espree': '^10.4.0'
+  '@eslint/eslintrc>espree': '^10.4.0'
