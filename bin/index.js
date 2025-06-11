@@ -256,9 +256,6 @@ const setEnv = (name, value) => {
 }
 
 const { options, patterns } = parseOptions()
-if (!process.env.FORCE_COLOR && process.stdout.hasColors?.() && process.stderr.hasColors?.()) {
-  setEnv('FORCE_COLOR', '1') // Default to color output for subprocesses if our stream supports it
-}
 
 const engineName = `${options.engine} engine` // used for warnings to user
 const engineFlagError = (flag) => `${engineName} does not support --${flag}`
@@ -645,6 +642,10 @@ async function launch(binary, args, opts = {}, buffering = false) {
 }
 
 if (options.pure) {
+  if (!process.env.FORCE_COLOR && process.stdout.hasColors?.() && process.stderr.hasColors?.()) {
+    setEnv('FORCE_COLOR', '1') // Default to color output for subprocesses if our stream supports it
+  }
+
   setEnv('EXODUS_TEST_CONTEXT', 'pure')
   warnHuman(`${engineName} is experimental and may not work an expected`)
   const missUnhandled = barebonesUnhandled.includes(options.platform) || isBrowserLike
