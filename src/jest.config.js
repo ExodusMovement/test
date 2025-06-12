@@ -200,3 +200,11 @@ export async function installJestEnvironment(jestGlobals) {
   } catch {}
   */
 }
+
+export function haste() {
+  configUsed = true
+  const suffixes = new Set()
+  if (config.haste?.defaultPlatform) suffixes.add(config.haste.defaultPlatform)
+  if (config.haste?.platforms) for (const suffix of config.haste.platforms) suffixes.add(suffix)
+  return suffixes
+}

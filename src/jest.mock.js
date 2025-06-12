@@ -8,6 +8,7 @@ import {
   builtinModules,
   syncBuiltinESMExports,
 } from './engine.js'
+import { haste } from './jest.config.js'
 import { jestfn } from './jest.fn.js'
 import { loadExpect } from './expect.cjs'
 import { loadPrettyFormat } from './pretty-format.cjs'
@@ -85,9 +86,18 @@ function resolveModule(name, loc) {
 
   const unprefixed = name.replace(/^node:/, '')
   if (builtinModules.includes(unprefixed)) return unprefixed
-  if (loc?.[2]) return require('node:module').createRequire(loc?.[2]).resolve(name)
-  assert(requireIsRelative || /^[@a-zA-Z]/u.test(name), 'Mocking relative paths is not possible')
-  return require.resolve(name)
+
+  const canRequire = loc?.[2] || requireIsRelative || /^[@a-zA-Z]/u.test(name)
+  assert(canRequire, 'Mocking relative paths is not possible')
+
+  const properRequire = loc?.[2] ? require('node:module').createRequire(loc?.[2]) : require
+  for (const suffix of haste()) {
+    try {
+      return properRequire.resolve(`${name}.${suffix}`)
+    } catch {}
+  }
+
+  return properRequire.resolve(name)
 }
 
 function resolveImport(name, loc) {
