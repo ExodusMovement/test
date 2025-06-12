@@ -48,6 +48,7 @@
     "loader/babel.cjs",
     "loader/esbuild.js",
     "loader/esbuild.optional.js",
+    "loader/flow.js",
     "loader/jest.js",
     "loader/typescript.js",
     "loader/typescript.loader.js",
