@@ -13,6 +13,8 @@ function shouldProcessUrl(s) {
   }
 }
 
+const { URL, Buffer } = globalThis
+
 export async function load(url, context, nextLoad) {
   if (shouldProcessUrl(url)) {
     const sourceBuf = await readFile(new URL(url))
