@@ -20,12 +20,16 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    "./bundle": "./bundle.js"
+    "./bundle": "./bundle.js",
+    "./esbuild": "./esbuild.js",
+    "./flow-remove-types": "./flow-remove-types.js"
   },
   "prettier": "@exodus/prettier",
   "files": [
+    "flow-remove-types.js",
     "babel-worker.cjs",
     "bundle.js",
+    "esbuild.js",
     "modules/empty/function-throw.cjs",
     "modules/empty/module-throw.cjs",
     "modules/ansi-styles.cjs",
