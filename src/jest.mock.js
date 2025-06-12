@@ -11,44 +11,55 @@ import {
 import { jestfn } from './jest.fn.js'
 import { loadExpect } from './expect.cjs'
 import { loadPrettyFormat } from './pretty-format.cjs'
-import { makeEsbuildMockable, insideEsbuild } from './dark.cjs'
+import { makeEsbuildMockable, insideEsbuild, createCallerLocationHook } from './dark.cjs'
 
 const mapMocks = new Map()
 const mapActual = new Map()
 const nodeMocks = new Map()
 const overridenBuiltins = new Set()
 
-function wrap(impl) {
-  return function (...args) {
-    impl(...args)
-    return this
-  }
-}
-
+// TODO: support correct relative locations in other engines too (and bundles)
+const { getCallerLocation: getLoc } = createCallerLocationHook()
 export const jestModuleMocks = {
-  mock: wrap((name, mock) => jestmock(name, mock, { override: true })),
-  doMock: wrap((name, mock) => jestmock(name, mock)),
-  setMock: wrap((name, mock) => jestmock(name, () => mock)), // like doMock, does not hoist to top, tested
-  unmock: wrap(unmock),
-  dontMock: wrap(unmock),
-  createMockFromModule: (name) => mockClone(requireActual(name)),
-  requireMock,
-  requireActual,
+  mock(name, mock) {
+    jestmock(name, mock, { override: true, loc: getLoc() })
+    return this
+  },
+  doMock(name, mock) {
+    jestmock(name, mock, { loc: getLoc() })
+    return this
+  },
+  setMock(name, mock) {
+    jestmock(name, () => mock, { loc: getLoc() }) // like doMock, does not hoist to top, tested
+    return this
+  },
+  unmock(name) {
+    unmock(name, { loc: getLoc() })
+    return this
+  },
+  createMockFromModule: (name) => mockClone(requireActual(name, { loc: getLoc() })),
+  requireMock: (name) => requireMock(name, { loc: getLoc() }),
+  requireActual: (name) => requireActual(name, { loc: getLoc() }),
   resetModules,
 }
+
+jestModuleMocks.dontMock = jestModuleMocks.unmock
 
 if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
   globalThis.EXODUS_TEST_MOCK_BUILTINS = new Map()
   Object.assign(jestModuleMocks, {
-    __mockBundle: wrap((name, builtin, actual, mock) =>
+    __mockBundle(name, builtin, actual, mock) {
       jestmock(name, mock, { actual, builtin, override: true })
-    ),
-    __doMockBundle: wrap((name, builtin, actual, mock) =>
+      return this
+    },
+    __doMockBundle(name, builtin, actual, mock) {
       jestmock(name, mock, { actual, builtin })
-    ),
-    __setMockBundle: wrap((name, builtin, actual, mock) =>
+      return this
+    },
+    __setMockBundle(name, builtin, actual, mock) {
       jestmock(name, () => mock, { actual, builtin })
-    ),
+      return this
+    },
   })
 }
 
@@ -56,7 +67,7 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
 const cjsSet = typeof __mocksCJSPossible === 'undefined' ? null : __mocksCJSPossible // eslint-disable-line no-undef
 const esmSet = typeof __mocksESMPossible === 'undefined' ? null : __mocksESMPossible // eslint-disable-line no-undef
 
-function resolveModule(name) {
+function resolveModule(name, loc) {
   if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
     assert(name.startsWith('bundle:'), `Can't mock unresolved ${name} in bundle, use static syntax`)
     assert(cjsSet && esmSet, 'Module mocking not installed correctly in bundle')
@@ -72,30 +83,33 @@ function resolveModule(name) {
     return id
   }
 
-  assert(requireIsRelative || /^[@a-zA-Z]/u.test(name), 'Mocking relative paths is not possible')
   const unprefixed = name.replace(/^node:/, '')
   if (builtinModules.includes(unprefixed)) return unprefixed
+  if (loc?.[2]) return require('node:module').createRequire(loc?.[2]).resolve(name)
+  assert(requireIsRelative || /^[@a-zA-Z]/u.test(name), 'Mocking relative paths is not possible')
   return require.resolve(name)
 }
 
-function resolveImport(name) {
+function resolveImport(name, loc) {
   try {
-    const { fileURLToPath } = require('node:url')
-    return fileURLToPath(import.meta.resolve(name))
+    const { fileURLToPath, pathToFileURL } = require('node:url')
+    let parent
+    if (loc?.[2]) parent = loc[2].startsWith('file:') ? loc[2] : pathToFileURL(loc[2])
+    return fileURLToPath(import.meta.resolve(name, parent))
   } catch {
     return null
   }
 }
 
-function requireActual(name) {
-  const resolved = resolveModule(name)
+function requireActual(name, { loc } = {}) {
+  const resolved = resolveModule(name, loc)
   if (mapActual.has(resolved)) return mapActual.get(resolved)
   if (!mapMocks.has(resolved)) return require(resolved)
   throw new Error('Module can not been loaded')
 }
 
-function requireMock(name) {
-  const resolved = resolveModule(name)
+function requireMock(name, { loc } = {}) {
+  const resolved = resolveModule(name, loc)
   assert(mapMocks.has(resolved), 'Module is not mocked')
   return mapMocks.get(resolved)
 }
@@ -112,8 +126,8 @@ function resetModules() {
   }
 }
 
-function unmock(name) {
-  const resolved = resolveModule(name)
+function unmock(name, { loc } = {}) {
+  const resolved = resolveModule(name, loc)
   assert(mapMocks.has(resolved), 'Module is not mocked')
   if (mockModule) nodeMocks.get(resolved).restore()
   delete require.cache[resolved]
@@ -281,7 +295,7 @@ if (process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle') {
   }
 }
 
-function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
+function jestmock(name, mocker, { override = false, actual, builtin, loc } = {}) {
   // Loaded ESM: isn't mocked
   // Loaded CJS: mocked via object overriding
   // Loaded built-ins: mocked via object overriding where possible
@@ -294,7 +308,7 @@ function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
 
   const mockFromMocks = mocker ? undefined : loadMocksDirMock?.(name)
 
-  const resolved = resolveModule(name)
+  const resolved = resolveModule(name, loc)
   const isBuiltIn = builtinModules.includes(resolved)
   if (!mocker && mockFromMocks && mapMocks.get(resolved) === mockFromMocks) return
   assert(!mapMocks.has(resolved), 'Re-mocking the same module is not supported')
@@ -346,8 +360,8 @@ function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
     return this
   }
 
-  const topLevelESM = isTopLevelESM()
-  let likelyESM = topLevelESM && !insideEsbuild() && ![null, resolved].includes(resolveImport(name))
+  const topESM = isTopLevelESM()
+  let likelyESM = topESM && !insideEsbuild() && ![null, resolved].includes(resolveImport(name, loc))
   let isOverridenBuiltinSynchedWithESM = false
   const isNodeCache = (x) => x && x.id && x.path && x.filename && x.children && x.paths && x.loaded
   if (isBuiltIn && !isNodeCache(require.cache[resolved])) {
@@ -386,7 +400,7 @@ function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
   }
 
   const mocksNodeVersionNote = 'mocks are available only on Node.js >=20.18 <21 || >=22.3'
-  if (likelyESM || (!isOverridenBuiltinSynchedWithESM && topLevelESM)) {
+  if (likelyESM || (!isOverridenBuiltinSynchedWithESM && topESM)) {
     // Native module mocks is required if loading ESM or __from__ ESM
     // No good way to check the locations that import the module, but we can check top-level file
     // Built-in modules are fine though
