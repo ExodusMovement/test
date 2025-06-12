@@ -81,6 +81,8 @@ export async function loadJestConfig(...args) {
     if (config.globalTeardown) config.globalTeardown = req.resolve(config.globalTeardown) // eslint-disable-line @exodus/mutable/no-param-reassign-prop-only
   }
 
+  const presetExtension = /\.([cm]?js|json)$/u
+  const suffixes = ['/jest-preset.json', '/jest-preset.js', '/jest-preset.cjs', '/jest-preset.mjs']
   if (needPreset(rawConfig) || rawConfig.globalSetup || rawConfig.globalTeardown) {
     rawConfig.preset = cleanFile(rawConfig.preset) // relative to root dir only at top level, presets shouldn't use <rootDir>
     if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
@@ -93,15 +95,11 @@ export async function loadJestConfig(...args) {
       let requireConfig = createRequire(resolve(rawConfig.rootDir, 'package.json'))
       resolveGlobalSetup(rawConfig, requireConfig)
       while (needPreset(rawConfig)) {
-        const suffixes = rawConfig.preset.startsWith('.')
-          ? ['']
-          : ['/jest-preset.json', '/jest-preset.js', '/jest-preset.cjs', '/jest-preset.mjs']
-
         let baseConfig
-        for (const suffix of suffixes) {
-          if (baseConfig) break
+
+        const attemptLoad = async (file) => {
           try {
-            const resolved = requireConfig.resolve(`${rawConfig.preset}${suffix}`)
+            const resolved = requireConfig.resolve(file)
             // FIXME: fix linter to allow this
             // const meta = resolved.toLowerCase().endsWith('.json') ? { with: { type: 'json' } } : undefined
             // const presetModule = await import(pathToFileURL(resolved), meta)
@@ -109,6 +107,17 @@ export async function loadJestConfig(...args) {
             requireConfig = createRequire(resolved)
             baseConfig = presetModule.default
           } catch {}
+        }
+
+        // Even if it is relative, it could be a path to module
+        for (const suffix of suffixes) {
+          if (!baseConfig) await attemptLoad(`${rawConfig.preset}${suffix}`)
+        }
+
+        // If it's a path to a file
+        if (!baseConfig && rawConfig.preset[0] === '.' && presetExtension.test(rawConfig.preset)) {
+          const { statSync } = await import('node:fs')
+          if (statSync(rawConfig.preset).isFile()) await attemptLoad(rawConfig.preset)
         }
 
         assert(baseConfig, `Could not load preset: ${rawConfig.preset} `)
