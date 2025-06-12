@@ -395,17 +395,19 @@ function jestmock(name, mocker, { override = false, actual, builtin } = {}) {
     assert(mockModule, `Native non-overriding node:* ${mocksNodeVersionNote}`)
   }
 
-  if (value[Symbol.toStringTag] === 'Module') value.__esModule = true
+  if (value?.[Symbol.toStringTag] === 'Module') value.__esModule = true
   const obj = { defaultExport: value }
   if (isBuiltIn && isObject(value)) obj.namedExports = value
   if (insideEsbuild()) {
     // esbuild handles unwrapping just default exports for us
     assert(!likelyESM) // should not be reachable
-    const { default: defaultExport, __esModule, ...namedExports } = value // eslint-disable-line @typescript-eslint/no-unused-vars
-    // Don't override defaultExport, as that's processed with esbuild
-    // Add named exports though for further static named imports from that module
-    // type:module and esbuild can be combined e.g. when testing typescript packages
-    if (__esModule) obj.namedExports = namedExports
+    if (isObject(value)) {
+      const { default: defaultExport, __esModule, ...namedExports } = value // eslint-disable-line @typescript-eslint/no-unused-vars
+      // Don't override defaultExport, as that's processed with esbuild
+      // Add named exports though for further static named imports from that module
+      // type:module and esbuild can be combined e.g. when testing typescript packages
+      if (__esModule) obj.namedExports = namedExports
+    }
   } else if (likelyESM && isObject(value) && value.__esModule === true) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { default: defaultExport, __esModule, ...namedExports } = value
