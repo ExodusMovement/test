@@ -68,9 +68,6 @@ importers:
       '@exodus/test-bundler':
         specifier: 1.0.0-rc.3
         version: link:bundler
-      amaro:
-        specifier: ^0.0.5
-        version: 0.0.5
       c8:
         specifier: ^9.1.0
         version: 9.1.0
@@ -975,9 +972,6 @@ packages:
 
   ajv@6.12.6:
     resolution: {integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==, tarball: https://registry.npmjs.org/ajv/-/ajv-6.12.6.tgz}
-
-  amaro@0.0.5:
-    resolution: {integrity: sha512-kZRc8LZ7xD55B3IFOCDqKzVuDtTF/RwmPT5NYm8i1uEqedOwUZdFrEr7YAwNpFNT7LBUFB9rLsdpTGGZB7xJ1w==, tarball: https://registry.npmjs.org/amaro/-/amaro-0.0.5.tgz}
 
   ansi-align@3.0.1:
     resolution: {integrity: sha512-IOfwwBF5iczOjp/WeY4YxyjqAFMQoZufdQWDd19SEExbVLNXqvpzSJ/M7Za4/sCPmQ0+GRquoA7bGcINcxew6w==, tarball: https://registry.npmjs.org/ansi-align/-/ansi-align-3.0.1.tgz}
@@ -4789,9 +4783,6 @@ snapshots:
       fast-json-stable-stringify: 2.1.0
       json-schema-traverse: 0.4.1
       uri-js: 4.4.1
-
-  amaro@0.0.5:
-    optional: true
 
   ansi-align@3.0.1:
     dependencies:

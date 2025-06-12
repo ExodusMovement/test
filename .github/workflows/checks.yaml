@@ -74,6 +74,8 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: pnpm i --frozen-lockfile
       - run: EXODUS_TEST_DROP_NETWORK=1 pnpm test:all
+      - if: ${{ matrix.node-version >= '24' || matrix.node-version >= '22.13' && matrix.node-version < '22.3' }}
+        run: EXODUS_TEST_DROP_NETWORK=1 pnpm test:typescript
 
   jest:
     runs-on: ubuntu-22.04

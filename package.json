@@ -85,7 +85,7 @@
   "scripts": {
     "test:_bundle": "EXODUS_TEST_IGNORE='tests/{{jest-extended,inband}/**,jest-when/when.test.*,jest/jest.resetModules.*,jest/mock/jest.mock.mocks-dir.test.js}' npm run test --",
     "test": "npm run test:jest --",
-    "test:all": "npm run test:simple && npm run test:jest && npm run test:tape && npm run test:native && npm run test:esbuild && npm run test:pure && npm run test:typescript && npm run test:fetch && npm run test:jsdom && npm run test:bundle",
+    "test:all": "npm run test:simple && npm run test:jest && npm run test:tape && npm run test:native && npm run test:esbuild && npm run test:pure && npm run test:fetch && npm run test:jsdom && npm run test:bundle",
     "test:native": "EXODUS_TEST_IGNORE='{**/typescript/**,**/jest-repo/**/user.test.js}' ./bin/index.js --jest 'tests/**/*.test.{js,cjs,mjs}'",
     "test:typescript": "node ./bin/index.js --jest --typescript tests/typescript.test.ts",
     "test:jest": "node ./bin/index.js --jest --esbuild=ts,user.test.js,sum.test.js",
@@ -130,7 +130,6 @@
     "@chalker/queue": "^1.0.1",
     "@exodus/replay": "^1.0.0-rc.9",
     "@exodus/test-bundler": "1.0.0-rc.3",
-    "amaro": "^0.0.5",
     "c8": "^9.1.0",
     "expect": "^29.7.0",
     "fast-glob": "^3.2.11",

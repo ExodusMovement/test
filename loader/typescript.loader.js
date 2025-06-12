@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises'
+import { stripTypeScriptTypes } from 'node:module' // 22.13.0+
 import { fileURLToPath } from 'node:url'
 
 const extensionsRegex = /\.[cm]?ts$/
@@ -12,18 +13,11 @@ function shouldProcessUrl(s) {
   }
 }
 
-let transformSync
-
 export async function load(url, context, nextLoad) {
   if (shouldProcessUrl(url)) {
-    if (!transformSync) {
-      const amaro = await import('amaro')
-      transformSync = amaro.transformSync
-    }
-
     const sourceBuf = await readFile(new URL(url))
     const source = sourceBuf.toString('utf8')
-    const { code: transformed } = transformSync(source, { isModule: true })
+    const transformed = stripTypeScriptTypes(source, { mode: 'strip' })
     const transformedBuf = Buffer.from(transformed)
     if (sourceBuf.length !== transformedBuf.length) throw new Error('length mismatch')
     // eslint-disable-next-line unicorn/no-for-loop
