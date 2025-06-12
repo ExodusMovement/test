@@ -220,7 +220,8 @@ export const build = async (...files) => {
       input.push(`globalThis.EXODUS_TEST_PRELOADED = [${preload.map((f) => w(f)).join(', ')}]`)
     }
 
-    await importSource(resolveSrc('../loader/jest.js')) // TODO: refactror this
+    // copy of loader/jest
+    input.push(`await (await import(${stringify(resolveSrc('jest.setup.js'))})).setupJest();`)
   }
 
   for (const file of files) importFile(file)
