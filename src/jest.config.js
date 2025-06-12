@@ -182,6 +182,29 @@ export async function installJestEnvironment(jestGlobals) {
     dynamicImport = async () => assert.fail('Unreachable: importing plugins without a rootDir')
   }
 
+  const suffixes = haste()
+  if (suffixes.size === 0) {
+    // No action needed
+  } else if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
+    throw new Error('jest haste not yet supported in bundles')
+  } else {
+    const { createRequire, Module } = await import('node:module')
+    const _require = Module.prototype.require
+    Module.prototype.require = function (...args) {
+      if (args[0] && this.filename) {
+        const pathRequire = createRequire(this.filename)
+        for (const suffix of suffixes) {
+          try {
+            args[0] = pathRequire.resolve(`${args[0]}.${suffix}`) // eslint-disable-line @exodus/mutable/no-param-reassign-prop-only
+            break
+          } catch {}
+        }
+      }
+
+      return _require.apply(this, args)
+    }
+  }
+
   for (const file of c.setupFiles || []) await dynamicImport(file)
 
   if (Object.hasOwn(specialEnvironments, c.testEnvironment)) {
