@@ -17,3 +17,5 @@ export const haveForceExit = (major === 20 && minor > 13) || major >= 22
 export const haveValidTimers = (major === 20 && minor >= 11) || major >= 22 // older glitch in various ways / stop executing
 export const haveNoTimerInfiniteLoopBug = (major === 20 && minor >= 11) || major >= 22 // mock.timers.runAll() can get into infinite recursion
 export const haveCoverExclude = (major === 22 && minor >= 5) || major > 22
+export const haveNetworkInspection =
+  (major === 20 && minor >= 18) || (major === 22 && minor >= 6) || major > 22

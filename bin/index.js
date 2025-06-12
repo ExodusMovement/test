@@ -11,7 +11,7 @@ import { unlink } from 'node:fs/promises'
 import { tmpdir, availableParallelism, homedir } from 'node:os'
 import assert from 'node:assert/strict'
 // The following make sense only when we run the code in the same Node.js version, i.e. engineOptions.haveIsOk
-import { haveModuleMocks, haveSnapshots, haveForceExit, haveCoverExclude } from '../src/version.js'
+import * as have from '../src/version.js'
 import { findBinary } from './find-binary.js'
 import * as browsers from './browsers.js'
 import { glob as globImplementation } from '../src/glob.cjs'
@@ -280,7 +280,7 @@ assert(!options.throttle || options.browsers, engineFlagError('throttle-cpu'))
 
 const args = []
 
-if (haveModuleMocks && engineOptions.haveIsOk) {
+if (have.haveModuleMocks && engineOptions.haveIsOk) {
   args.push('--experimental-test-module-mocks')
 }
 
@@ -300,15 +300,15 @@ if (options.pure) {
   const reporter = import.meta.resolve('./reporter.js')
   args.push('--test', '--no-warnings=ExperimentalWarning', '--test-reporter', reporter)
 
-  if (haveSnapshots && engineOptions.haveIsOk) args.push('--experimental-test-snapshots')
+  if (have.haveSnapshots && engineOptions.haveIsOk) args.push('--experimental-test-snapshots')
 
   if (options.writeSnapshots) {
-    assert(haveSnapshots && engineOptions.haveIsOk, 'For snapshots, use Node.js >=22.3.0')
+    assert(have.haveSnapshots && engineOptions.haveIsOk, 'For snapshots, use Node.js >=22.3.0')
     args.push('--test-update-snapshots')
   }
 
   if (options.forceExit) {
-    assert(haveForceExit && engineOptions.haveIsOk, 'For forceExit, use Node.js >= 20.14.0')
+    assert(have.haveForceExit && engineOptions.haveIsOk, 'For forceExit, use Node.js >= 20.14.0')
     args.push('--test-force-exit')
   }
 
@@ -539,7 +539,7 @@ if (options.coverage) {
   assert.equal(options.binary, 'node', 'Coverage is only supported with Node.js')
   if (options.coverageEngine === 'node') {
     args.push('--experimental-test-coverage')
-    if (haveCoverExclude && engineOptions.haveIsOk) {
+    if (have.haveCoverExclude && engineOptions.haveIsOk) {
       args.push(
         `--test-coverage-exclude=**/@exodus/test/src/**`,
         `--test-coverage-exclude=${DEFAULT_PATTERNS[0]}`
@@ -743,6 +743,7 @@ if (options.pure) {
   if (options.concurrency) args.push('--test-concurrency', options.concurrency)
   if (['--inspect', '--inspect-brk', '--inspect-wait'].includes(options.devtools)) {
     args.push(options.devtools)
+    if (have.haveNetworkInspection) args.push('--experimental-network-inspection')
     console.warn(
       ['--inspect-brk', '--inspect-wait'].includes(options.devtools)
         ? 'Open chrome://inspect/ to connect devtools, waiting'
