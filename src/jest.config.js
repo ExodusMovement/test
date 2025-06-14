@@ -75,7 +75,7 @@ export async function loadJestConfig(...args) {
   }
 
   const cleanFile = (file) => file.replace(/^<rootDir>\//g, './') // require is already relative to rootDir
-  const needPreset = ({ preset }) => preset && !skipPreset.has(preset)
+  const needPreset = ({ preset } = {}) => preset && !skipPreset.has(preset)
   const resolveGlobalSetup = (config, req) => {
     if (config.globalSetup) config.globalSetup = req.resolve(config.globalSetup) // eslint-disable-line @exodus/mutable/no-param-reassign-prop-only
     if (config.globalTeardown) config.globalTeardown = req.resolve(config.globalTeardown) // eslint-disable-line @exodus/mutable/no-param-reassign-prop-only
@@ -83,7 +83,7 @@ export async function loadJestConfig(...args) {
 
   const presetExtension = /\.([cm]?js|json)$/u
   const suffixes = ['/jest-preset.json', '/jest-preset.js', '/jest-preset.cjs', '/jest-preset.mjs']
-  if (needPreset(rawConfig) || rawConfig.globalSetup || rawConfig.globalTeardown) {
+  if (needPreset(rawConfig) || rawConfig?.globalSetup || rawConfig?.globalTeardown) {
     rawConfig.preset = cleanFile(rawConfig.preset) // relative to root dir only at top level, presets shouldn't use <rootDir>
     if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
       throw new Error('jest preset and globalSetup/Teardown not yet supported in bundles')
