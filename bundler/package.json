@@ -1,6 +1,6 @@
 {
   "name": "@exodus/test-bundler",
-  "version": "1.0.0-rc.4",
+  "version": "1.0.0-rc.5",
   "author": "Exodus Movement, Inc.",
   "description": "Test bundler for @exodus/test for barebone and browser engines",
   "homepage": "https://github.com/ExodusMovement/test",
