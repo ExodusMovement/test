@@ -380,9 +380,9 @@ export const build = async (...files) => {
     bundle: true,
     outdir: options.outdir,
     entryNames: filename,
-    platform: 'browser', // Need to follow "browser" field of package.json
-    // conditions: ['browser', 'react-native'], // TODO
-    mainFields: ['browser', 'module', 'main'],
+    platform: process.env.EXODUS_TEST_IS_BAREBONE ? 'neutral' : 'browser',
+    conditions: process.env.EXODUS_TEST_IS_BAREBONE ? ['react-native'] : ['browser'],
+    mainFields: ['browser', 'module', 'main'], // FIXME: Removing 'browser' breaks some pkgs
     define: {
       'process.browser': stringify(true),
       'process.emitWarning': 'undefined',
