@@ -50,6 +50,7 @@
     "loader/esbuild.optional.js",
     "loader/flow.js",
     "loader/jest.js",
+    "loader/node-test.js",
     "loader/typescript.js",
     "loader/typescript.loader.js",
     "src/dark.cjs",

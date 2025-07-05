@@ -332,6 +332,9 @@ if (process.env.EXODUS_TEST_IGNORE) {
 
 // This might be used in presets, so has to be loaded before jest
 if (options.flow && !options.bundle) args.push('--import', import.meta.resolve('../loader/flow.js'))
+if (!options.bundle && !['node:test', 'electron-as-node:test'].includes(options.engine)) {
+  args.push('--import', import.meta.resolve('../loader/node-test.js'))
+}
 
 // The comment below is disabled, we don't auto-mock @jest/globals anymore, and having our loader first is faster
 // [Disabled] Our loader should be last, as enabling module mocks confuses other loaders
