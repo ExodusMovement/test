@@ -201,6 +201,8 @@ jobs:
           deno-version: ${{ matrix.deno-version }}
       - run: pnpm i --frozen-lockfile
       - if: ${{ matrix.deno-version >= 'v2.x' }}
+        run: node --run test:deno:test
+      - if: ${{ matrix.deno-version >= 'v2.x' }}
         run: node --run test:deno:pure
       - run: node --run test:deno:bundle
 

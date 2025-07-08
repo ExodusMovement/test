@@ -32,6 +32,7 @@ const ENGINES = new Map(
     'electron-as-node:pure': { binary: 'electron', pure: true, loader: '--import', ts: 'flag' },
     'electron-as-node:bundle': { binary: 'electron', ...bundleOpts },
     'electron:bundle': { binary: 'electron', electron: true, ...bundleOpts },
+    'deno:test': { binary: 'deno', pure: false, loader: '--preload', ts: 'auto' },
     'deno:pure': { binary: 'deno', binaryArgs: denoA, pure: true, loader: '--preload', ts: 'auto' },
     'deno:bundle': { binary: 'deno', binaryArgs: ['run'], target: 'deno1', ...bundleOpts },
     // Barebone engines
@@ -322,6 +323,9 @@ if (options.pure) {
   for (const pattern of options.testNamePattern) args.push('--test-name-pattern', pattern)
 
   args.push('--expose-internals') // this is unoptimal and hopefully temporary, see rationale in src/dark.cjs
+} else if (options.engine === 'deno:test') {
+  args.push('test', '--allow-all')
+  assert(!options.jest, 'deno:test engine does not support --jest yet')
 } else {
   throw new Error('Unreachable')
 }
@@ -742,8 +746,8 @@ if (options.pure) {
   console.timeEnd(timeLabel)
 } else {
   assert(!buildFile)
-  assertBinary(options.binary, ['node', 'electron'])
-  assert(['node:test', 'electron-as-node:test'].includes(options.engine))
+  assertBinary(options.binary, ['node', 'electron', 'deno'])
+  assert(['node:test', 'electron-as-node:test', 'deno:test'].includes(options.engine))
   setEnv('EXODUS_TEST_CONTEXT', 'node:test') // The context is always node:test in this branch
   assert(files.length > 0) // otherwise we can run recursively
   assert(!options.binaryArgs)
