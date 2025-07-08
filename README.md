@@ -45,7 +45,8 @@ Use `--engine` (or `EXODUS_TEST_ENGINE=`) to specify one of:
 - `node:pure` — implementation in pure JS, runs on Node.js
 - `node:bundle` — same as `node:pure`, but bundles everything into a single file before launching
 - Other runtimes:
-  - `deno:pure` — Deno (requires Deno v2.4.0 or later, expects `deno` to be available)
+  - `deno:pure` — Deno (requires Deno v2.4.0 or later, expects `deno` to be available)\
+    Caveat: does not work with direct `'node:test'` imports in tests, use `'@exodus/test/node'`.
   - `deno:bundle` — Deno (v1 or v2, whichever `deno` is)
   - `bun:pure` / `bun:bundle` — Bun, expects `bun` to be available
   - `electron-as-node:test` / `electron-as-node:pure` / `electron-as-node:bundle`\

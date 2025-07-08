@@ -667,6 +667,9 @@ if (options.pure) {
   warnHuman(`${engineName} is experimental and may not work an expected`)
   const missUnhandled = barebonesUnhandled.includes(options.platform) || isBrowserLike
   if (missUnhandled) warnHuman(`Warning: ${engineName} does not have unhandled rejections tracking`)
+  if (options.engine === 'deno:pure') {
+    warnHuman(`${engineName} does not pick up tests importing 'node:test' directly!`)
+  }
 
   const runOne = async (inputFile, attempt = 0) => {
     const bundled = buildFile ? await buildFile(inputFile) : undefined
