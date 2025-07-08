@@ -387,7 +387,7 @@ function jestmock(name, mocker, { override = false, actual, builtin, loc } = {})
         try {
           syncBuiltinESMExports()
         } catch (err) {
-          if (!globalThis.Deno) throw err // Deno throws on syncBuiltinESMExports, that is ok
+          if (!globalThis.Deno) throw err // Deno throws on syncBuiltinESMExports, ignore for now
         }
 
         isOverridenBuiltinSynchedWithESM = true

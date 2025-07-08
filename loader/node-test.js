@@ -15,6 +15,6 @@ if (syncBuiltinESMExports) {
   try {
     syncBuiltinESMExports()
   } catch (err) {
-    if (!globalThis.Deno) throw err // Deno throws on syncBuiltinESMExports, that is ok
+    if (!globalThis.Deno) throw err // Deno throws on syncBuiltinESMExports, ignore for now
   }
 }
