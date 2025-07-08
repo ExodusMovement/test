@@ -19,7 +19,7 @@ import { glob as globImplementation } from '../src/glob.cjs'
 const DEFAULT_PATTERNS = [`**/?(*.)+(spec|test).?([cm])[jt]s?(x)`] // do not trust magic dirs by default
 const bundleOpts = { pure: true, bundle: true, esbuild: true, ts: 'auto' }
 const bareboneOpts = { ...bundleOpts, barebone: true }
-const hermesAv = ['-Og', '-Xmicrotask-queue']
+const hermesA = ['-Og', '-Xmicrotask-queue']
 const ENGINES = new Map(
   Object.entries({
     'node:test': { binary: 'node', pure: false, loader: '--import', ts: 'flag', haveIsOk: true },
@@ -35,7 +35,7 @@ const ENGINES = new Map(
     // Barebone engines
     'd8:bundle': { binary: 'd8', ...bareboneOpts },
     'jsc:bundle': { binary: 'jsc', target: 'safari13', ...bareboneOpts },
-    'hermes:bundle': { binary: 'hermes', binaryArgs: hermesAv, target: 'es2018', ...bareboneOpts },
+    'hermes:bundle': { binary: 'hermes', binaryArgs: hermesA, target: 'es2018', ...bareboneOpts },
     'spidermonkey:bundle': { binary: 'spidermonkey', ...bareboneOpts },
     'engine262:bundle': { binary: 'engine262', ...bareboneOpts },
     'quickjs:bundle': { binary: 'quickjs', binaryArgs: ['--std'], ...bareboneOpts },
