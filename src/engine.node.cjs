@@ -29,7 +29,7 @@ const setSnapshotResolver = (fn) => {
   snapshot?.setResolveSnapshotPath(resolveSnapshot)
 }
 
-const mockModule = mock.module
+const mockModule = mock?.module
   ? (t, o) => mock.module(t.includes('\\') ? pathToFileURL(t) : t, o) // resolve windows-looking paths
   : undefined
 
