@@ -22,13 +22,13 @@ const bareboneOpts = { ...bundleOpts, barebone: true }
 const hermesAv = ['-Og', '-Xmicrotask-queue']
 const ENGINES = new Map(
   Object.entries({
-    'node:test': { binary: 'node', pure: false, hasImportLoader: true, ts: 'flag', haveIsOk: true },
-    'node:pure': { binary: 'node', pure: true, hasImportLoader: true, ts: 'flag', haveIsOk: true },
+    'node:test': { binary: 'node', pure: false, loader: '--import', ts: 'flag', haveIsOk: true },
+    'node:pure': { binary: 'node', pure: true, loader: '--import', ts: 'flag', haveIsOk: true },
     'node:bundle': { binary: 'node', ...bundleOpts },
-    'bun:pure': { binary: 'bun', pure: true, hasImportLoader: false, ts: 'auto' },
+    'bun:pure': { binary: 'bun', pure: true, ts: 'auto' },
     'bun:bundle': { binary: 'bun', ...bundleOpts },
-    'electron-as-node:test': { binary: 'electron', pure: false, hasImportLoader: true, ts: 'flag' },
-    'electron-as-node:pure': { binary: 'electron', pure: true, hasImportLoader: true, ts: 'flag' },
+    'electron-as-node:test': { binary: 'electron', pure: false, loader: '--import', ts: 'flag' },
+    'electron-as-node:pure': { binary: 'electron', pure: true, loader: '--import', ts: 'flag' },
     'electron-as-node:bundle': { binary: 'electron', ...bundleOpts },
     'electron:bundle': { binary: 'electron', electron: true, ...bundleOpts },
     'deno:bundle': { binary: 'deno', binaryArgs: ['run'], target: 'deno1', ...bundleOpts },
@@ -333,7 +333,7 @@ if (process.env.EXODUS_TEST_IGNORE) {
 // This might be used in presets, so has to be loaded before jest
 if (options.flow && !options.bundle) args.push('--import', import.meta.resolve('../loader/flow.js'))
 if (!options.bundle && !['node:test', 'electron-as-node:test'].includes(options.engine)) {
-  args.push('--import', import.meta.resolve('../loader/node-test.js'))
+  args.push(options.loader ?? '-r', import.meta.resolve('../loader/node-test.js'))
 }
 
 // The comment below is disabled, we don't auto-mock @jest/globals anymore, and having our loader first is faster
@@ -347,7 +347,7 @@ if (options.jest) {
   if (options.bundle) {
     setEnv('EXODUS_TEST_JEST_CONFIG', JSON.stringify(jestConfig))
   } else {
-    args.push(options.hasImportLoader ? '--import' : '-r', import.meta.resolve('../loader/jest.js'))
+    args.push(options.loader ?? '-r', import.meta.resolve('../loader/jest.js'))
   }
 
   if (config.testFailureExitCode !== undefined) {
@@ -418,7 +418,7 @@ if (options.concurrency) {
 
 if (options.esbuild && !options.bundle) {
   setEnv('EXODUS_TEST_ESBUILD', options.esbuild)
-  if (options.hasImportLoader) {
+  if (options.loader === '--import') {
     const optional = options.esbuild === '*' ? '' : '.optional'
     args.push('--import', import.meta.resolve(`../loader/esbuild${optional}.js`))
   } else if (options.flagEngine === false) {
@@ -440,7 +440,7 @@ if (options.typescript) {
   assert(!options.babel, 'Options --typescript and --babel are mutually exclusive')
 
   if (options.ts === 'flag') {
-    assert(options.hasImportLoader)
+    assert(options.loader === '--import')
     // TODO: switch to native --experimental-strip-types where available
     args.push('--import', import.meta.resolve('../loader/typescript.js'))
   } else if (options.ts !== 'auto') {
