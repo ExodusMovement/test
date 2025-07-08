@@ -47,6 +47,7 @@ Use `--engine` (or `EXODUS_TEST_ENGINE=`) to specify one of:
 - Other runtimes:
   - `deno:pure` — Deno (requires Deno v2.4.0 or later, expects `deno` to be available)
   - `deno:bundle` — Deno (v1 or v2, whichever `deno` is)
+  - `deno:test` — incomplete, lacks `--jest` support due to missing `afterEach` / `beforeEach` in Deno
   - `bun:pure` / `bun:bundle` — Bun, expects `bun` to be available
   - `electron-as-node:test` / `electron-as-node:pure` / `electron-as-node:bundle`\
     Same as `node:*`, but uses `electron` binary.\
