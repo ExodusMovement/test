@@ -148,6 +148,7 @@
     "@exodus/prettier": "^1.0.0",
     "@jest/globals": "^29.7.0",
     "@types/jest-when": "^3.5.2",
+    "@types/node": "^24.0.11",
     "@typescript-eslint/eslint-plugin": "^7.15.0",
     "electron": "^35.2.2",
     "eslint": "^8.44.0",
