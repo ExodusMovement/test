@@ -19,7 +19,13 @@ if (process.env.EXODUS_TEST_IS_BROWSER || process.env.EXODUS_TEST_IS_BAREBONE) {
   for (const type of consoleKeys) {
     if (!Object.hasOwn(console, type)) continue
     const orig = console[type].bind(console)
-    console[type] = (...args) => orig(utilFormat(...args))
+    console[type] = (...args) => {
+      try {
+        orig(utilFormat(...args))
+      } catch {
+        orig(...args) // fallback if format fails
+      }
+    }
   }
 }
 
