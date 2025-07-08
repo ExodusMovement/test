@@ -277,7 +277,7 @@ setEnv('EXODUS_TEST_DEVTOOLS', options.devtools ? '1' : '')
 setEnv('EXODUS_TEST_IS_BROWSER', isBrowserLike ? '1' : '')
 setEnv('EXODUS_TEST_IS_BAREBONE', options.barebone ? '1' : '')
 setEnv('EXODUS_TEST_ENVIRONMENT', options.bundle ? 'bundle' : '') // perhaps switch to _IS_BUNDLED?
-if (options.engine === 'deno:pure') setEnv('DENO_COMPAT', '1') // https://deno.com/blog/v2.4#deno_compat1
+if (['deno:pure', 'deno:test'].includes(options.engine)) setEnv('DENO_COMPAT', '1') // https://deno.com/blog/v2.4#deno_compat1
 
 assert(!options.devtools || isBrowserLike || !options.pure, engineFlagError('devtools'))
 assert(!options.throttle || options.browsers, engineFlagError('throttle-cpu'))
