@@ -109,8 +109,12 @@ describe('When', () => {
         caughtErr = e
       }
 
-      expect(caughtErr.expected).toEqual('called mocks: 4')
-      expect(caughtErr.actual).toEqual('called mocks: 2')
+      // Deno assert.equal(a, b, msg) does not add .expected / .actual if msg is defined
+      if (!globalThis.Deno) {
+        expect(caughtErr.expected).toEqual('called mocks: 4')
+        expect(caughtErr.actual).toEqual('called mocks: 2')
+      }
+
       expect(caughtErr.message).toMatch(/Failed verifyAllWhenMocksCalled: 2 not called/)
     })
 

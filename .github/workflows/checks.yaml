@@ -200,7 +200,9 @@ jobs:
         with:
           deno-version: ${{ matrix.deno-version }}
       - run: pnpm i --frozen-lockfile
-      - run: node --run test:deno
+      - if: ${{ matrix.deno-version >= 'v2.x' }}
+        run: node --run test:deno:pure
+      - run: node --run test:deno:bundle
 
   electron-as-node:
     runs-on: ubuntu-22.04

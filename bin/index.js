@@ -20,6 +20,7 @@ const DEFAULT_PATTERNS = [`**/?(*.)+(spec|test).?([cm])[jt]s?(x)`] // do not tru
 const bundleOpts = { pure: true, bundle: true, esbuild: true, ts: 'auto' }
 const bareboneOpts = { ...bundleOpts, barebone: true }
 const hermesA = ['-Og', '-Xmicrotask-queue']
+const denoA = ['run', '--allow-all'] // also will set DENO_COMPAT=1 env flag below
 const ENGINES = new Map(
   Object.entries({
     'node:test': { binary: 'node', pure: false, loader: '--import', ts: 'flag', haveIsOk: true },
@@ -31,6 +32,7 @@ const ENGINES = new Map(
     'electron-as-node:pure': { binary: 'electron', pure: true, loader: '--import', ts: 'flag' },
     'electron-as-node:bundle': { binary: 'electron', ...bundleOpts },
     'electron:bundle': { binary: 'electron', electron: true, ...bundleOpts },
+    'deno:pure': { binary: 'deno', binaryArgs: denoA, pure: true, loader: '--preload', ts: 'auto' },
     'deno:bundle': { binary: 'deno', binaryArgs: ['run'], target: 'deno1', ...bundleOpts },
     // Barebone engines
     'd8:bundle': { binary: 'd8', ...bareboneOpts },
@@ -274,6 +276,7 @@ setEnv('EXODUS_TEST_DEVTOOLS', options.devtools ? '1' : '')
 setEnv('EXODUS_TEST_IS_BROWSER', isBrowserLike ? '1' : '')
 setEnv('EXODUS_TEST_IS_BAREBONE', options.barebone ? '1' : '')
 setEnv('EXODUS_TEST_ENVIRONMENT', options.bundle ? 'bundle' : '') // perhaps switch to _IS_BUNDLED?
+if (options.engine === 'deno:pure') setEnv('DENO_COMPAT', '1') // https://deno.com/blog/v2.4#deno_compat1
 
 assert(!options.devtools || isBrowserLike || !options.pure, engineFlagError('devtools'))
 assert(!options.throttle || options.browsers, engineFlagError('throttle-cpu'))
