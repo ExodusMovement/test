@@ -11,7 +11,7 @@ describeNodeIntegration('Electron', {}, () => {
   })
 
   test('Are we on BoringSSL', async () => {
-    const crypto = await import('crypto')
+    const crypto = await import('node:crypto')
     const hashes = crypto.getHashes()
     expect(hashes.includes('sha512')).toBe(true)
     if (shouldBeElectron) expect(hashes.includes('sha3-512')).toBe(false)
