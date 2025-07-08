@@ -37,9 +37,9 @@ function parseArgs(args) {
 }
 
 class Context {
-  test = test // todo: bind to context
-  describe = describe // todo: bind to context
-  plan = plan
+  test = (...args) => test(...args) // TODO: bind to context
+  describe = (...args) => describe(...args) // TODO: bind to context
+  plan = (count) => plan(count) // TODO: bind to context
   children = []
   #fullName
   #assert
