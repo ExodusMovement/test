@@ -5,7 +5,9 @@ if (!globalThis.global) globalThis.global = globalThis
 if (!globalThis.Buffer) globalThis.Buffer = require('buffer').Buffer
 
 const consoleKeys = ['log', 'error', 'warn', 'info', 'debug', 'trace']
-const { print } = globalThis
+const print = globalThis.print ?? globalThis.console.log.bind(globalThis.console)
+if (process.env.EXODUS_TEST_IS_BAREBONE && !globalThis.print) globalThis.print = print // bundler expects barebones to have print()
+
 if (process.env.EXODUS_TEST_PLATFORM === 'engine262') delete globalThis.console // prints [object Object] on everything
 if (!globalThis.console) globalThis.console = Object.fromEntries(consoleKeys.map((k) => [k, print])) // eslint-disable-line no-undef
 for (const k of consoleKeys) if (!console[k]) console[k] = console.log // SpiderMonkey has console but no console.error
@@ -15,7 +17,7 @@ for (const k of consoleKeys) if (!console[k]) console[k] = console.log // Spider
 // In barebone, we don't want console.log({x:10}) to print "[Object object]"", we want "{ x: 10 }"
 if (process.env.EXODUS_TEST_IS_BROWSER || process.env.EXODUS_TEST_IS_BAREBONE) {
   const utilFormat = require('exodus-test:util-format')
-  if (print) globalThis.print = (...args) => print(utilFormat(...args))
+  if (globalThis.print) globalThis.print = (...args) => print(utilFormat(...args))
   for (const type of consoleKeys) {
     if (!Object.hasOwn(console, type)) continue
     const orig = console[type].bind(console)
