@@ -384,7 +384,12 @@ function jestmock(name, mocker, { override = false, actual, builtin, loc } = {})
       overridenBuiltins.add(resolved)
       overrideModule(resolved, true) // Override builtin modules
       if (syncBuiltinESMExports) {
-        syncBuiltinESMExports()
+        try {
+          syncBuiltinESMExports()
+        } catch (err) {
+          if (!globalThis.Deno) throw err // Deno throws on syncBuiltinESMExports, that is ok
+        }
+
         isOverridenBuiltinSynchedWithESM = true
       }
     }
