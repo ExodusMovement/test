@@ -125,6 +125,14 @@ if (process.env.EXODUS_TEST_PLATFORM === 'quickjs' && globalThis.os) {
 
 if (globalThis.describe) delete globalThis.describe
 
+if (process.env.EXODUS_TEST_PLATFORM === 'boa') {
+  // boa timers do not work in CLI
+  delete globalThis.setTimeout
+  delete globalThis.clearTimeout
+  // If .stack is undefined, jest-when and util-format fail
+  if (new Error('-').stack === undefined) Error.prototype.stack = '' // eslint-disable-line no-extend-native
+}
+
 if (
   process.env.EXODUS_TEST_PLATFORM === 'hermes' ||
   (process.env.EXODUS_TEST_IS_BAREBONE && !globalThis.clearTimeout)

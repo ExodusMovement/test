@@ -44,6 +44,7 @@ const ENGINES = new Map(
     'xs:bundle': { binary: 'xs', ...bareboneOpts },
     'graaljs:bundle': { binary: 'graaljs', ...bareboneOpts },
     'escargot:bundle': { binary: 'escargot', ...bareboneOpts },
+    'boa:bundle': { binary: 'boa', binaryArgs: ['-m'], ...bareboneOpts },
     // Browser engines
     'chrome:puppeteer': { binary: 'chrome', browsers: 'puppeteer', ...bundleOpts },
     'firefox:puppeteer': { binary: 'firefox', browsers: 'puppeteer', ...bundleOpts },
@@ -57,7 +58,7 @@ const ENGINES = new Map(
   })
 )
 const barebonesOk = ['d8', 'spidermonkey', 'quickjs', 'xs', 'hermes']
-const barebonesUnhandled = ['jsc', 'escargot', 'graaljs', 'engine262']
+const barebonesUnhandled = ['jsc', 'escargot', 'boa', 'graaljs', 'engine262']
 
 const getEnvFlag = (name) => {
   if (!Object.hasOwn(process.env, name)) return

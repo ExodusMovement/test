@@ -57,6 +57,7 @@ function findBinaryOnce(name) {
     case 'quickjs':
     case 'graaljs':
     case 'escargot':
+    case 'boa': // not present in jsvu/esvu yet
     case 'ladybird-js': // naming by esvu
     case 'engine262':
       return findFile([jsvu, esvu])

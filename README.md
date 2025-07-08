@@ -15,7 +15,7 @@ It can run your existing tests on [all runtimes and also browsers](#engines), wi
   Chrome, Firefox, WebKit, Brave, Microsoft Edge,
   [QuickJS](https://github.com/quickjs-ng/quickjs), [XS](https://github.com/Moddable-OpenSource/moddable-xst),
   [GraalJS](https://github.com/oracle/graaljs), [Escargot](https://github.com/Samsung/escargot),
-  and even [engine262](https://github.com/engine262/engine262).
+  [Boa](https://github.com/boa-dev/boa), and even [engine262](https://github.com/engine262/engine262).
 - Testsuite-agnostic — can run any file as long as it sets exit code based on test results
 - Built-in [Jest](https://jestjs.io) compatibility (with `--jest`), including `jest.*` global
   - Up to ~10x faster depending on the original setup
@@ -74,6 +74,7 @@ Use `--engine` (or `EXODUS_TEST_ENGINE=`) to specify one of:
   - `xs:bundle` — [XS](https://github.com/Moddable-OpenSource/moddable-xst)
   - `graaljs:bundle` — [GraalJS](https://github.com/oracle/graaljs)
   - `escargot:bundle` — [Escargot](https://github.com/Samsung/escargot)
+  - `boa:bundle` — [Boa](https://github.com/boa-dev/boa)
   - `engine262:bundle` - [engine262](https://github.com/engine262/engine262), the per-spec implementation of ECMA-262
     (install with [esvu](https://npmjs.com/package/esvu))
 

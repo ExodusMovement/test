@@ -120,6 +120,7 @@
     "test:xs": "EXODUS_TEST_ENGINE=xs:bundle npm run test:_bundle --",
     "test:graaljs": "EXODUS_TEST_ENGINE=graaljs:bundle npm run test:_bundle --",
     "test:escargot": "EXODUS_TEST_ENGINE=escargot:bundle npm run test:_bundle --",
+    "test:boa": "EXODUS_TEST_ENGINE=boa:bundle npm run test:_bundle --",
     "test:fetch": "node ./bin/index.js --jest --drop-network --engine node:pure 'tests/replay/*.test.js'",
     "test:jsdom": "EXODUS_TEST_JEST_CONFIG='{\"testMatch\":[\"**/*.jsdom-test.js\"],\"testEnvironment\":\"jsdom\", \"rootDir\": \".\"}' ./bin/index.js --jest",
     "coverage": "node ./bin/index.js --jest --esbuild --coverage",
