@@ -1,19 +1,27 @@
-const describeNodeIntegration = globalThis.process ? describe : describe.skip
-describeNodeIntegration('Electron', {}, () => {
-  const shouldBeElectron = process.env.EXODUS_TEST_PLATFORM === 'electron'
+import { describe, test } from 'node:test'
+import assert from 'node:assert/strict'
 
-  test('Are we Electron', () => {
-    expect(Boolean(globalThis.process?.versions.electron)).toBe(shouldBeElectron)
-  })
+describe(
+  'Electron',
+  {
+    skip: !globalThis.process,
+  },
+  () => {
+    const shouldBeElectron = process.env.EXODUS_TEST_PLATFORM === 'electron'
 
-  test('Do we have Chrome', () => {
-    expect(Boolean(globalThis.process?.versions.chrome)).toBe(shouldBeElectron)
-  })
+    test('Are we Electron', () => {
+      assert.equal(Boolean(globalThis.process?.versions.electron), shouldBeElectron)
+    })
 
-  test('Are we on BoringSSL', async () => {
-    const crypto = await import('node:crypto')
-    const hashes = crypto.getHashes()
-    expect(hashes.includes('sha512')).toBe(true)
-    if (shouldBeElectron) expect(hashes.includes('sha3-512')).toBe(false)
-  })
-})
+    test('Do we have Chrome', () => {
+      assert.equal(Boolean(globalThis.process?.versions.chrome), shouldBeElectron)
+    })
+
+    test('Are we on BoringSSL', async () => {
+      const crypto = await import('node:crypto')
+      const hashes = crypto.getHashes()
+      assert.ok(hashes.includes('sha512'))
+      if (shouldBeElectron) assert.ok(!hashes.includes('sha3-512'))
+    })
+  }
+)
