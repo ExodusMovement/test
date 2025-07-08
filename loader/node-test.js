@@ -11,10 +11,4 @@ Object.assign(testActual, test)
 
 const nodeModule = require('node:module')
 const syncBuiltinESMExports = nodeModule.syncBuiltinESMExports || nodeModule.syncBuiltinExports // old bun has it under a different name
-if (syncBuiltinESMExports) {
-  try {
-    syncBuiltinESMExports()
-  } catch (err) {
-    if (!globalThis.Deno) throw err // Deno throws on syncBuiltinESMExports, ignore for now
-  }
-}
+if (syncBuiltinESMExports) syncBuiltinESMExports()

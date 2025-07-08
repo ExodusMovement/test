@@ -46,6 +46,7 @@
     "bin/inband.js",
     "bin/reporter.js",
     "loader/babel.cjs",
+    "loader/deno-import-map.json",
     "loader/esbuild.js",
     "loader/esbuild.optional.js",
     "loader/flow.js",
