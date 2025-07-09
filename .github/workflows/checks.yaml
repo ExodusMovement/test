@@ -48,9 +48,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # esvu hermes is 0.11 and even fails to install
-        # boa 0.20 seems to crash with OOM, but nightly works, so it can be added on next boa release
-        # quickjs fails and is unavailable on macOS (quickjs-ng from jsvu works)
         engine: ['xs']
     steps:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
@@ -74,3 +71,34 @@ jobs:
       - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
       - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
       - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
+
+  esvu-bundle:
+    runs-on: ubuntu-22.04
+    name: 'Pre-built on ${{ matrix.engine }} (from esvu)'
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: ['xs']
+    steps:
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
+        with:
+          run_install: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: '.nvmrc'
+          cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
+      - run: pnpm i --frozen-lockfile
+      - run: node --run esvu -- install "${{ matrix.engine }}"
+      - run: ls bundles/tempout.*cjs | xargs -n1 ~/.esvu/bin/xs
+      - run: ls bundles/tempout.*cjs | xargs -n1 ~/.esvu/bin/xs
+      - run: ls bundles/tempout.*cjs | xargs -n1 ~/.esvu/bin/xs
+      - run: ls bundles/tempout.*cjs | xargs -n1 ~/.esvu/bin/xs
+      - run: ls bundles/tempout.*cjs | xargs -n1 ~/.esvu/bin/xs
+      - run: ls bundles/tempout.*cjs | xargs -n1 ~/.esvu/bin/xs
+      - run: ls bundles/tempout.*cjs | xargs -n1 ~/.esvu/bin/xs
+      - run: ls bundles/tempout.*cjs | xargs -n1 ~/.esvu/bin/xs
+      - run: ls bundles/tempout.*cjs | xargs -n1 ~/.esvu/bin/xs
+      - run: ls bundles/tempout.*cjs | xargs -n1 ~/.esvu/bin/xs
