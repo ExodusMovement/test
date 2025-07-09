@@ -26,6 +26,7 @@ const ENGINES = new Map(
     'node:test': { binary: 'node', pure: false, loader: '--import', ts: 'flag', haveIsOk: true },
     'node:pure': { binary: 'node', pure: true, loader: '--import', ts: 'flag', haveIsOk: true },
     'node:bundle': { binary: 'node', ...bundleOpts },
+    'bun:test': { binary: 'bun', ts: 'auto' },
     'bun:pure': { binary: 'bun', pure: true, ts: 'auto' },
     'bun:bundle': { binary: 'bun', ...bundleOpts },
     'electron-as-node:test': { binary: 'electron', pure: false, loader: '--import', ts: 'flag' },
@@ -301,6 +302,7 @@ if (options.pure) {
   assert(!options.forceExit, `Can not use --force-exit with ${engineName} yet`) // TODO
   assert(!options.watch, `Can not use --watch with with ${engineName}`)
   assert(options.testNamePattern.length === 0, '--test-name-pattern requires node:test engine now')
+  // eslint-disable-next-line unicorn/prefer-switch
 } else if (options.engine === 'node:test' || options.engine === 'electron-as-node:test') {
   const reporter = import.meta.resolve('./reporter.js')
   args.push('--test', '--no-warnings=ExperimentalWarning', '--test-reporter', reporter)
@@ -326,6 +328,9 @@ if (options.pure) {
 } else if (options.engine === 'deno:test') {
   args.push('test', '--allow-all')
   assert(!options.jest, 'deno:test engine does not support --jest yet')
+} else if (options.engine === 'bun:test') {
+  args.push('test')
+  throw new Error('bun:test is unavailable because Bun test runner has many bugs and does not work')
 } else {
   throw new Error('Unreachable')
 }
@@ -750,8 +755,8 @@ if (options.pure) {
   console.timeEnd(timeLabel)
 } else {
   assert(!buildFile)
-  assertBinary(options.binary, ['node', 'electron', 'deno'])
-  assert(['node:test', 'electron-as-node:test', 'deno:test'].includes(options.engine))
+  assertBinary(options.binary, ['node', 'electron', 'deno', 'bun'])
+  assert(['node:test', 'electron-as-node:test', 'deno:test', 'bun:test'].includes(options.engine))
   setEnv('EXODUS_TEST_CONTEXT', 'node:test') // The context is always node:test in this branch
   assert(files.length > 0) // otherwise we can run recursively
   assert(!options.binaryArgs)

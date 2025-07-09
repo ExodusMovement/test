@@ -97,6 +97,7 @@
     "test:simple": "node ./bin/index.js 'tests/*.test.js'",
     "test:pure": "EXODUS_TEST_ENGINE=node:pure npm run test --",
     "test:bundle": "EXODUS_TEST_ENGINE=node:bundle npm run test:_bundle --",
+    "test:bun:test": "EXODUS_TEST_ENGINE=bun:test npm run test --",
     "test:bun:pure": "EXODUS_TEST_ENGINE=bun:pure npm run test --",
     "test:bun:bundle": "EXODUS_TEST_ENGINE=bun:bundle npm run test:_bundle",
     "test:deno:test": "EXODUS_TEST_ENGINE=deno:test node ./bin/index.js tests/tape.test.js tests/simple.test.js tests/env.test.js 'tests/engines/**.test.js' tests/node/simple.test.js tests/node/order.test.js",
