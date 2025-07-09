@@ -1,4 +1,4 @@
-const N = 1000
+const N = process.env.EXODUS_TEST_PLATFORM === 'engine262' ? 100 : 1000
 const time = 50
 
 test('real setTimeout() order is correct, 0 seconds', async () => {

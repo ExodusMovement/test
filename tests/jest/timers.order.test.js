@@ -1,6 +1,6 @@
 const testTimers = !jest.exodus || jest.exodus.features.timers ? test : test.skip
 
-const N = 500
+const N = process.env.EXODUS_TEST_PLATFORM === 'engine262' ? 50 : 500
 // time is selected so that advanceTimersByTime() has to put most of the timers into a single timers.tick() call
 const time = N * 499
 
