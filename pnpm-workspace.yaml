@@ -1,3 +1,4 @@
+ignoreWorkspaceRootCheck: true
 lockfileIncludeTarballUrl: true
 linkWorkspacePackages: true
 preferWorkspacePackages: true
