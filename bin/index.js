@@ -19,44 +19,9 @@ import { glob as globImplementation } from '../src/glob.cjs'
 const DEFAULT_PATTERNS = [`**/?(*.)+(spec|test).?([cm])[jt]s?(x)`] // do not trust magic dirs by default
 const bundleOpts = { pure: true, bundle: true, esbuild: true, ts: 'auto' }
 const bareboneOpts = { ...bundleOpts, barebone: true }
-const hermesA = ['-Og', '-Xmicrotask-queue']
-const denoA = ['run', '--allow-all'] // also will set DENO_COMPAT=1 env flag below
 const ENGINES = new Map(
   Object.entries({
-    'node:test': { binary: 'node', pure: false, loader: '--import', ts: 'flag', haveIsOk: true },
-    'node:pure': { binary: 'node', pure: true, loader: '--import', ts: 'flag', haveIsOk: true },
-    'node:bundle': { binary: 'node', ...bundleOpts },
-    'bun:test': { binary: 'bun', ts: 'auto' },
-    'bun:pure': { binary: 'bun', pure: true, ts: 'auto' },
-    'bun:bundle': { binary: 'bun', ...bundleOpts },
-    'electron-as-node:test': { binary: 'electron', pure: false, loader: '--import', ts: 'flag' },
-    'electron-as-node:pure': { binary: 'electron', pure: true, loader: '--import', ts: 'flag' },
-    'electron-as-node:bundle': { binary: 'electron', ...bundleOpts },
-    'electron:bundle': { binary: 'electron', electron: true, ...bundleOpts },
-    'deno:test': { binary: 'deno', pure: false, loader: '--preload', ts: 'auto' },
-    'deno:pure': { binary: 'deno', binaryArgs: denoA, pure: true, loader: '--preload', ts: 'auto' },
-    'deno:bundle': { binary: 'deno', binaryArgs: ['run'], target: 'deno1', ...bundleOpts },
-    // Barebone engines
-    'd8:bundle': { binary: 'd8', ...bareboneOpts },
-    'jsc:bundle': { binary: 'jsc', target: 'safari13', ...bareboneOpts },
-    'hermes:bundle': { binary: 'hermes', binaryArgs: hermesA, target: 'es2018', ...bareboneOpts },
-    'spidermonkey:bundle': { binary: 'spidermonkey', ...bareboneOpts },
-    'engine262:bundle': { binary: 'engine262', ...bareboneOpts },
-    'quickjs:bundle': { binary: 'quickjs', binaryArgs: ['--std'], ...bareboneOpts },
     'xs:bundle': { binary: 'xs', ...bareboneOpts },
-    'graaljs:bundle': { binary: 'graaljs', ...bareboneOpts },
-    'escargot:bundle': { binary: 'escargot', ...bareboneOpts },
-    'boa:bundle': { binary: 'boa', binaryArgs: ['-m'], ...bareboneOpts },
-    // Browser engines
-    'chrome:puppeteer': { binary: 'chrome', browsers: 'puppeteer', ...bundleOpts },
-    'firefox:puppeteer': { binary: 'firefox', browsers: 'puppeteer', ...bundleOpts },
-    'brave:puppeteer': { binary: 'brave', browsers: 'puppeteer', ...bundleOpts },
-    'msedge:puppeteer': { binary: 'msedge', browsers: 'puppeteer', ...bundleOpts },
-    'chromium:playwright': { binary: 'chromium', browsers: 'playwright', ...bundleOpts },
-    'firefox:playwright': { binary: 'firefox', browsers: 'playwright', ...bundleOpts },
-    'webkit:playwright': { binary: 'webkit', browsers: 'playwright', ...bundleOpts },
-    'chrome:playwright': { binary: 'chrome', browsers: 'playwright', ...bundleOpts },
-    'msedge:playwright': { binary: 'msedge', browsers: 'playwright', ...bundleOpts },
   })
 )
 const barebonesOk = ['d8', 'spidermonkey', 'quickjs', 'xs', 'hermes']
@@ -490,24 +455,7 @@ if (allfiles.length === 0) {
   process.exit(1)
 }
 
-let subfiles // must be a strict subset of allfiles
-if (process.env.EXODUS_TEST_SELECT) {
-  subfiles = await glob(process.env.EXODUS_TEST_SELECT, { ignore })
-
-  const allSet = new Set(allfiles)
-  const stray = subfiles.filter((file) => !allSet.has(file))
-  if (stray.length > 0) {
-    console.error(`Selected tests should be a subset of all tests:\n  ${stray.join('\n  ')}`)
-    process.exit(1)
-  }
-
-  if (subfiles.length === 0) {
-    console.error('No test files selected due to EXODUS_TEST_SELECT, passing')
-    process.exit(0)
-  }
-}
-
-const files = subfiles ?? allfiles
+const files = allfiles
 
 files.sort((a, b) => {
   const [al, bl] = [a.split('/'), b.split('/')]
@@ -635,13 +583,6 @@ if (options.dropNetwork) warnHuman('--drop-network is a test helper, not a secur
 const execFile = promisify(execFileCallback)
 
 async function launch(binary, args, opts = {}, buffering = false) {
-  if (options.browsers) {
-    assert(buffering, 'Unexpected non-buffered browser run')
-    const { timeout } = opts
-    const { browsers: runner, devtools, dropNetwork, throttle } = options
-    return browsers.run(runner, args, { binary, devtools, dropNetwork, timeout, throttle })
-  }
-
   const barebones = [...barebonesOk, ...barebonesUnhandled]
   assertBinary(binary, ['node', 'bun', 'deno', 'electron', ...barebones, 'v8']) // v8 is an alias to d8
   if (binary === c8 && process.platform === 'win32') {
@@ -692,6 +633,7 @@ if (options.pure) {
     const start = process.hrtime.bigint()
     try {
       const fullArgs = [...binaryArgs, ...args, file]
+      for (let i = 0; i < 4; i++) await launch(options.binary, fullArgs, { timeout }, true)
       const { code = 0, stdout, stderr } = await launch(options.binary, fullArgs, { timeout }, true)
       const ms = Number(process.hrtime.bigint() - start) / 1e6
       if (stdout.includes(failedBare)) return { ok: false, output: [cleanOut(stdout), stderr], ms }
@@ -745,28 +687,7 @@ if (options.pure) {
   if (failures.length > 0) process.exitCode = 1
   summary(files, failures)
 
-  if (options.browsers) await browsers.close()
   console.timeEnd(timeLabel)
-} else {
-  assert(!buildFile)
-  assertBinary(options.binary, ['node', 'electron', 'deno', 'bun'])
-  assert(['node:test', 'electron-as-node:test', 'deno:test', 'bun:test'].includes(options.engine))
-  setEnv('EXODUS_TEST_CONTEXT', 'node:test') // The context is always node:test in this branch
-  assert(files.length > 0) // otherwise we can run recursively
-  assert(!options.binaryArgs)
-  if (options.concurrency) args.push('--test-concurrency', options.concurrency)
-  if (['--inspect', '--inspect-brk', '--inspect-wait'].includes(options.devtools)) {
-    args.push(options.devtools)
-    if (have.haveNetworkInspection) args.push('--experimental-network-inspection')
-    console.warn(
-      ['--inspect-brk', '--inspect-wait'].includes(options.devtools)
-        ? 'Open chrome://inspect/ to connect devtools, waiting'
-        : 'Open chrome://inspect/ to connect devtools\nUse --inspect-brk to wait for inspector'
-    )
-  }
-
-  const { code } = await launch(options.binary, [...args, ...files])
-  process.exitCode = code
 }
 
 if (globalTeardown) await globalTeardown()
