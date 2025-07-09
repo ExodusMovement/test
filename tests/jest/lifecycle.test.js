@@ -2,9 +2,9 @@
 // Order of hooks vs tests is checked
 
 // Relative order of hooks vs code in describes is not matched - Jest executes describe blocks before hooks
-// Running *Each hooks in `describe { decribe { *Each; test }; *Each } }` is also not matched
 // This is not ideal and perhaps some of it has to be fixed in Node or us
 
+// Prior to 22.8, running *Each hooks in `describe { decribe { *Each; test }; *Each } }` is also not matched
 // Prior to 20.13, relative afterEach order was not matched
 // Prior to 18.19.0 / 20.8.0, lifecycle was significantly broken, so we don't run on those
 
@@ -19,18 +19,22 @@ afterAll(() => {
   const prettyJson = (line) => line.replaceAll('"', '').replaceAll(/([:,])/gu, '$1 ')
   const flatten = (x) => x.map((line) => prettyJson(JSON.stringify(line)))
   expect(flatten(testlog)).toMatchSnapshot()
-  expect(hooklog.length).toMatchSnapshot()
-  expect(flatten(hooklog.filter((x) => x.method !== 'afterEach'))).toMatchSnapshot()
 
-  const isNodeVersionOk = () => {
+  // Reduce to compare before 22.8
+  const hooklogReduced = hooklog.filter((x) => !(x.site === 8 && x.method?.endsWith('Each')))
+  expect(hooklogReduced.length).toMatchSnapshot()
+  // Reduce second time to compare before 20.13
+  expect(flatten(hooklogReduced.filter((x) => x.method !== 'afterEach'))).toMatchSnapshot()
+
+  const isNodeVersionOk = (a, b) => {
+    if (!jest.exodus || jest.exodus.engine !== 'node:test') return true
     const [major, minor] = process.versions.node.split('.').map(Number)
-    return major > 20 || (major === 20 && minor >= 13)
+    return major > a || (major === a && minor >= b)
   }
 
-  if (!jest.exodus || jest.exodus.engine !== 'node:test' || isNodeVersionOk()) {
-    // See comment on top
-    expect(flatten(hooklog)).toMatchSnapshot()
-  }
+  // See comment on top
+  if (isNodeVersionOk(20, 13)) expect(flatten(hooklogReduced)).toMatchSnapshot()
+  if (isNodeVersionOk(22, 8)) expect(flatten(hooklog)).toMatchSnapshot()
 })
 
 let i = 0 // automatic install order
@@ -57,11 +61,11 @@ const installBunch = (site, opts = {}) => {
   callsite('installBunch', { site })
   install(afterAll, site)
   if (!opts.skipBeforeAll) install(beforeAll, site)
-  if (!opts.skipEach) install(beforeEach, site)
-  if (!opts.skipEach) install(afterEach, site)
+  install(beforeEach, site)
+  install(afterEach, site)
   if (!opts.skipBeforeAll) install(beforeAll, site)
-  if (!opts.skipEach) install(afterEach, site)
-  if (!opts.skipEach) install(beforeEach, site)
+  install(afterEach, site)
+  install(beforeEach, site)
   install(afterAll, site)
 }
 
@@ -95,7 +99,7 @@ describe('A', () => {
     exit('E')
   })
 
-  installBunch(8, { skipEach: true }) // See comment above
+  installBunch(8) // beforeEach/afterEach here is wrong in Node.js < 22.8.0
 
   test('I', () => run('I'))
   exit('A')
