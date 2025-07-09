@@ -17,7 +17,7 @@ testTimers('advanceTimersByTime() does not let microtasks to pass', () => {
 testTimers('advanceTimersByTime() does not let microtasks to pass even with await', async () => {
   const fn = jest.fn()
   delay100cycles().then(() => setTimeout(fn, 10))
-  jest.advanceTimersByTime(20)
+  await jest.advanceTimersByTime(20)
   expect(fn).not.toHaveBeenCalled()
 })
 
