@@ -10,90 +10,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    name: 'Lint'
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
-        with:
-          run_install: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version-file: '.nvmrc'
-          cache: pnpm
-          registry-url: 'https://registry.npmjs.org'
-      - run: pnpm i --frozen-lockfile
-      - run: node --run lint
-
-  windows:
-    runs-on: windows-latest
-    name: 'Windows with Node.js ${{ matrix.node-version }}'
-    timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: ['24.1', '22.15', '20.8.0', '18.19.0']
-    steps:
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
-        with:
-          run_install: false
-      - run: pnpm env use -g ${{ matrix.node-version }}
-      - run: pnpm i --frozen-lockfile
-      - run: node ./tests/simple.test.js
-      - run: node ./bin/index.js ./tests/simple.test.js
-      - run: node ./bin/index.js --jest ./tests/jest/simple.test.js
-      - run: node ./bin/index.js --esbuild ./tests/simple.test.js
-      - run: node ./bin/index.js --esbuild --jest ./tests/jest/simple.test.js
-      - run: node ./bin/index.js --coverage ./tests/simple.test.js
-      - run: node ./bin/index.js --coverage --jest ./tests/jest/simple.test.js
-      - run: node ./bin/index.js --coverage --esbuild ./tests/simple.test.js
-      - run: node ./bin/index.js --coverage --esbuild --jest ./tests/jest/simple.test.js
-      - run: node ./bin/index.js 'tests/*.test.js'
-      - run: node ./bin/index.js --jest --esbuild=ts,user.test.js,sum.test.js
-
-  check:
-    runs-on: ubuntu-22.04
-    name: 'Test on Node.js ${{ matrix.node-version }}'
-    timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: ['24.1', '22.15', '22.8', '22.4', '20.19', '20.11', '20.8.0', '18.19.0']
-    steps:
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
-        with:
-          run_install: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: pnpm
-          registry-url: 'https://registry.npmjs.org'
-      - run: pnpm i --frozen-lockfile
-      - run: EXODUS_TEST_DROP_NETWORK=1 pnpm test:all
-      - if: ${{ matrix.node-version >= '24' || matrix.node-version >= '22.13' && matrix.node-version < '22.3' }}
-        run: EXODUS_TEST_DROP_NETWORK=1 pnpm test:typescript
-
-  jest:
-    runs-on: ubuntu-22.04
-    name: 'Jest on Node.js'
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
-        with:
-          run_install: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version-file: '.nvmrc'
-          cache: pnpm
-          registry-url: 'https://registry.npmjs.org'
-      - run: pnpm i --frozen-lockfile
-      - run: EXODUS_TEST_DROP_NETWORK=1 pnpm jest
-
   jsvu:
     runs-on: ubuntu-22.04
     name: 'Test on ${{ matrix.engine }} (from jsvu)'
@@ -101,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        engine: ['hermes', 'v8', 'javascriptcore', 'spidermonkey', 'quickjs', 'xs']
+        engine: ['xs']
     steps:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
@@ -115,6 +31,15 @@ jobs:
       - run: pnpm i --frozen-lockfile
       - run: node --run jsvu -- --os=linux64 --engines="${{ matrix.engine }}"
       - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
+      - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
+      - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
+      - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
+      - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
+      - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
+      - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
+      - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
+      - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
+      - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
 
   esvu:
     runs-on: ubuntu-22.04
@@ -126,7 +51,7 @@ jobs:
         # esvu hermes is 0.11 and even fails to install
         # boa 0.20 seems to crash with OOM, but nightly works, so it can be added on next boa release
         # quickjs fails and is unavailable on macOS (quickjs-ng from jsvu works)
-        engine: ['v8', 'javascriptcore', 'spidermonkey', 'xs', 'engine262']
+        engine: ['xs']
     steps:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
@@ -140,129 +65,12 @@ jobs:
       - run: pnpm i --frozen-lockfile
       - run: node --run esvu -- install "${{ matrix.engine }}"
       - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
-
-  puppeteer:
-    runs-on: ubuntu-22.04
-    name: 'Test on ${{ matrix.browser }}:puppeteer'
-    timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        browser: ['chrome', 'firefox']
-    steps:
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
-        with:
-          run_install: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version-file: '.nvmrc'
-          cache: pnpm
-          registry-url: 'https://registry.npmjs.org'
-      - run: pnpm i --frozen-lockfile
-      - run: node --run "test:${{ matrix.browser }}:puppeteer"
-
-  playwright:
-    runs-on: ubuntu-22.04
-    name: 'Test on ${{ matrix.browser }}:playwright'
-    timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        browser: ['chromium', 'firefox', 'webkit']
-    steps:
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
-        with:
-          run_install: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version-file: '.nvmrc'
-          cache: pnpm
-          registry-url: 'https://registry.npmjs.org'
-      - run: pnpm i --frozen-lockfile
-      - run: node --run playwright -- install --with-deps "${{ matrix.browser }}"
-      - run: node --run "test:${{ matrix.browser }}:playwright"
-
-  bun:
-    runs-on: ubuntu-22.04
-    name: 'Test on Bun'
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
-        with:
-          run_install: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version-file: '.nvmrc'
-          cache: pnpm
-          registry-url: 'https://registry.npmjs.org'
-      - uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76
-      - run: pnpm i --frozen-lockfile
-      - run: node --run test:bun:pure
-      - run: node --run test:bun:bundle
-
-  deno:
-    runs-on: ubuntu-22.04
-    name: 'Test on Deno ${{ matrix.deno-version }}'
-    timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      matrix:
-        deno-version: ['v1.x', 'v2.x']
-    steps:
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
-        with:
-          run_install: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version-file: '.nvmrc'
-          cache: pnpm
-          registry-url: 'https://registry.npmjs.org'
-      - uses: denoland/setup-deno@909cc5acb0fdd60627fb858598759246509fa755
-        with:
-          deno-version: ${{ matrix.deno-version }}
-      - run: pnpm i --frozen-lockfile
-      - if: ${{ matrix.deno-version >= 'v2.x' }}
-        run: node --run test:deno:test
-      - if: ${{ matrix.deno-version >= 'v2.x' }}
-        run: node --run test:deno:pure
-      - run: node --run test:deno:bundle
-
-  electron-as-node:
-    runs-on: ubuntu-22.04
-    name: 'Test on Electron as Node.js'
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
-        with:
-          run_install: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version-file: '.nvmrc'
-          cache: pnpm
-          registry-url: 'https://registry.npmjs.org'
-      - run: pnpm i --frozen-lockfile
-      - run: node --run test:electron:node
-      - run: node --run test:electron:node:pure
-      - run: node --run test:electron:node:bundle
-
-  electron:
-    runs-on: ubuntu-22.04
-    name: 'Test on Electron'
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
-        with:
-          run_install: false
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version-file: '.nvmrc'
-          cache: pnpm
-          registry-url: 'https://registry.npmjs.org'
-      - run: pnpm i --frozen-lockfile
-      - run: xvfb-run node --run test:electron:bundle
+      - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
+      - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
+      - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
+      - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
+      - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
+      - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
+      - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
+      - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"
+      - run: EXODUS_TEST_DROP_NETWORK=1 node --run "test:${{ matrix.engine }}"

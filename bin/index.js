@@ -672,7 +672,7 @@ if (options.pure) {
   const missUnhandled = barebonesUnhandled.includes(options.platform) || isBrowserLike
   if (missUnhandled) warnHuman(`Warning: ${engineName} does not have unhandled rejections tracking`)
 
-  const runOne = async (inputFile, attempt = 0) => {
+  const runOne = async (inputFile) => {
     const bundled = buildFile ? await buildFile(inputFile) : undefined
     if (buildFile) assert(bundled.file)
     const file = buildFile ? bundled.file : inputFile
@@ -693,12 +693,6 @@ if (options.pure) {
       const ok = code === 0 && !/^(✖ FAIL|‼ FATAL) /mu.test(stdout)
       return { ok, output: [stdout, stderr], ms }
     } catch (err) {
-      const retryOnXS = new Set(['SIGSEGV', 'SIGBUS'])
-      if (options.engine === 'xs:bundle' && retryOnXS.has(err.signal) && attempt < 4) {
-        // xs sometimes randomly crashes with SIGSEGV on CI. Allow 5 attempts (allow #0 - #3 to fail)
-        return runOne(inputFile, attempt + 1)
-      }
-
       const ms = Number(process.hrtime.bigint() - start) / 1e6
       const { code, stderr = '', signal, killed } = err
       const stdout = cleanOut(err.stdout || '')
