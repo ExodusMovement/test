@@ -11,12 +11,6 @@
   "bugs": {
     "url": "https://github.com/ExodusMovement/tests/issues"
   },
-  "keywords": [
-    "test",
-    "expect",
-    "jest",
-    "node-test"
-  ],
   "license": "MIT",
   "engines": {
     "node": "^18.19.0 || ^20.8.0 || >=22.0.0"
@@ -36,150 +30,30 @@
       "require": "./src/tape.cjs"
     }
   },
-  "prettier": "@exodus/prettier",
-  "files": [
-    "bin/browsers.js",
-    "bin/color.js",
-    "bin/electron.js",
-    "bin/electron.preload.cjs",
-    "bin/find-binary.js",
-    "bin/inband.js",
-    "bin/reporter.js",
-    "loader/babel.cjs",
-    "loader/deno-import-map.json",
-    "loader/esbuild.js",
-    "loader/esbuild.optional.js",
-    "loader/flow.js",
-    "loader/jest.js",
-    "loader/node-test.js",
-    "loader/typescript.js",
-    "loader/typescript.loader.js",
-    "src/dark.cjs",
-    "src/engine.js",
-    "src/engine.node.cjs",
-    "src/engine.pure.cjs",
-    "src/engine.pure.snapshot.cjs",
-    "src/engine.select.cjs",
-    "src/exodus.js",
-    "src/expect.cjs",
-    "src/glob.cjs",
-    "src/jest.js",
-    "src/jest.config.js",
-    "src/jest.config.fs.js",
-    "src/jest.environment.js",
-    "src/jest.fn.js",
-    "src/jest.mock.js",
-    "src/jest.setup.js",
-    "src/jest.snapshot.js",
-    "src/jest.timers.js",
-    "src/node.js",
-    "src/pretty-format.cjs",
-    "src/replay.js",
-    "src/tape.js",
-    "src/tape.cjs",
-    "src/timers-track.js",
-    "src/version.js",
-    "expect.cjs",
-    "jest.js",
-    "node.js",
-    "tape.js",
-    "CHANGELOG.md"
-  ],
+  "files": [],
   "scripts": {
-    "test:_bundle": "EXODUS_TEST_IGNORE='tests/{{jest-extended,inband}/**,jest-when/when.test.*,jest/jest.resetModules.*,jest/mock/jest.mock.mocks-dir.test.js}' npm run test --",
-    "test": "npm run test:jest --",
-    "test:all": "npm run test:simple && npm run test:jest && npm run test:tape && npm run test:native && npm run test:esbuild && npm run test:pure && npm run test:fetch && npm run test:jsdom && npm run test:bundle",
-    "test:native": "EXODUS_TEST_IGNORE='{**/typescript/**,**/jest-repo/**/user.test.js}' ./bin/index.js --jest 'tests/**/*.test.{js,cjs,mjs}'",
-    "test:typescript": "node ./bin/index.js --jest --typescript tests/typescript.test.ts",
-    "test:jest": "node ./bin/index.js --jest --esbuild=ts,user.test.js,sum.test.js",
-    "test:esbuild": "node ./bin/index.js --jest --esbuild",
-    "test:tape": "node ./bin/index.js 'tests/tape/tests/*.js' tests/tape.test.js",
-    "test:simple": "node ./bin/index.js 'tests/*.test.js'",
-    "test:pure": "EXODUS_TEST_ENGINE=node:pure npm run test --",
-    "test:bundle": "EXODUS_TEST_ENGINE=node:bundle npm run test:_bundle --",
-    "test:bun:test": "EXODUS_TEST_ENGINE=bun:test npm run test --",
-    "test:bun:pure": "EXODUS_TEST_ENGINE=bun:pure npm run test --",
-    "test:bun:bundle": "EXODUS_TEST_ENGINE=bun:bundle npm run test:_bundle",
-    "test:deno:test": "EXODUS_TEST_ENGINE=deno:test node ./bin/index.js tests/tape.test.js tests/simple.test.js tests/env.test.js 'tests/engines/**.test.js' tests/node/simple.test.js tests/node/order.test.js",
-    "test:deno:pure": "EXODUS_TEST_IGNORE='**/jest-repo/examples/timer/**' EXODUS_TEST_ENGINE=deno:pure npm run test --",
-    "test:deno:bundle": "EXODUS_TEST_ENGINE=deno:bundle npm run test:_bundle --",
-    "test:electron:node": "EXODUS_TEST_ENGINE=electron-as-node:test npm run test",
-    "test:electron:node:pure": "EXODUS_TEST_ENGINE=electron-as-node:pure npm run test --",
-    "test:electron:node:bundle": "EXODUS_TEST_ENGINE=electron-as-node:bundle npm run test:_bundle",
-    "test:electron:bundle": "EXODUS_TEST_ENGINE=electron:bundle npm run test:_bundle --",
-    "test:chrome:puppeteer": "EXODUS_TEST_ENGINE=chrome:puppeteer npm run test:_bundle --",
-    "test:firefox:puppeteer": "EXODUS_TEST_ENGINE=firefox:puppeteer npm run test:_bundle --",
-    "test:chromium:playwright": "EXODUS_TEST_ENGINE=chromium:playwright npm run test:_bundle --",
-    "test:firefox:playwright": "EXODUS_TEST_ENGINE=firefox:playwright npm run test:_bundle --",
-    "test:webkit:playwright": "EXODUS_TEST_ENGINE=webkit:playwright npm run test:_bundle --",
-    "test:v8": "npm run test:d8 --",
-    "test:javascriptcore": "npm run test:jsc --",
-    "test:d8": "EXODUS_TEST_ENGINE=d8:bundle npm run test:_bundle --",
-    "test:jsc": "EXODUS_TEST_ENGINE=jsc:bundle npm run test:_bundle --",
-    "test:hermes": "EXODUS_TEST_ENGINE=hermes:bundle npm run test:_bundle --",
-    "test:spidermonkey": "EXODUS_TEST_ENGINE=spidermonkey:bundle npm run test:_bundle --",
-    "test:engine262": "EXODUS_TEST_ENGINE=engine262:bundle npm run test:_bundle --",
-    "test:quickjs": "EXODUS_TEST_ENGINE=quickjs:bundle npm run test:_bundle --",
-    "test:xs": "EXODUS_TEST_ENGINE=xs:bundle npm run test:_bundle --",
-    "test:graaljs": "EXODUS_TEST_ENGINE=graaljs:bundle npm run test:_bundle --",
-    "test:escargot": "EXODUS_TEST_ENGINE=escargot:bundle npm run test:_bundle --",
-    "test:boa": "EXODUS_TEST_ENGINE=boa:bundle npm run test:_bundle --",
-    "test:fetch": "node ./bin/index.js --jest --drop-network --engine node:pure 'tests/replay/*.test.js'",
-    "test:jsdom": "EXODUS_TEST_JEST_CONFIG='{\"testMatch\":[\"**/*.jsdom-test.js\"],\"testEnvironment\":\"jsdom\", \"rootDir\": \".\"}' ./bin/index.js --jest",
-    "coverage": "node ./bin/index.js --jest --esbuild --coverage",
-    "playwright": "node ./bin/index.js --playwright",
+    "test:xs": "node ./bin/index.js --engine xs:bundle --jest",
     "esvu": "esvu",
-    "jsvu": "jsvu",
-    "jest": "NODE_OPTIONS=--experimental-vm-modules jest tests/jest/ tests/jest-when/",
-    "lint": "prettier --list-different . && eslint .",
-    "lint:fix": "prettier --write . && eslint --fix ."
+    "jsvu": "jsvu"
   },
   "optionalDependencies": {
     "@chalker/queue": "^1.0.1",
     "@exodus/replay": "^1.0.0-rc.9",
     "@exodus/test-bundler": "1.0.0-rc.5",
-    "c8": "^9.1.0",
     "expect": "^29.7.0",
     "fast-glob": "^3.2.11",
     "jest-extended": "^4.0.2",
-    "playwright-core": "^1.52.0",
-    "pretty-format": "^29.7.0",
-    "puppeteer-core": "^24.6.0",
-    "tsx": "^4.20.3"
+    "pretty-format": "^29.7.0"
   },
   "devDependencies": {
-    "@exodus/eslint-config": "^5.24.0",
-    "@exodus/prettier": "^1.0.0",
     "@jest/globals": "^29.7.0",
     "@types/jest-when": "^3.5.2",
     "@types/node": "^24.0.11",
     "@typescript-eslint/eslint-plugin": "^7.15.0",
-    "electron": "^35.2.2",
-    "eslint": "^8.44.0",
     "esvu": "^1.2.16",
-    "jest": "^29.7.0",
     "jest-matcher-utils": "^29.7.0",
     "jest-serializer-ansi-escapes": "^3.0.0",
-    "jest-when": "^3.6.0",
-    "jsdom": "^26.1.0",
-    "jsvu": "^3.0.0",
-    "prettier": "^3.0.3"
-  },
-  "peerDependencies": {
-    "@babel/register": "^7.0.0",
-    "electron": "*",
-    "jsdom": "*"
-  },
-  "peerDependenciesMeta": {
-    "@babel/register": {
-      "optional": true
-    },
-    "electron": {
-      "optional": true
-    },
-    "jsdom": {
-      "optional": true
-    }
+    "jsvu": "^3.0.0"
   },
   "packageManager": "pnpm@10.12.1+sha256.889bac470ec93ccc3764488a19d6ba8f9c648ad5e50a9a6e4be3768a5de387a3"
 }

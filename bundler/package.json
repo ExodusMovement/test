@@ -11,50 +11,13 @@
   "bugs": {
     "url": "https://github.com/ExodusMovement/tests/issues"
   },
-  "keywords": [
-    "exodus-test",
-    "@exodus/test",
-    "test",
-    "node-test"
-  ],
   "license": "MIT",
   "type": "module",
   "exports": {
     "./bundle": "./bundle.js",
-    "./esbuild": "./esbuild.js",
-    "./flow-remove-types": "./flow-remove-types.js"
+    "./esbuild": "./esbuild.js"
   },
-  "prettier": "@exodus/prettier",
-  "files": [
-    "flow-remove-types.js",
-    "babel-worker.cjs",
-    "bundle.js",
-    "esbuild.js",
-    "modules/empty/function-throw.cjs",
-    "modules/empty/module-throw.cjs",
-    "modules/ansi-styles.cjs",
-    "modules/assert-strict.cjs",
-    "modules/child_process.cjs",
-    "modules/cluster.cjs",
-    "modules/crypto.cjs",
-    "modules/fs.cjs",
-    "modules/fs-promises.cjs",
-    "modules/http.cjs",
-    "modules/https.cjs",
-    "modules/globals.cjs",
-    "modules/globals.node.cjs",
-    "modules/jest-message-util.js",
-    "modules/jest-util.js",
-    "modules/module.cjs",
-    "modules/node-buffer.cjs",
-    "modules/text-encoding-utf.cjs",
-    "modules/tty.cjs",
-    "modules/url.cjs",
-    "modules/util.cjs",
-    "modules/util-format.cjs",
-    "modules/ws.cjs",
-    "CHANGELOG.md"
-  ],
+  "files": [],
   "dependencies": {
     "@ungap/url-search-params": "^0.2.2",
     "assert": "^2.1.0",
@@ -70,23 +33,5 @@
     "timers-browserify": "^2.0.12",
     "url": "^0.11.0",
     "util": "^0.12.5"
-  },
-  "optionalDependencies": {
-    "@babel/core": "^7.0.0",
-    "@babel/plugin-syntax-import-attributes": "^7.0.0",
-    "@babel/plugin-syntax-typescript": "^7.0.0",
-    "@babel/plugin-transform-block-scoping": "^7.0.0",
-    "@babel/plugin-transform-class-properties": "^7.0.0",
-    "@babel/plugin-transform-classes": "^7.0.0",
-    "@babel/plugin-transform-private-methods": "^7.0.0",
-    "flow-remove-types": "^2.242.0"
-  },
-  "peerDependencies": {
-    "crypto-browserify": "^3.12.0"
-  },
-  "peerDependenciesMeta": {
-    "crypto-browserify": {
-      "optional": true
-    }
   }
 }

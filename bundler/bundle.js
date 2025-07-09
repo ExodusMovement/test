@@ -94,31 +94,6 @@ const options = {}
 
 export const init = async ({ platform, jest, flow, target, jestConfig, outdir, entropySize }) => {
   Object.assign(options, { platform, jest, flow, target, jestConfig, outdir, entropySize })
-
-  if (options.flow) {
-    const { default: flowRemoveTypes } = await import('flow-remove-types')
-    loadPipeline.unshift((source) => flowRemoveTypes(source, { pretty: true }).toString())
-  }
-
-  if (options.platform === 'hermes') {
-    const babel = await import('./babel-worker.cjs')
-    loadPipeline.push(async (source) => {
-      const result = await babel.transformAsync(source, {
-        compact: false,
-        babelrc: false,
-        configFile: false,
-        plugins: [
-          '@babel/plugin-syntax-typescript',
-          '@babel/plugin-syntax-import-attributes',
-          '@babel/plugin-transform-block-scoping',
-          '@babel/plugin-transform-class-properties',
-          '@babel/plugin-transform-classes',
-          '@babel/plugin-transform-private-methods',
-        ],
-      })
-      return result.code
-    })
-  }
 }
 
 const hermesSupported = {
