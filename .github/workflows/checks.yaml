@@ -124,8 +124,9 @@ jobs:
       fail-fast: false
       matrix:
         # esvu hermes is 0.11 and even fails to install
-        # TODO: boa, engine262, quickjs
-        engine: ['v8', 'javascriptcore', 'spidermonkey', 'xs']
+        # boa 0.20 seems to crash with OOM, but nightly works, so it can be added on next boa release
+        # quickjs fails and is unavailable on macOS (quickjs-ng from jsvu works)
+        engine: ['v8', 'javascriptcore', 'spidermonkey', 'xs', 'engine262']
     steps:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
