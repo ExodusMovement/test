@@ -99,7 +99,7 @@
     "test:bundle": "EXODUS_TEST_ENGINE=node:bundle npm run test:_bundle --",
     "test:bun:pure": "EXODUS_TEST_ENGINE=bun:pure npm run test --",
     "test:bun:bundle": "EXODUS_TEST_ENGINE=bun:bundle npm run test:_bundle",
-    "test:deno:test": "EXODUS_TEST_ENGINE=deno:test node ./bin/index.js tests/tape.test.js tests/simple.test.js tests/env.test.js 'tests/engines/**.test.js' 'tests/node/simple.test.js'",
+    "test:deno:test": "EXODUS_TEST_ENGINE=deno:test node ./bin/index.js tests/tape.test.js tests/simple.test.js tests/env.test.js 'tests/engines/**.test.js' tests/node/simple.test.js tests/node/order.test.js",
     "test:deno:pure": "EXODUS_TEST_IGNORE='**/jest-repo/examples/timer/**' EXODUS_TEST_ENGINE=deno:pure npm run test --",
     "test:deno:bundle": "EXODUS_TEST_ENGINE=deno:bundle npm run test:_bundle --",
     "test:electron:node": "EXODUS_TEST_ENGINE=electron-as-node:test npm run test",
