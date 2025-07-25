@@ -97,6 +97,7 @@ function parseOptions() {
     require: [],
     testNamePattern: [],
     testTimeout: undefined,
+    reporter: undefined,
   }
 
   const args = [...process.argv]
@@ -239,6 +240,10 @@ function parseOptions() {
       case '--testTimeout':
         options.testTimeout = Number(args.shift())
         break
+      case '--reporter':
+      case '--test-reporter':
+        options.reporter = String(args.shift())
+        break
       default:
         throw new Error(`Unknown option: ${option}`)
     }
@@ -304,7 +309,7 @@ if (options.pure) {
   assert(options.testNamePattern.length === 0, '--test-name-pattern requires node:test engine now')
   // eslint-disable-next-line unicorn/prefer-switch
 } else if (options.engine === 'node:test' || options.engine === 'electron-as-node:test') {
-  const reporter = import.meta.resolve('./reporter.js')
+  const reporter = options.reporter ?? import.meta.resolve('./reporter.js')
   args.push('--test', '--no-warnings=ExperimentalWarning', '--test-reporter', reporter)
 
   if (have.haveSnapshots && engineOptions.haveIsOk) args.push('--experimental-test-snapshots')
