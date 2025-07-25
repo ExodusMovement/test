@@ -1,4 +1,4 @@
-import { assert, assertLoose, test as nodeTest } from './engine.js'
+import { assert, assertLoose, test as nodeTest, after } from './engine.js'
 import { createCallerLocationHook } from './dark.cjs'
 import './version.js'
 
@@ -154,6 +154,7 @@ function tapeWrap(test) {
 
   if (test.skip) tap.skip = tapeWrap(test.skip)
   if (test.only) tap.only = tapeWrap(test.only)
+  tap.onFinish = (fn) => after(fn)
   return tap
 }
 
