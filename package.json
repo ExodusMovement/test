@@ -137,7 +137,7 @@
   "optionalDependencies": {
     "@chalker/queue": "^1.0.1",
     "@exodus/replay": "^1.0.0-rc.9",
-    "@exodus/test-bundler": "1.0.0-rc.5",
+    "@exodus/test-bundler": "1.0.0-rc.6",
     "c8": "^9.1.0",
     "expect": "^29.7.0",
     "fast-glob": "^3.2.11",
