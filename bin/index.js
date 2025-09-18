@@ -25,19 +25,19 @@ const ENGINES = new Map(
   Object.entries({
     'node:test': { binary: 'node', pure: false, loader: '--import', ts: 'flag', haveIsOk: true },
     'node:pure': { binary: 'node', pure: true, loader: '--import', ts: 'flag', haveIsOk: true },
-    'node:bundle': { binary: 'node', ...bundleOpts },
+    'node:bundle': { binary: 'node', binaryArgs: ['--expose-gc'], ...bundleOpts },
     'bun:test': { binary: 'bun', ts: 'auto' },
     'bun:pure': { binary: 'bun', pure: true, ts: 'auto' },
     'bun:bundle': { binary: 'bun', ...bundleOpts },
     'electron-as-node:test': { binary: 'electron', pure: false, loader: '--import', ts: 'flag' },
     'electron-as-node:pure': { binary: 'electron', pure: true, loader: '--import', ts: 'flag' },
-    'electron-as-node:bundle': { binary: 'electron', ...bundleOpts },
+    'electron-as-node:bundle': { binary: 'electron', binaryArgs: ['--expose-gc'], ...bundleOpts },
     'electron:bundle': { binary: 'electron', electron: true, ...bundleOpts },
     'deno:test': { binary: 'deno', pure: false, loader: '--preload', ts: 'auto' },
     'deno:pure': { binary: 'deno', binaryArgs: denoA, pure: true, loader: '--preload', ts: 'auto' },
     'deno:bundle': { binary: 'deno', binaryArgs: ['run'], target: 'deno1', ...bundleOpts },
     // Barebone engines
-    'd8:bundle': { binary: 'd8', ...bareboneOpts },
+    'd8:bundle': { binary: 'd8', binaryArgs: ['--expose-gc'], ...bareboneOpts },
     'jsc:bundle': { binary: 'jsc', target: 'safari13', ...bareboneOpts },
     'hermes:bundle': { binary: 'hermes', binaryArgs: hermesA, target: 'es2018', ...bareboneOpts },
     'spidermonkey:bundle': { binary: 'spidermonkey', ...bareboneOpts },
@@ -339,6 +339,8 @@ if (options.pure) {
 } else {
   throw new Error('Unreachable')
 }
+
+if (!options.bundle && ['node', 'electron'].includes(options.platform)) args.push('--expose-gc') // for benchmarks
 
 const ignore = ['**/node_modules']
 let filter

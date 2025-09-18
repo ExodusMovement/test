@@ -28,6 +28,7 @@
   "exports": {
     "./node-test-reporter": "./bin/reporter.js",
     "./loader/jest": "./loader/jest.js",
+    "./benchmark": "./src/benchmark.js",
     "./expect": "./src/expect.cjs",
     "./jest": "./src/jest.js",
     "./node": "./src/node.js",
@@ -54,6 +55,7 @@
     "loader/node-test.js",
     "loader/typescript.js",
     "loader/typescript.loader.js",
+    "src/benchmark.js",
     "src/dark.cjs",
     "src/engine.js",
     "src/engine.node.cjs",
