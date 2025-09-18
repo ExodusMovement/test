@@ -1,4 +1,5 @@
-function toTime(ns) {
+const fRps = (rps) => (rps > 10 ? Math.round(rps).toLocaleString() : rps.toPrecision(2))
+const fTime = (ns) => {
   const us = ns / 10n ** 3n
   if (us < 2n) return `${ns}ns`
   const ms = us / 10n ** 3n
@@ -17,11 +18,7 @@ const getTime = (() => {
 
 let gcWarned = false
 export async function benchmark(name, options, fn) {
-  if (typeof options === 'function') {
-    fn = options
-    options = undefined
-  }
-
+  if (typeof options === 'function') [fn, options] = [options, undefined]
   if (options?.skip) return
   const { args, timeout = 1000 } = options ?? {}
 
@@ -51,9 +48,7 @@ export async function benchmark(name, options, fn) {
 
   const mean = total / BigInt(count)
   const rps = 1e9 / Number(mean)
-  const rpsStr = rps > 10 ? Math.round(rps).toLocaleString() : rps.toPrecision(2)
-  console.log(`${name} x ${rpsStr} ops/sec @ ${toTime(mean)}/op (${toTime(min)}..${toTime(max)})`)
+  console.log(`${name} x ${fRps(rps)} ops/sec @ ${fTime(mean)}/op (${fTime(min)}..${fTime(max)})`)
 
-  // cleanup
   if (globalThis.gc) for (let i = 0; i < 4; i++) globalThis.gc()
 }
