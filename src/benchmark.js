@@ -43,12 +43,13 @@ export async function benchmark(name, options, fn) {
     total += diff
     if (min === undefined || min > diff) min = diff
     if (max === undefined || max < diff) max = diff
-    if (total >= BigInt(timeout)) break
+    if (total >= BigInt(timeout) * 10n ** 6n) break
   }
 
   const mean = total / BigInt(count)
-  const rps = 1e9 / Number(mean)
-  console.log(`${name} x ${fRps(rps)} ops/sec @ ${fTime(mean)}/op (${fTime(min)}..${fTime(max)})`)
+  let res = `${name} x ${fRps(1e9 / Number(mean))} ops/sec @ ${fTime(mean)}/op`
+  if (fTime(min) !== fTime(max)) res += ` (${fTime(min)}..${fTime(max)})`
+  console.log(res)
 
   if (globalThis.gc) for (let i = 0; i < 4; i++) globalThis.gc()
 }
