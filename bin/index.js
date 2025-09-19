@@ -22,10 +22,11 @@ const bareboneOpts = { ...bundleOpts, barebone: true }
 const hermesA = ['-Og', '-Xmicrotask-queue']
 const denoA = ['run', '--allow-all'] // also will set DENO_COMPAT=1 env flag below
 const denoT = ['test', '--allow-all']
+const nodeTS = process.features.typescript ? 'auto' : 'flag'
 const ENGINES = new Map(
   Object.entries({
-    'node:test': { binary: 'node', loader: '--import', ts: 'flag', haveIsOk: true },
-    'node:pure': { binary: 'node', pure: true, loader: '--import', ts: 'flag', haveIsOk: true },
+    'node:test': { binary: 'node', loader: '--import', ts: nodeTS, haveIsOk: true },
+    'node:pure': { binary: 'node', pure: true, loader: '--import', ts: nodeTS, haveIsOk: true },
     'node:bundle': { binary: 'node', binaryArgs: ['--expose-gc'], ...bundleOpts },
     'bun:test': { binary: 'bun', ts: 'auto' },
     'bun:pure': { binary: 'bun', pure: true, ts: 'auto' },
