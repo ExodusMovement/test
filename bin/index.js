@@ -21,19 +21,20 @@ const bundleOpts = { pure: true, bundle: true, esbuild: true, ts: 'auto' }
 const bareboneOpts = { ...bundleOpts, barebone: true }
 const hermesA = ['-Og', '-Xmicrotask-queue']
 const denoA = ['run', '--allow-all'] // also will set DENO_COMPAT=1 env flag below
+const denoT = ['test', '--allow-all']
 const ENGINES = new Map(
   Object.entries({
-    'node:test': { binary: 'node', pure: false, loader: '--import', ts: 'flag', haveIsOk: true },
+    'node:test': { binary: 'node', loader: '--import', ts: 'flag', haveIsOk: true },
     'node:pure': { binary: 'node', pure: true, loader: '--import', ts: 'flag', haveIsOk: true },
     'node:bundle': { binary: 'node', binaryArgs: ['--expose-gc'], ...bundleOpts },
     'bun:test': { binary: 'bun', ts: 'auto' },
     'bun:pure': { binary: 'bun', pure: true, ts: 'auto' },
     'bun:bundle': { binary: 'bun', ...bundleOpts },
-    'electron-as-node:test': { binary: 'electron', pure: false, loader: '--import', ts: 'flag' },
+    'electron-as-node:test': { binary: 'electron', loader: '--import', ts: 'flag' },
     'electron-as-node:pure': { binary: 'electron', pure: true, loader: '--import', ts: 'flag' },
     'electron-as-node:bundle': { binary: 'electron', binaryArgs: ['--expose-gc'], ...bundleOpts },
     'electron:bundle': { binary: 'electron', electron: true, ...bundleOpts },
-    'deno:test': { binary: 'deno', pure: false, loader: '--preload', ts: 'auto' },
+    'deno:test': { binary: 'deno', binaryArgs: denoT, loader: '--preload', ts: 'auto' },
     'deno:pure': { binary: 'deno', binaryArgs: denoA, pure: true, loader: '--preload', ts: 'auto' },
     'deno:bundle': { binary: 'deno', binaryArgs: ['run'], target: 'deno1', ...bundleOpts },
     // Barebone engines
@@ -331,7 +332,6 @@ if (options.pure) {
 
   args.push('--expose-internals') // this is unoptimal and hopefully temporary, see rationale in src/dark.cjs
 } else if (options.engine === 'deno:test') {
-  args.push('test', '--allow-all')
   assert(!options.jest, 'deno:test engine does not support --jest yet')
 } else if (options.engine === 'bun:test') {
   args.push('test')
@@ -692,13 +692,12 @@ if (options.pure) {
 
     const failedBare = 'EXODUS_TEST_FAILED_EXIT_CODE_1'
     const cleanOut = (out) => out.replaceAll(`\n${failedBare}\n`, '\n').replaceAll(failedBare, '')
-    const { binaryArgs = [] } = options
     // Timeout is fallback if timeout in script hangs, 50x as it can be adjusted per-script inside them
     // Do we want to extract timeouts from script code instead? Also, hermes might be slower, so makes sense to increase
     const timeout = (options.testTimeout || jestConfig?.testTimeout || 5000) * 50
     const start = process.hrtime.bigint()
     try {
-      const fullArgs = [...binaryArgs, ...args, file]
+      const fullArgs = [...(options.binaryArgs ?? []), ...args, file]
       const { code = 0, stdout, stderr } = await launch(options.binary, fullArgs, { timeout }, true)
       const ms = Number(process.hrtime.bigint() - start) / 1e6
       if (stdout.includes(failedBare)) return { ok: false, output: [cleanOut(stdout), stderr], ms }
@@ -760,7 +759,6 @@ if (options.pure) {
   assert(['node:test', 'electron-as-node:test', 'deno:test', 'bun:test'].includes(options.engine))
   setEnv('EXODUS_TEST_CONTEXT', 'node:test') // The context is always node:test in this branch
   assert(files.length > 0) // otherwise we can run recursively
-  assert(!options.binaryArgs)
   if (options.concurrency) args.push('--test-concurrency', options.concurrency)
   if (['--inspect', '--inspect-brk', '--inspect-wait'].includes(options.devtools)) {
     args.push(options.devtools)
@@ -772,7 +770,7 @@ if (options.pure) {
     )
   }
 
-  const { code } = await launch(options.binary, [...args, ...files])
+  const { code } = await launch(options.binary, [...(options.binaryArgs ?? []), ...args, ...files])
   process.exitCode = code
 }
 
