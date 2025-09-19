@@ -10,9 +10,10 @@ const fTime = (ns) => {
   return min < 5n ? `${s}s` : `${min}min`
 }
 
+const { performance, scheduler, process, requestAnimationFrame, gc } = globalThis
 const getTime = (() => {
-  if (globalThis.process) return () => process.hrtime.bigint()
-  if (globalThis.performance) return () => BigInt(Math.round(performance.now() * 1e6))
+  if (process) return () => process.hrtime.bigint()
+  if (performance) return () => BigInt(Math.round(performance.now() * 1e6))
   return () => BigInt(Math.round(Date.now() * 1e6))
 })()
 
@@ -22,9 +23,13 @@ export async function benchmark(name, options, fn) {
   if (options?.skip) return
   const { args, timeout = 1000 } = options ?? {}
 
-  if (globalThis.gc) {
-    for (let i = 0; i < 4; i++) globalThis.gc()
-  } else if (!gcWarned) {
+  // This will pause us for a bit, but we don't care - having a non-busy process is more important
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  if (requestAnimationFrame) await new Promise((resolve) => requestAnimationFrame(resolve))
+  if (scheduler?.yield) await scheduler.yield()
+
+  if (gc) for (let i = 0; i < 4; i++) gc()
+  if (!gc && !gcWarned) {
     gcWarned = true
     console.log('Warning: no gc() available\n')
   }
@@ -51,5 +56,5 @@ export async function benchmark(name, options, fn) {
   if (fTime(min) !== fTime(max)) res += ` (${fTime(min)}..${fTime(max)})`
   console.log(res)
 
-  if (globalThis.gc) for (let i = 0; i < 4; i++) globalThis.gc()
+  if (gc) for (let i = 0; i < 4; i++) gc()
 }
