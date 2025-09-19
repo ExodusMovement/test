@@ -425,13 +425,15 @@ if (options.jest) {
   }
 }
 
+const cpus = availableParallelism()
+if (!options.concurrency && isCI && cpus === 2) options.concurrency = cpus // increase from default cpus - 1 on default GH CI runners
 if (options.concurrency) {
   const raw = options.concurrency
   let concurrency = raw
   if (typeof raw === 'string') {
     if (/^\d{1,15}%$/u.test(raw)) {
       const perc = Number(raw.slice(0, -1))
-      concurrency = Math.max(1, Math.round((perc * availableParallelism()) / 100))
+      concurrency = Math.max(1, Math.round((perc * cpus) / 100))
     } else {
       assert(/^\d{1,15}$/u.test(raw), `Wrong concurrency: ${raw}`)
       concurrency = Number(raw)
@@ -725,7 +727,7 @@ if (options.pure) {
   }
 
   const { Queue } = await import('@chalker/queue')
-  const queue = new Queue(options.concurrency || availableParallelism() - 1)
+  const queue = new Queue(options.concurrency || cpus - 1)
   const runConcurrent = async (file) => {
     await queue.claim()
     try {
