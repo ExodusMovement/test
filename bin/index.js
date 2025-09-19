@@ -39,7 +39,7 @@ const ENGINES = new Map(
     'deno:pure': { binary: 'deno', binaryArgs: denoA, pure: true, loader: '--preload', ts: 'auto' },
     'deno:bundle': { binary: 'deno', binaryArgs: ['run'], target: 'deno1', ...bundleOpts },
     // Barebone engines
-    'd8:bundle': { binary: 'd8', binaryArgs: ['--expose-gc'], ...bareboneOpts },
+    'v8:bundle': { binary: 'd8', binaryArgs: ['--expose-gc'], ...bareboneOpts },
     'jsc:bundle': { binary: 'jsc', target: 'safari13', ...bareboneOpts },
     'hermes:bundle': { binary: 'hermes', binaryArgs: hermesA, target: 'es2018', ...bareboneOpts },
     'spidermonkey:bundle': { binary: 'spidermonkey', ...bareboneOpts },
@@ -61,7 +61,7 @@ const ENGINES = new Map(
     'msedge:playwright': { binary: 'msedge', browsers: 'playwright', ...bundleOpts },
   })
 )
-const barebonesOk = ['d8', 'spidermonkey', 'quickjs', 'xs', 'hermes']
+const barebonesOk = ['v8', 'd8', 'spidermonkey', 'quickjs', 'xs', 'hermes']
 const barebonesUnhandled = ['jsc', 'escargot', 'boa', 'graaljs', 'engine262']
 
 const getEnvFlag = (name) => {
@@ -274,6 +274,7 @@ const { options, patterns } = parseOptions()
 
 const engineName = `${options.engine} engine` // used for warnings to user
 const engineFlagError = (flag) => `${engineName} does not support --${flag}`
+if (options.engine === 'd8:bundle') options.engine = 'v8:bundle' // compat
 const engineOptions = ENGINES.get(options.engine)
 assert(engineOptions, `Unknown engine: ${options.engine}`)
 Object.assign(options, engineOptions)
@@ -651,7 +652,7 @@ async function launch(binary, args, opts = {}, buffering = false) {
   }
 
   const barebones = [...barebonesOk, ...barebonesUnhandled]
-  assertBinary(binary, ['node', 'bun', 'deno', 'electron', 'workerd', ...barebones, 'v8']) // v8 is an alias to d8
+  assertBinary(binary, ['node', 'bun', 'deno', 'electron', 'workerd', ...barebones])
   if (binary === c8 && process.platform === 'win32') {
     ;[binary, args] = ['node', [binary, ...args]]
   }
