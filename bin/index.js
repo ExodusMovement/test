@@ -593,7 +593,7 @@ if (options.binary === 'electron') {
   }
 }
 
-if (options.barebone || options.binary === 'electron') {
+if (options.barebone || ['electron', 'workerd'].includes(options.binary)) {
   options.binary = findBinary(options.binary)
   options.binaryCanBeAbsolute = true
 }
@@ -650,7 +650,7 @@ async function launch(binary, args, opts = {}, buffering = false) {
   }
 
   const barebones = [...barebonesOk, ...barebonesUnhandled]
-  assertBinary(binary, ['node', 'bun', 'deno', 'electron', ...barebones, 'v8']) // v8 is an alias to d8
+  assertBinary(binary, ['node', 'bun', 'deno', 'electron', 'workerd', ...barebones, 'v8']) // v8 is an alias to d8
   if (binary === c8 && process.platform === 'win32') {
     ;[binary, args] = ['node', [binary, ...args]]
   }
