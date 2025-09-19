@@ -426,7 +426,8 @@ if (options.jest) {
 }
 
 const cpus = availableParallelism()
-if (!options.concurrency && isCI && cpus === 2) options.concurrency = cpus // increase from default cpus - 1 on default GH CI runners
+// increase from default cpus - 1 on default GH CI runners, but not on browsers which already use other processes
+if (!options.concurrency && isCI && !isBrowserLike && cpus === 2) options.concurrency = cpus
 if (options.concurrency) {
   const raw = options.concurrency
   let concurrency = raw
