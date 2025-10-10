@@ -29,6 +29,13 @@ const readSnapshots = async (files, resolvers) => {
   return snapshots
 }
 
+const formatMessages = (list, kind) => {
+  const clean = ({ location, notes, ...x }) =>
+    x.pluginName === 'exodus-test.bundle' ? x : { location, notes, ...x }
+  const formatOpts = { color: process.stdout.hasColors?.(), terminalWidth: process.stdout.columns }
+  return esbuild.formatMessages(list.map(clean), { kind, ...formatOpts })
+}
+
 const stringify = (x) => ([undefined, null].includes(x) ? `${x}` : JSON.stringify(x))
 const loadPipeline = [
   function (source, filepath) {
@@ -554,8 +561,6 @@ export const build = async (...files) => {
 
   // We treat warnings as errors, so just merge all them
   const errors = []
-  const formatOpts = { color: process.stdout.hasColors?.(), terminalWidth: process.stdout.columns }
-  const formatMessages = (list, kind) => esbuild.formatMessages(list, { kind, ...formatOpts })
   if (res.warnings.length > 0) errors.push(...(await formatMessages(res.warnings, 'warning')))
   if (res.errors.length > 0) errors.push(...(await formatMessages(res.errors, 'error')))
   return { file: outfile, errors }
