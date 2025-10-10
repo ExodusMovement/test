@@ -23,6 +23,7 @@ export const jestFunctionMocks = {
     if (desc?.get && !desc.set && desc.configurable && desc.enumerable) delete obj[name] // e.g. a wrapped module
     // eslint-disable-next-line @exodus/mutable/no-param-reassign-prop-only
     obj[name] = fn
+    if (Symbol.dispose) fn[Symbol.dispose] = () => fn.mockRestore()
     return fn
   },
   clearAllMocks: applyAllWrap('mockClear'),
