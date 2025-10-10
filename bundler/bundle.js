@@ -114,6 +114,8 @@ export const init = async ({ platform, jest, flow, target, jestConfig, outdir, e
           '@babel/plugin-transform-class-properties',
           '@babel/plugin-transform-classes',
           '@babel/plugin-transform-private-methods',
+          // esbuild also does this, but with just plugin-syntax-* babel strips 'using' keyword instead
+          '@babel/plugin-transform-explicit-resource-management',
         ],
       })
       return result.code
