@@ -110,38 +110,43 @@ export const init = async ({ platform, jest, flow, target, jestConfig, outdir, e
   if (options.platform === 'hermes') {
     const babel = await import('./babel-worker.cjs')
     loadPipeline.push(async (source, filepath) => {
-      if (source.includes('using ')) {
-        try {
-          const res = await esbuild.transform(source, {
-            sourcemap: 'inline',
-            sourcefile: filepath,
-            supported: {
-              using: false,
-            },
-          })
-          if (res.warnings.length > 0) {
-            console.log(...(await formatMessages(res.warnings, 'warning')))
-          }
-
-          source = res.code
-        } catch (e) {
-          console.log(...(await formatMessages(e.errors, 'error')))
-          throw new Error('Transform failed', { cause: e })
+      const loader = extname(filepath).replace(/^\.[cm]?/, '')
+      assert(['js', 'ts', 'jsx', 'tsx'].includes(loader))
+      try {
+        const res = await esbuild.transform(source, {
+          sourcemap: 'inline',
+          sourcefile: filepath,
+          loader,
+          supported: {
+            'class-field': false,
+            'class-private-accessor': false,
+            'class-private-brand-check': false,
+            'class-private-field': false,
+            'class-private-method': false,
+            'class-private-static-accessor': false,
+            'class-private-static-field': false,
+            'class-private-static-method': false,
+            'class-static-blocks': false,
+            'class-static-field': false,
+            'import-attributes': false,
+            using: false,
+          },
+        })
+        if (res.warnings.length > 0) {
+          console.log(...(await formatMessages(res.warnings, 'warning')))
         }
+
+        source = res.code
+      } catch (e) {
+        console.log(...(await formatMessages(e.errors, 'error')))
+        throw new Error('Transform failed', { cause: e })
       }
 
       const result = await babel.transformAsync(source, {
         compact: false,
         babelrc: false,
         configFile: false,
-        plugins: [
-          '@babel/plugin-syntax-typescript',
-          '@babel/plugin-syntax-import-attributes',
-          '@babel/plugin-transform-block-scoping',
-          '@babel/plugin-transform-class-properties',
-          '@babel/plugin-transform-classes',
-          '@babel/plugin-transform-private-methods',
-        ],
+        plugins: ['@babel/plugin-transform-block-scoping', '@babel/plugin-transform-classes'],
       })
       return result.code
     })
