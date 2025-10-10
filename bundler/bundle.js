@@ -109,7 +109,27 @@ export const init = async ({ platform, jest, flow, target, jestConfig, outdir, e
 
   if (options.platform === 'hermes') {
     const babel = await import('./babel-worker.cjs')
-    loadPipeline.push(async (source) => {
+    loadPipeline.push(async (source, filepath) => {
+      if (source.includes('using ')) {
+        try {
+          const res = await esbuild.transform(source, {
+            sourcemap: 'inline',
+            sourcefile: filepath,
+            supported: {
+              using: false,
+            },
+          })
+          if (res.warnings.length > 0) {
+            console.log(...(await formatMessages(res.warnings, 'warning')))
+          }
+
+          source = res.code
+        } catch (e) {
+          console.log(...(await formatMessages(e.errors, 'error')))
+          throw new Error('Transform failed', { cause: e })
+        }
+      }
+
       const result = await babel.transformAsync(source, {
         compact: false,
         babelrc: false,
@@ -121,8 +141,6 @@ export const init = async ({ platform, jest, flow, target, jestConfig, outdir, e
           '@babel/plugin-transform-class-properties',
           '@babel/plugin-transform-classes',
           '@babel/plugin-transform-private-methods',
-          // esbuild also does this, but with just plugin-syntax-* babel strips 'using' keyword instead
-          '@babel/plugin-transform-explicit-resource-management',
         ],
       })
       return result.code
