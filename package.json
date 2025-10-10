@@ -140,11 +140,11 @@
     "@exodus/replay": "^1.0.0-rc.9",
     "@exodus/test-bundler": "1.0.0-rc.6",
     "c8": "^9.1.0",
-    "expect": "^29.7.0",
+    "expect": "^30.2.0",
     "fast-glob": "^3.2.11",
     "jest-extended": "^4.0.2",
     "playwright-core": "^1.52.0",
-    "pretty-format": "^29.7.0",
+    "pretty-format": "^30.2.0",
     "puppeteer-core": "^24.6.0",
     "tsx": "^4.20.3"
   },
