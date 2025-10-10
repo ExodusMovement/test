@@ -146,7 +146,7 @@
     "playwright-core": "^1.52.0",
     "pretty-format": "^30.2.0",
     "puppeteer-core": "^24.6.0",
-    "tsx": "^4.20.3"
+    "tsx": "^4.20.6"
   },
   "devDependencies": {
     "@exodus/eslint-config": "^5.24.0",
