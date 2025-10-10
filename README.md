@@ -168,11 +168,17 @@ Just use `"test": "exodus-test"`
 
 - `--test-force-exit` — force exit after tests are done
 
-## Jest compatibility
+## Module mocking in ESM
 
-The `--jest` mode is mostly compatible with Jest. There are some noteworthy differences though.
-This tool does not hoist mocks, so it is important that a mock is defined before the module that uses it is imported.
-In ESM, this can be achieved with dynamic imports:
+Module mocks in ESM is a common source of confusion, as Jest in most old setups does not run real ESM,
+and instead uses Babel to transform ESM into CJS, and then hoists mocks on top of `require()` calls.
+
+That hoisting is not possible in ESM world, as static import statements are always resolved before
+any other code.
+
+Also see [Jest documentation](https://jestjs.io/docs/ecmascript-modules#module-mocking-in-esm) on that.
+
+To port code from CJS or Babel, e.g. the following approach with dynamic imports can be used:
 
 ```js
 jest.doMock('./hogwarts.js', () => ({
