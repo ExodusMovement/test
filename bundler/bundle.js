@@ -113,7 +113,7 @@ export const init = async ({ platform, jest, flow, target, jestConfig, outdir, e
       const loader = extname(filepath).replace(/^\.[cm]?/, '')
       assert(['js', 'ts', 'jsx', 'tsx'].includes(loader))
       try {
-        const res = await esbuild.transform(source, {
+        const { code, warnings } = await esbuild.transform(source, {
           sourcemap: 'inline',
           sourcefile: filepath,
           loader,
@@ -132,11 +132,8 @@ export const init = async ({ platform, jest, flow, target, jestConfig, outdir, e
             using: false,
           },
         })
-        if (res.warnings.length > 0) {
-          console.log(...(await formatMessages(res.warnings, 'warning')))
-        }
-
-        source = res.code
+        if (warnings.length > 0) console.log(...(await formatMessages(warnings, 'warning')))
+        source = code
       } catch (e) {
         console.log(...(await formatMessages(e.errors, 'error')))
         throw new Error('Transform failed', { cause: e })
