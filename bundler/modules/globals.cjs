@@ -72,7 +72,7 @@ if (!Array.prototype.at) {
 if (process.env.EXODUS_TEST_PLATFORM === 'hermes') {
   // Refuse to run if block scoped vars are fake
   const r = []
-  for (let key of [1, 2]) r.push(() => key) // eslint-disable-line prefer-const
+  for (let i = 0; i < 2; i++) r.push(() => i)
   if (r[0]() === r[1]()) {
     print('‼ FATAL Fake block-scoped vars support detected')
     throw new Error('Refusing to run')
