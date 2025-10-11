@@ -30,7 +30,14 @@ const setSnapshotResolver = (fn) => {
 }
 
 const mockModule = mock?.module
-  ? (t, o) => mock.module(t.includes('\\') ? pathToFileURL(t) : t, o) // resolve windows-looking paths
+  ? (t, o) => {
+      try {
+        // resolve windows-looking paths, fails on old 20.x/22.x, but non-url works there, hence in try-catch
+        if (t.includes('\\')) return mock.module(pathToFileURL(t), o)
+      } catch {}
+
+      return mock.module(t, o)
+    }
   : undefined
 
 /* eslint-disable unicorn/no-useless-spread */

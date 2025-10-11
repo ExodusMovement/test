@@ -34,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['24.8.0', '24.1.0', '22.15', '20.8.0', '18.19.0']
+        node-version: ['24.8', '24.1', '22.15', '22.6', '20.19', '20.8.0', '18.19.0']
     steps:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
