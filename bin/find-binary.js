@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)
-const nvm = process.env.NVM_BIN ? (x) => join(process.env.NVM_BIN, '../lib/node_modules', x) : null
+// const nvm = process.env.NVM_BIN ? (x) => join(process.env.NVM_BIN, '../lib/node_modules', x) : null
 const jsvu = (x) => join(homedir(), '.jsvu/bin', x)
 const esvu = (x) => join(homedir(), '.esvu/bin', x)
 
@@ -38,10 +38,9 @@ function findBinaryOnce(name) {
       const flavor = Object.hasOwn(flavors, process.platform) ? flavors[process.platform] : null
       return findFile([
         (bin) => flavor && require.resolve(`react-native/sdks/hermesc/${flavor}/${bin}`), // 1. Locally installed react-native dep (works only for osx)
-        (bin) => flavor && require.resolve(`hermes-engine-cli/${flavor}/${bin}`), // 2. Locally installed hermes-engine-cli
-        (bin) => jsvu(bin), // 3. jsvu
-        (bin) => nvm(`hermes-engine-cli/${flavor}/${bin}`), // 4. hermes-engine-cli installed in .nvm dir with npm i -g
-      ]) // 5. hermes installed in the system
+        (bin) => jsvu(bin), // 2. jsvu
+        (bin) => esvu(bin), // 3. esvu
+      ]) // 4. hermes installed in the system
     }
 
     case 'jsc':
