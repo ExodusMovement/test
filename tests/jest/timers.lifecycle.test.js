@@ -1,8 +1,6 @@
 jest.useFakeTimers()
 
-const testTimers = !jest.exodus || jest.exodus.features.timers ? test : test.skip
-
-testTimers('setInterval / clearInterval', () => {
+test('setInterval / clearInterval', () => {
   let ticks = 0
   const interval = setInterval(() => ticks++, 1000)
   jest.advanceTimersByTime(1000)
@@ -20,7 +18,7 @@ testTimers('setInterval / clearInterval', () => {
   expect(ticks).toBe(3)
 })
 
-testTimers('setInterval / clearInterval + runOnlyPendingTimers', () => {
+test('setInterval / clearInterval + runOnlyPendingTimers', () => {
   let ticks = 0
   const interval = setInterval(() => ticks++, 1000)
   jest.runOnlyPendingTimers()

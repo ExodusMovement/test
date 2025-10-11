@@ -1,21 +1,12 @@
 import { assert, nodeVersion } from './engine.js'
 
 const [major, minor, patch] = nodeVersion.split('.').map(Number)
-// older versions are glitchy with before/after on top-level, which is a deal-breaker
-// 20.7.0 is fine for node:test but broken with tsx, so we bump to 20.8.0
-const ok = (major === 18 && minor >= 19) || (major === 20 && minor >= 8) || major >= 22
-assert(ok, 'Node.js version too old or glitchy with node:test, use ^18.19.0 || ^20.8.0 || >=22.0.0')
-assert(major !== 22 || minor !== 3, 'Refusing to run on Node.js 22.3.0 specifically, do not use it') // safe-guard
+// Before 20.18, there are no module mocks
+const ok = (major === 20 && minor >= 18) || (major === 22 && minor >= 6) || major > 22
+assert(ok, 'Node.js version too old, use ^20.18.0 || >=22.6.0')
 
 export { major, minor, patch }
 
-export const haveModuleMocks =
-  (major === 20 && minor >= 18) || (major === 22 && minor >= 3) || major > 22
-export const haveSnapshots = (major === 22 && minor >= 3) || major > 22
-export const haveSnapshotsReportUnescaped = (major === 22 && minor >= 5) || major > 22
-export const haveForceExit = (major === 20 && minor > 13) || major >= 22
-export const haveValidTimers = (major === 20 && minor >= 11) || major >= 22 // older glitch in various ways / stop executing
-export const haveNoTimerInfiniteLoopBug = (major === 20 && minor >= 11) || major >= 22 // mock.timers.runAll() can get into infinite recursion
+// actually 22.3, but prior to 22.5 escaping is wrong. We don't support 22.3-22.5 anyway
+export const haveSnapshots = (major === 22 && minor >= 5) || major > 22
 export const haveCoverExclude = (major === 22 && minor >= 5) || major > 22
-export const haveNetworkInspection =
-  (major === 20 && minor >= 18) || (major === 22 && minor >= 6) || major > 22

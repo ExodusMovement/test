@@ -5,30 +5,28 @@ const delay100cycles = async () => {
   for (let i = 0; i < 100; i++) await Promise.resolve()
 }
 
-const testTimers = !jest.exodus || jest.exodus.features.timers ? test : test.skip
-
-testTimers('advanceTimersByTime() does not let microtasks to pass', () => {
+test('advanceTimersByTime() does not let microtasks to pass', () => {
   const fn = jest.fn()
   delay100cycles().then(() => setTimeout(fn, 10))
   jest.advanceTimersByTime(20)
   expect(fn).not.toHaveBeenCalled()
 })
 
-testTimers('advanceTimersByTime() does not let microtasks to pass even with await', async () => {
+test('advanceTimersByTime() does not let microtasks to pass even with await', async () => {
   const fn = jest.fn()
   delay100cycles().then(() => setTimeout(fn, 10))
   await jest.advanceTimersByTime(20)
   expect(fn).not.toHaveBeenCalled()
 })
 
-testTimers('advanceTimersByTimeAsync() lets microtasks to pass', async () => {
+test('advanceTimersByTimeAsync() lets microtasks to pass', async () => {
   const fn = jest.fn()
   delay100cycles().then(() => setTimeout(fn, 10))
   await jest.advanceTimersByTimeAsync(20)
   expect(fn).toHaveBeenCalled()
 })
 
-testTimers('advanceTimersByTimeAsync() lets microtasks to pass, chained', async () => {
+test('advanceTimersByTimeAsync() lets microtasks to pass, chained', async () => {
   const fn = jest.fn()
   delay100cycles()
     .then(() => delayTime(10))
@@ -37,7 +35,7 @@ testTimers('advanceTimersByTimeAsync() lets microtasks to pass, chained', async 
   expect(fn).toHaveBeenCalled()
 })
 
-testTimers('advanceTimersByTimeAsync() lets microtasks to pass, longer chained', async () => {
+test('advanceTimersByTimeAsync() lets microtasks to pass, longer chained', async () => {
   const fn = jest.fn()
   delay100cycles()
     .then(() => delayTime(10))
@@ -47,7 +45,7 @@ testTimers('advanceTimersByTimeAsync() lets microtasks to pass, longer chained',
   expect(fn).toHaveBeenCalled()
 })
 
-testTimers('advanceTimersByTimeAsync() lets microtasks to pass, async chain', async () => {
+test('advanceTimersByTimeAsync() lets microtasks to pass, async chain', async () => {
   const fn = jest.fn()
   const doStuff = async (fn) => {
     for (let i = 0; i < 10; i++) {
