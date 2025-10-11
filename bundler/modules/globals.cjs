@@ -69,7 +69,7 @@ if (!Array.prototype.at) {
   Object.defineProperty(Array.prototype, 'at', { configurable: true, writable: true, value: at })
 }
 
-if (process.env.EXODUS_TEST_PLATFORM === 'hermes') {
+if (process.env.EXODUS_TEST_IS_BAREBONE) {
   // Refuse to run if block scoped vars are fake
   const r = []
   for (let i = 0; i < 2; i++) r.push(() => i)
@@ -77,7 +77,9 @@ if (process.env.EXODUS_TEST_PLATFORM === 'hermes') {
     print('‼ FATAL Fake block-scoped vars support detected')
     throw new Error('Refusing to run')
   }
+}
 
+if (process.env.EXODUS_TEST_PLATFORM === 'hermes') {
   // Fixed after 0.12, not present in 0.12
   // Refs: https://github.com/facebook/hermes/commit/e8fa81328dd630e39975e6d16ac3e6f47f4cba06
   if (!Promise.allSettled) {
