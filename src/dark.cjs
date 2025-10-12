@@ -52,57 +52,63 @@ function createCallerLocationHook() {
   return { installLocationInNextTest, getCallerLocation }
 }
 
+// Optimized out in 'bundle' env
+function getTestNamePathFromNode(t) {
+  // We are on Node.js < 22.3.0 where even t.fullName doesn't exist yet, polyfill
+  const namePath = Symbol('namePath')
+  const getNamePath = Symbol('getNamePath')
+  try {
+    if (t[namePath]) return t[namePath]
+
+    // Sigh, ok, whatever
+    const { Test } = require('node:internal/test_runner/test')
+
+    const usePathName = Symbol('usePathName')
+    const restoreName = Symbol('restoreName')
+    Test.prototype[getNamePath] = function () {
+      if (this === this.root) return []
+      return [...(this.parent?.[getNamePath]() || []), this.name]
+    }
+
+    const diagnostic = Test.prototype.diagnostic
+    Test.prototype.diagnostic = function (...args) {
+      if (args[0] === usePathName) {
+        this[restoreName] = this.name
+        this.name = this[getNamePath]()
+        return
+      }
+
+      if (args[0] === restoreName) {
+        this.name = this[restoreName]
+        delete this[restoreName]
+        return
+      }
+
+      return diagnostic.apply(this, args)
+    }
+
+    const TestContextProto = Object.getPrototypeOf(t)
+    Object.defineProperty(TestContextProto, namePath, {
+      get() {
+        this.diagnostic(usePathName)
+        const result = this.name
+        this.diagnostic(restoreName)
+        return result
+      },
+    })
+
+    return t[namePath]
+  } catch {}
+}
+
 // Easy on Node.js >= 22.3.0 || ^20.16.0, but we polyfill for the rest
 function getTestNamePath(t) {
   // No implementation in Node.js yet, will have to PR
   if (t.fullName) return t.fullName.split(' > ')
 
   if (process.env.EXODUS_TEST_ENGINE === 'node:test') {
-    // We are on Node.js < 22.3.0 where even t.fullName doesn't exist yet, polyfill
-    const namePath = Symbol('namePath')
-    const getNamePath = Symbol('getNamePath')
-    try {
-      if (t[namePath]) return t[namePath]
-
-      // Sigh, ok, whatever
-      const { Test } = require('node:internal/test_runner/test')
-
-      const usePathName = Symbol('usePathName')
-      const restoreName = Symbol('restoreName')
-      Test.prototype[getNamePath] = function () {
-        if (this === this.root) return []
-        return [...(this.parent?.[getNamePath]() || []), this.name]
-      }
-
-      const diagnostic = Test.prototype.diagnostic
-      Test.prototype.diagnostic = function (...args) {
-        if (args[0] === usePathName) {
-          this[restoreName] = this.name
-          this.name = this[getNamePath]()
-          return
-        }
-
-        if (args[0] === restoreName) {
-          this.name = this[restoreName]
-          delete this[restoreName]
-          return
-        }
-
-        return diagnostic.apply(this, args)
-      }
-
-      const TestContextProto = Object.getPrototypeOf(t)
-      Object.defineProperty(TestContextProto, namePath, {
-        get() {
-          this.diagnostic(usePathName)
-          const result = this.name
-          this.diagnostic(restoreName)
-          return result
-        },
-      })
-
-      return t[namePath]
-    } catch {}
+    const names = getTestNamePathFromNode(t)
+    if (names) return names
   }
 
   return [t.name] // last resort

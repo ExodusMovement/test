@@ -253,7 +253,9 @@ function mockCloneItem(obj, cache) {
 
 // TODO: implement for bundles or add a guard against bundles if __mocks__ dir exists
 let loadMocksDirMock
-if (process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle') {
+
+// Optimized out in 'bundle' env
+function installMockDirs() {
   const { existsSync, readdirSync, statSync } = require('node:fs')
   const { dirname, join, extname } = require('node:path')
   const dirs = []
@@ -304,6 +306,8 @@ if (process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle') {
     }
   }
 }
+
+if (process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle') installMockDirs()
 
 function jestmock(name, mocker, { override = false, actual, builtin, loc } = {}) {
   // Loaded ESM: isn't mocked

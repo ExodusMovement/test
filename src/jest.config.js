@@ -4,6 +4,7 @@ import { specialEnvironments } from './jest.environment.js'
 
 const skipPreset = new Set(['ts-jest'])
 const EXTS = `.?([cm])[jt]s?(x)` // we differ from jest, allowing [cm] before everything
+const needPreset = ({ preset } = {}) => preset && !skipPreset.has(preset)
 const normalizeJestConfig = (config) => ({
   testMatch: [`**/__tests__/**/*${EXTS}`, `**/?(*.)+(spec|test)${EXTS}`],
   testEnvironment: 'node',
@@ -65,6 +66,67 @@ export const jestConfig = () => {
 
 // Methods loadJestConfig() and installJestEnvironment() below are for --jest flag
 
+// Optimized out in 'bundle' env
+async function loadConfigParts(rawConfig) {
+  const presetExtension = /\.([cm]?js|json)$/u
+  const suffixes = ['/jest-preset.json', '/jest-preset.js', '/jest-preset.cjs', '/jest-preset.mjs']
+  const resolveGlobalSetup = (config, req) => {
+    if (config.globalSetup) config.globalSetup = req.resolve(config.globalSetup) // eslint-disable-line @exodus/mutable/no-param-reassign-prop-only
+    if (config.globalTeardown) config.globalTeardown = req.resolve(config.globalTeardown) // eslint-disable-line @exodus/mutable/no-param-reassign-prop-only
+  }
+
+  assert(rawConfig.rootDir)
+  const { resolve } = await import('node:path')
+  const { createRequire } = await import('node:module')
+  const { pathToFileURL } = await import('node:url')
+  let requireConfig = createRequire(resolve(rawConfig.rootDir, 'package.json'))
+  resolveGlobalSetup(rawConfig, requireConfig)
+  while (needPreset(rawConfig)) {
+    let baseConfig
+
+    const attemptLoad = async (file) => {
+      try {
+        const resolved = requireConfig.resolve(file)
+        // FIXME: fix linter to allow this
+        // const meta = resolved.toLowerCase().endsWith('.json') ? { with: { type: 'json' } } : undefined
+        // const presetModule = await import(pathToFileURL(resolved), meta)
+        const presetModule = await import(pathToFileURL(resolved))
+        requireConfig = createRequire(resolved)
+        baseConfig = presetModule.default
+      } catch {}
+    }
+
+    // Even if it is relative, it could be a path to module
+    for (const suffix of suffixes) {
+      if (!baseConfig) await attemptLoad(`${rawConfig.preset}${suffix}`)
+    }
+
+    // If it's a path to a file
+    if (!baseConfig && rawConfig.preset[0] === '.' && presetExtension.test(rawConfig.preset)) {
+      const { statSync } = await import('node:fs')
+      if (statSync(rawConfig.preset).isFile()) await attemptLoad(rawConfig.preset)
+    }
+
+    assert(baseConfig, `Could not load preset: ${rawConfig.preset} `)
+    resolveGlobalSetup(baseConfig, requireConfig)
+    rawConfig = {
+      ...baseConfig,
+      ...rawConfig,
+      preset: baseConfig.preset,
+      setupFiles: [
+        ...(baseConfig.setupFiles || []).map((file) => requireConfig.resolve(file)),
+        ...(rawConfig.setupFiles || []),
+      ],
+      setupFilesAfterEnv: [
+        ...(baseConfig.setupFilesAfterEnv || []).map((file) => requireConfig.resolve(file)),
+        ...(rawConfig.setupFilesAfterEnv || []),
+      ],
+    }
+  }
+
+  return rawConfig
+}
+
 export async function loadJestConfig(...args) {
   let rawConfig
   if (process.env.EXODUS_TEST_JEST_CONFIG === undefined) {
@@ -75,67 +137,12 @@ export async function loadJestConfig(...args) {
   }
 
   const cleanFile = (file) => file.replace(/^<rootDir>\//g, './') // require is already relative to rootDir
-  const needPreset = ({ preset } = {}) => preset && !skipPreset.has(preset)
-  const resolveGlobalSetup = (config, req) => {
-    if (config.globalSetup) config.globalSetup = req.resolve(config.globalSetup) // eslint-disable-line @exodus/mutable/no-param-reassign-prop-only
-    if (config.globalTeardown) config.globalTeardown = req.resolve(config.globalTeardown) // eslint-disable-line @exodus/mutable/no-param-reassign-prop-only
-  }
-
-  const presetExtension = /\.([cm]?js|json)$/u
-  const suffixes = ['/jest-preset.json', '/jest-preset.js', '/jest-preset.cjs', '/jest-preset.mjs']
   if (needPreset(rawConfig) || rawConfig?.globalSetup || rawConfig?.globalTeardown) {
     rawConfig.preset = cleanFile(rawConfig.preset) // relative to root dir only at top level, presets shouldn't use <rootDir>
     if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
       throw new Error('jest preset and globalSetup/Teardown not yet supported in bundles')
     } else {
-      assert(rawConfig.rootDir)
-      const { resolve } = await import('node:path')
-      const { createRequire } = await import('node:module')
-      const { pathToFileURL } = await import('node:url')
-      let requireConfig = createRequire(resolve(rawConfig.rootDir, 'package.json'))
-      resolveGlobalSetup(rawConfig, requireConfig)
-      while (needPreset(rawConfig)) {
-        let baseConfig
-
-        const attemptLoad = async (file) => {
-          try {
-            const resolved = requireConfig.resolve(file)
-            // FIXME: fix linter to allow this
-            // const meta = resolved.toLowerCase().endsWith('.json') ? { with: { type: 'json' } } : undefined
-            // const presetModule = await import(pathToFileURL(resolved), meta)
-            const presetModule = await import(pathToFileURL(resolved))
-            requireConfig = createRequire(resolved)
-            baseConfig = presetModule.default
-          } catch {}
-        }
-
-        // Even if it is relative, it could be a path to module
-        for (const suffix of suffixes) {
-          if (!baseConfig) await attemptLoad(`${rawConfig.preset}${suffix}`)
-        }
-
-        // If it's a path to a file
-        if (!baseConfig && rawConfig.preset[0] === '.' && presetExtension.test(rawConfig.preset)) {
-          const { statSync } = await import('node:fs')
-          if (statSync(rawConfig.preset).isFile()) await attemptLoad(rawConfig.preset)
-        }
-
-        assert(baseConfig, `Could not load preset: ${rawConfig.preset} `)
-        resolveGlobalSetup(baseConfig, requireConfig)
-        rawConfig = {
-          ...baseConfig,
-          ...rawConfig,
-          preset: baseConfig.preset,
-          setupFiles: [
-            ...(baseConfig.setupFiles || []).map((file) => requireConfig.resolve(file)),
-            ...(rawConfig.setupFiles || []),
-          ],
-          setupFilesAfterEnv: [
-            ...(baseConfig.setupFilesAfterEnv || []).map((file) => requireConfig.resolve(file)),
-            ...(rawConfig.setupFilesAfterEnv || []),
-          ],
-        }
-      }
+      rawConfig = await loadConfigParts(rawConfig)
     }
   }
 
@@ -146,6 +153,15 @@ export async function loadJestConfig(...args) {
   config.setupFilesAfterEnv = config.setupFilesAfterEnv?.map((f) => cleanFile(f))
 
   return config
+}
+
+// Optimized out in 'bundle' env
+async function makeDynamicImport(rootDir) {
+  const { resolve } = await import('node:path')
+  const { createRequire } = await import('node:module')
+  const { pathToFileURL } = await import('node:url')
+  const require = createRequire(resolve(rootDir, 'package.json'))
+  return (path) => import(pathToFileURL(require.resolve(path))) // does not need json imports
 }
 
 export async function installJestEnvironment(jestGlobals) {
@@ -173,11 +189,7 @@ export async function installJestEnvironment(jestGlobals) {
       assert.fail('Requiring non-bundled plugins from bundle is unsupported')
     }
   } else if (config.rootDir) {
-    const { resolve } = await import('node:path')
-    const { createRequire } = await import('node:module')
-    const { pathToFileURL } = await import('node:url')
-    const require = createRequire(resolve(config.rootDir, 'package.json'))
-    dynamicImport = (path) => import(pathToFileURL(require.resolve(path))) // does not need json imports
+    dynamicImport = await makeDynamicImport(config.rootDir)
   } else {
     dynamicImport = async () => assert.fail('Unreachable: importing plugins without a rootDir')
   }
