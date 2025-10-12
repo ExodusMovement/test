@@ -4,9 +4,7 @@
 
 jest.useFakeTimers();
 
-const testTimers = !jest.exodus || jest.exodus.features.timers ? test : test.skip
-
-testTimers('schedules a 10-second timer after 1 second', () => {
+test('schedules a 10-second timer after 1 second', () => {
   jest.spyOn(globalThis, 'setTimeout');
   const infiniteTimerGame = require('../infiniteTimerGame');
   const callback = jest.fn();
