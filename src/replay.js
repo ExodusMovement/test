@@ -12,15 +12,8 @@ function loadReplayBundle() {
   }
 }
 
-if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
-  // eslint-disable-next-line no-undef
-  const files = EXODUS_TEST_FILES
-  const baseFile = files.length === 1 ? files[0] : undefined
-  // eslint-disable-next-line no-undef
-  const map = new Map(typeof EXODUS_TEST_RECORDINGS === 'undefined' ? [] : EXODUS_TEST_RECORDINGS)
-  const resolveRecording = (resolver, f) => resolver(f[0], f[1]).join('/')
-  readRecordingRaw = (resolver) => (baseFile ? map.get(resolveRecording(resolver, baseFile)) : null)
-} else {
+// Optimized out in 'bundle' env
+async function loadNonBundle() {
   // Preload if synchronous lazy-loading is unavailable
   // TODO: not under process?.features?.require_module
   try {
@@ -63,6 +56,18 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
       } catch {}
     }
   }
+}
+
+if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
+  // eslint-disable-next-line no-undef
+  const files = EXODUS_TEST_FILES
+  const baseFile = files.length === 1 ? files[0] : undefined
+  // eslint-disable-next-line no-undef
+  const map = new Map(typeof EXODUS_TEST_RECORDINGS === 'undefined' ? [] : EXODUS_TEST_RECORDINGS)
+  const resolveRecording = (resolver, f) => resolver(f[0], f[1]).join('/')
+  readRecordingRaw = (resolver) => (baseFile ? map.get(resolveRecording(resolver, baseFile)) : null)
+} else {
+  await loadNonBundle()
 }
 
 function readRecording(resolver) {
