@@ -1,4 +1,4 @@
-import { mock } from './engine.js'
+import { mock as engineMock } from './engine.js'
 import * as node from './engine.js'
 import { fetchReplay, fetchRecord, websocketRecord, websocketReplay } from './replay.js'
 import { timersTrack, timersList, timersDebug, timersAssert } from './timers-track.js'
@@ -28,22 +28,27 @@ const timersSpeedup = (rate, { apis = ['setTimeout', 'setInterval', 'Date'] } = 
 }
 
 const isBundle = process.env.EXODUS_TEST_ENVIRONMENT === 'bundle' // TODO: improve mocking from bundle
-export const exodus = {
+
+export const platform = String(process.env.EXODUS_TEST_PLATFORM) // e.g. 'hermes', 'node'
+export const engine = String(process.env.EXODUS_TEST_ENGINE) // e.g. 'hermes:bundle', 'node:bundle', 'node:test', 'node:pure'
+export const implementation = String(node.engine) // aka process.env.EXODUS_TEST_CONTEXT, e.g. 'node:test' or 'pure'
+
+/* eslint-disable jsdoc/check-tag-names */
+
+/**
+ * @experimental API might change
+ */
+export const features = {
   __proto__: null,
-  platform: String(process.env.EXODUS_TEST_PLATFORM), // e.g. 'hermes', 'node'
-  engine: String(process.env.EXODUS_TEST_ENGINE), // e.g. 'hermes:bundle', 'node:bundle', 'node:test', 'node:pure'
-  implementation: String(node.engine), // aka process.env.EXODUS_TEST_CONTEXT, e.g. 'node:test' or 'pure'
-  features: {
-    __proto__: null,
-    dynamicRequire: Boolean(!isBundle), // require(non-literal-non-glob), createRequire()(non-builtin)
-    esmMocks: Boolean(mock.module || isBundle), // support for ESM mocks
-    esmNamedBuiltinMocks: Boolean(mock.module || isBundle || insideEsbuild()), // support for named ESM imports from builtin module mocks: also fine in --esbuild
-    esmInterop: Boolean(insideEsbuild() && !isBundle), // loading/using ESM as CJS, ESM mocks creation without a mocker function
-    concurrency: node.engine !== 'pure', // pure engine doesn't support concurrency
-  },
-  mock: {
-    ...{ timersTrack, timersList, timersDebug, timersAssert, timersSpeedup }, // eslint-disable-line unicorn/no-useless-spread
-    ...{ fetchRecord, fetchReplay }, // eslint-disable-line unicorn/no-useless-spread
-    ...{ websocketRecord, websocketReplay }, // eslint-disable-line unicorn/no-useless-spread
-  },
+  dynamicRequire: Boolean(!isBundle), // require(non-literal-non-glob), createRequire()(non-builtin)
+  esmMocks: Boolean(engineMock.module || isBundle), // support for ESM mocks
+  esmNamedBuiltinMocks: Boolean(engineMock.module || isBundle || insideEsbuild()), // support for named ESM imports from builtin module mocks: also fine in --esbuild
+  esmInterop: Boolean(insideEsbuild() && !isBundle), // loading/using ESM as CJS, ESM mocks creation without a mocker function
+  concurrency: node.engine !== 'pure', // pure engine doesn't support concurrency
+}
+
+export const mock = {
+  ...{ timersTrack, timersList, timersDebug, timersAssert, timersSpeedup }, // eslint-disable-line unicorn/no-useless-spread
+  ...{ fetchRecord, fetchReplay }, // eslint-disable-line unicorn/no-useless-spread
+  ...{ websocketRecord, websocketReplay }, // eslint-disable-line unicorn/no-useless-spread
 }
