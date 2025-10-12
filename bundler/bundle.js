@@ -224,6 +224,7 @@ export const build = async (...files) => {
     await importSource('./modules/globals.cjs')
   }
 
+  const haveJestAPIs = { expect: false, exodus: false }
   if (options.jest) {
     const { jestConfig } = options
     const preload = [...(jestConfig.setupFiles || []), ...(jestConfig.setupFilesAfterEnv || [])]
@@ -244,6 +245,14 @@ export const build = async (...files) => {
 
     // copy of loader/jest
     input.push(`await (await import(${stringify(resolveSrc('jest.setup.js'))})).setupJest();`)
+
+    const ignoreFrom = /\/test\/src\/(jest(\.(mock|snapshot))?\.js|engine\.pure\.cjs|expect\.cjs)$/u // rechecked to not use those apis if no outside usage
+    specificLoadPipeline.push(async (source, filepath) => {
+      if (ignoreFrom.test(filepath.replaceAll('\\', '/'))) return source
+      haveJestAPIs.expect ||= /(^|[^#])\bexpect([(.]|$)/mu.test(source)
+      haveJestAPIs.exodus ||= /jest\.exodus/u.test(source)
+      return source
+    })
   }
 
   for (const file of files) importFile(file)
@@ -421,6 +430,8 @@ export const build = async (...files) => {
       EXODUS_TEST_FSFILES: stringify(emptyToUndefined(fsfiles)), // TODO: can we safely use relative paths?
       EXODUS_TEST_FSFILES_CONTENTS: stringify(emptyToUndefined([...fsFilesContents.entries()])),
       EXODUS_TEST_FSDIRS: stringify(emptyToUndefined([...fsFilesDirs.entries()])),
+      EXODUS_TEST_LOAD_EXPECT: stringify(haveJestAPIs.expect),
+      EXODUS_TEST_LOAD_JESTEXODUS: stringify(haveJestAPIs.exodus),
     },
     alias: {
       // Jest, tape and node:test
@@ -552,10 +563,22 @@ export const build = async (...files) => {
   let res = await buildWrap(config)
   assert.equal(res instanceof Error, res.errors.length > 0)
 
+  let needRerun = false
   if (fsFilesContents.size > 0 || fsFilesDirs.size > 0) {
     // re-run as we detected that tests depend on fsReadFileSync contents
     config.define.EXODUS_TEST_FSFILES_CONTENTS = stringify([...fsFilesContents.entries()])
     config.define.EXODUS_TEST_FSDIRS = stringify([...fsFilesDirs.entries()])
+    needRerun = true
+  }
+
+  if (haveJestAPIs.expect || haveJestAPIs.exodus) {
+    // re-run as we detected expect or jest.exodus usage and need to bundle those
+    config.define.EXODUS_TEST_LOAD_EXPECT = stringify(haveJestAPIs.expect)
+    config.define.EXODUS_TEST_LOAD_JESTEXODUS = stringify(haveJestAPIs.exodus)
+    needRerun = true
+  }
+
+  if (needRerun) {
     res = await buildWrap(config)
     assert.equal(res instanceof Error, res.errors.length > 0)
   }

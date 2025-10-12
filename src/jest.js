@@ -248,8 +248,9 @@ if (process.env.EXODUS_TEST_PLATFORM !== 'deno' && globalThis.process) {
   }
 }
 
-export const jest = {
-  exodus: {
+// jest.exodus extension
+function makeJestExodus() {
+  return {
     __proto__: null,
     ...exodus,
     mock: {
@@ -265,7 +266,15 @@ export const jest = {
         return globalThis.WebSocket
       },
     },
-  },
+  }
+}
+
+export const jest = {
+  exodus:
+    // eslint-disable-next-line no-undef
+    typeof EXODUS_TEST_LOAD_JESTEXODUS === 'undefined' || EXODUS_TEST_LOAD_JESTEXODUS !== false
+      ? makeJestExodus()
+      : undefined,
   setTimeout: (x) => {
     assert.equal(typeof x, 'number')
     defaultTimeout = x

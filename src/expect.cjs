@@ -13,21 +13,27 @@ function fixupAssertions() {
 
 function loadExpect(loadReason) {
   if (expect) return expect
-  try {
-    expect = require('expect').expect
-  } catch {
-    throw new Error(`Failed to load 'expect', required for ${loadReason}`)
+  // eslint-disable-next-line no-undef
+  if (typeof EXODUS_TEST_LOAD_EXPECT !== 'undefined' && EXODUS_TEST_LOAD_EXPECT === false) {
+    if (loadReason === 'jest.mock') return // allow that and ignore if there is no usage
+    throw new Error('FATAL: expect() was optimized out')
+  } else {
+    try {
+      expect = require('expect').expect
+    } catch {
+      throw new Error(`Failed to load 'expect', required for ${loadReason}`)
+    }
+
+    // console.log('expect load reason:', loadReason)
+    try {
+      expect.extend(require('jest-extended'))
+    } catch {}
+
+    for (const x of extend) expect.extend(...x)
+    for (const [key, value] of set) expect[key] = value
+    fixupAssertions()
+    return expect
   }
-
-  // console.log('expect load reason:', loadReason)
-  try {
-    expect.extend(require('jest-extended'))
-  } catch {}
-
-  for (const x of extend) expect.extend(...x)
-  for (const [key, value] of set) expect[key] = value
-  fixupAssertions()
-  return expect
 }
 
 const areNumeric = (...args) => args.every((a) => typeof a === 'number' || typeof a === 'bigint')
