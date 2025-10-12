@@ -83,8 +83,10 @@
     "src/tape.cjs",
     "src/timers-track.js",
     "src/version.js",
+    "benchmark.js",
     "expect.cjs",
     "jest.js",
+    "mock.js",
     "node.js",
     "tape.js",
     "CHANGELOG.md"
