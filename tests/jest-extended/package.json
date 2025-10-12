@@ -1,6 +1,9 @@
 {
   "type": "module",  
   "jest": {
+    "setupFilesAfterEnv": [
+      "jest-extended/all"
+    ],
     "snapshotFormat": {
       "escapeString": false,
       "printBasicPrototype": false

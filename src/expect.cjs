@@ -25,10 +25,6 @@ function loadExpect(loadReason) {
     }
 
     // console.log('expect load reason:', loadReason)
-    try {
-      expect.extend(require('jest-extended'))
-    } catch {}
-
     for (const x of extend) expect.extend(...x)
     for (const [key, value] of set) expect[key] = value
     fixupAssertions()
