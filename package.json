@@ -31,6 +31,7 @@
     "./benchmark": "./src/benchmark.js",
     "./expect": "./src/expect.cjs",
     "./jest": "./src/jest.js",
+    "./mock": "./src/mock.js",
     "./node": "./src/node.js",
     "./tape": {
       "import": "./src/tape.js",
@@ -74,6 +75,7 @@
     "src/jest.setup.js",
     "src/jest.snapshot.js",
     "src/jest.timers.js",
+    "src/mock.js",
     "src/node.js",
     "src/pretty-format.cjs",
     "src/replay.js",
