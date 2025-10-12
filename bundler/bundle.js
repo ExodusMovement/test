@@ -150,14 +150,6 @@ export const init = async ({ platform, jest, flow, target, jestConfig, outdir, e
   }
 }
 
-const hermesSupported = {
-  arrow: false,
-  class: false, // we get a safeguard check this way that it's not used
-  'async-generator': false,
-  'const-and-let': false, // have to explicitly set for esbuild to not emit that in helpers, also to get a safeguard check
-  'for-await': false,
-}
-
 async function glob(patterns, { exclude, cwd }) {
   if (!globLib) globLib = await import(pathToFileURL(resolveSrc('glob.cjs')))
   if (globLib.glob) return globLib.glob(patterns, { exclude, cwd }) // always set for now, could be separated further
@@ -464,10 +456,7 @@ export const build = async (...files) => {
     keepNames: true,
     format: 'iife',
     target: options.target || `node${process.versions.node}`,
-    supported: {
-      bigint: true,
-      ...(options.platform === 'hermes' ? hermesSupported : {}),
-    },
+    supported: { bigint: true },
     plugins: [
       {
         name: 'exodus-test.bundle',
@@ -494,6 +483,16 @@ export const build = async (...files) => {
         },
       },
     ],
+  }
+
+  if (options.platform === 'hermes') {
+    Object.assign(config.supported, {
+      arrow: false,
+      class: false, // we get a safeguard check this way that it's not used
+      'async-generator': false,
+      'const-and-let': false, // have to explicitly set for esbuild to not emit that in helpers, also to get a safeguard check
+      'for-await': false,
+    })
   }
 
   let shouldInstallMocks = false
