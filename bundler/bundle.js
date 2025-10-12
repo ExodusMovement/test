@@ -511,6 +511,7 @@ export const build = async (...files) => {
     // 'await import' is replaced only in files with mocks (likely toplevel there)
     // Otherwise we don't patch module system at all
     if (!/jest\.(mock|doMock|setMock)\(/u.test(source)) return source
+    assert(!filepath.replaceAll('\\', '/').endsWith('/src/jest.mock.js')) // should never trigger this
     shouldInstallMocks = true
     const filepathRequire = createRequire(filepath)
     return source

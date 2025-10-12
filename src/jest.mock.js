@@ -290,7 +290,7 @@ if (process.env.EXODUS_TEST_ENVIRONMENT !== 'bundle') {
     }
   }
 
-  // Automock does't work on import() in jest anyway, so it's ok to let that require manual jest.mock()
+  // Automock does't work on import() in jest anyway, so it's ok to let that require manual jest.mock
   if (shouldAutoMock.size > 0) {
     const { Module } = require('node:module')
     const _require = Module.prototype.require
