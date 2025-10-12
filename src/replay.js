@@ -6,10 +6,12 @@ let readRecordingRaw, writeRecording
 function loadReplayBundle() {
   // TODO: also under process.features.require_module
   if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
-    replay = require('@exodus/replay') // synchronous
-  } else if (!replay) {
-    throw new Error('Failed to load @exodus/replay')
+    try {
+      replay = require('@exodus/replay') // synchronous
+    } catch {}
   }
+
+  if (!replay) throw new Error('Failed to load @exodus/replay')
 }
 
 // Optimized out in 'bundle' env
