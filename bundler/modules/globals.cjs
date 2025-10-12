@@ -317,17 +317,33 @@ This activity created errors and would have caused tests to fail, but instead tr
 }
 
 if (!globalThis.crypto?.getRandomValues && globalThis.EXODUS_TEST_CRYPTO_ENTROPY) {
-  const entropy = Buffer.from(globalThis.EXODUS_TEST_CRYPTO_ENTROPY, 'base64')
+  let entropy
+  let entropyBase64 = globalThis.EXODUS_TEST_CRYPTO_ENTROPY
+  const loadEntropy = () => {
+    if (Uint8Array.fromBase64) {
+      entropy = Uint8Array.fromBase64(entropyBase64)
+    } else if (globalThis.atob) {
+      const raw = atob(entropyBase64)
+      const length = raw.length
+      entropy = new Uint8Array(length)
+      for (let i = 0; i < length; i++) entropy[i] = raw.charCodeAt(i) // eslint-disable-line unicorn/prefer-code-point
+    } else {
+      entropy = Buffer.from(entropyBase64, 'base64')
+    }
+
+    entropyBase64 = ''
+  }
+
   let pos = 0
   if (!globalThis.crypto) globalThis.crypto = {}
   const TypedArray = Object.getPrototypeOf(Uint8Array)
   globalThis.crypto.getRandomValues = (typedArray) => {
     if (!(typedArray instanceof TypedArray)) throw new Error('Argument should be a TypedArray')
-    const view = Buffer.from(typedArray.buffer, typedArray.byteOffset, typedArray.byteLength)
+    const view = new Uint8Array(typedArray.buffer, typedArray.byteOffset, typedArray.byteLength)
+    if (!entropy) loadEntropy()
     if (pos + view.length <= entropy.length) {
+      view.set(entropy.subarray(pos, pos + view.length))
       pos += view.length
-      const copied = entropy.copy(view, 0, pos - view.length)
-      if (copied !== view.length) throw new Error('Unexpected')
       return typedArray
     }
 
