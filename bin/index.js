@@ -19,7 +19,7 @@ import { glob as globImplementation } from '../src/glob.cjs'
 const DEFAULT_PATTERNS = [`**/?(*.)+(spec|test).?([cm])[jt]s?(x)`] // do not trust magic dirs by default
 const bundleOpts = { pure: true, bundle: true, esbuild: true, ts: 'auto' }
 const bareboneOpts = { ...bundleOpts, barebone: true }
-const hermesA = ['-Og', '-Xmicrotask-queue']
+const hermesA = ['-w', '-Xmicrotask-queue'] // -Xes6-class fails with -O0 / -Og, --block-scoping fails in default, any of that is bad
 const denoA = ['run', '--allow-all'] // also will set DENO_COMPAT=1 env flag below
 const denoT = ['test', '--allow-all']
 const nodeTS = process.features.typescript ? 'auto' : 'flag'
