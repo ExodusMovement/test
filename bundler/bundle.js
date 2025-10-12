@@ -505,6 +505,9 @@ export const build = async (...files) => {
       'const-and-let': false, // have to explicitly set for esbuild to not emit that in helpers, also to get a safeguard check
       'for-await': false,
     })
+  } else if (options.platform === 'jerryscript') {
+    config.supported['class-private-field'] = false
+    // config.minify = true // breaks on SyntaxError, FIXME
   }
 
   let shouldInstallMocks = false

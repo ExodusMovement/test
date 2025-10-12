@@ -66,6 +66,9 @@ function findBinaryOnce(name) {
       return require('electron')
     case 'workerd':
       return require.resolve('workerd/bin/workerd')
+    case 'jerryscript':
+      name = 'jerry' // look under this name, including in global
+      return findFile([jsvu, esvu])
     case 'c8':
       return require.resolve('c8/bin/c8.js')
     case 'chrome':
