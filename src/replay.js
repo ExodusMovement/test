@@ -4,7 +4,8 @@ let replay
 let readRecordingRaw, writeRecording
 
 function loadReplayBundle() {
-  if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle' || process.features.require_module) {
+  // TODO: also under process.features.require_module
+  if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
     replay = require('@exodus/replay') // synchronous
   } else if (!replay) {
     throw new Error('Failed to load @exodus/replay')
@@ -21,11 +22,10 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
   readRecordingRaw = (resolver) => (baseFile ? map.get(resolveRecording(resolver, baseFile)) : null)
 } else {
   // Preload if synchronous lazy-loading is unavailable
-  if (!process?.features?.require_module) {
-    try {
-      replay = await import('@exodus/replay')
-    } catch {}
-  }
+  // TODO: not under process?.features?.require_module
+  try {
+    replay = await import('@exodus/replay')
+  } catch {}
 
   const fsSync = await import('node:fs')
   const { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, rmdirSync } = fsSync
