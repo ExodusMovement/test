@@ -9,7 +9,7 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
   const files = EXODUS_TEST_FILES
   const baseFile = files.length === 1 ? files[0] : undefined
   // eslint-disable-next-line no-undef
-  const map = typeof EXODUS_TEST_RECORDINGS !== 'undefined' && new Map(EXODUS_TEST_RECORDINGS)
+  const map = new Map(typeof EXODUS_TEST_RECORDINGS === 'undefined' ? [] : EXODUS_TEST_RECORDINGS)
   const resolveRecording = (resolver, f) => resolver(f[0], f[1]).join('/')
   readRecordingRaw = (resolver) => (baseFile ? map.get(resolveRecording(resolver, baseFile)) : null)
 } else {
@@ -57,7 +57,6 @@ if (process.env.EXODUS_TEST_ENVIRONMENT === 'bundle') {
 }
 
 function readRecording(resolver) {
-  if (!readRecordingRaw) throw new Error('Replaying recordings is not supported in this engine')
   const data = readRecordingRaw(resolver)
   if (typeof data !== 'string') throw new Error('Can not read recording')
   return JSON.parse(data)

@@ -13,6 +13,7 @@ const cjsMockRegex = /\.exodus-test-mock\.cjs$/u
 const cjsMockFallback = `throw new Error('Mocking loaded ESM modules in not possible in bundles')`
 let resolveSrc, globLib
 
+const emptyToUndefined = (x) => (x.length > 0 ? x : undefined) // optimize out define if there are none
 const readSnapshots = async (files, resolvers) => {
   const snapshots = []
   for (const file of files) {
@@ -415,11 +416,11 @@ export const build = async (...files) => {
       'process.versions.node': stringify('22.15.0'), // see line above
       EXODUS_TEST_PROCESS_CWD: stringify(process.cwd()),
       EXODUS_TEST_FILES: stringify(files.map((f) => [dirname(f), basename(f)])),
-      EXODUS_TEST_SNAPSHOTS: stringify(EXODUS_TEST_SNAPSHOTS),
-      EXODUS_TEST_RECORDINGS: stringify(EXODUS_TEST_RECORDINGS),
-      EXODUS_TEST_FSFILES: stringify(fsfiles), // TODO: can we safely use relative paths?
-      EXODUS_TEST_FSFILES_CONTENTS: stringify([...fsFilesContents.entries()]),
-      EXODUS_TEST_FSDIRS: stringify([...fsFilesDirs.entries()]),
+      EXODUS_TEST_SNAPSHOTS: stringify(emptyToUndefined(EXODUS_TEST_SNAPSHOTS)),
+      EXODUS_TEST_RECORDINGS: stringify(emptyToUndefined(EXODUS_TEST_RECORDINGS)),
+      EXODUS_TEST_FSFILES: stringify(emptyToUndefined(fsfiles)), // TODO: can we safely use relative paths?
+      EXODUS_TEST_FSFILES_CONTENTS: stringify(emptyToUndefined([...fsFilesContents.entries()])),
+      EXODUS_TEST_FSDIRS: stringify(emptyToUndefined([...fsFilesDirs.entries()])),
     },
     alias: {
       // Jest, tape and node:test
