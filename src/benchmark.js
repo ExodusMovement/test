@@ -57,4 +57,5 @@ export async function benchmark(name, options, fn) {
   console.log(res)
 
   if (gc) for (let i = 0; i < 4; i++) gc()
+  return { total, count, mean, min, max }
 }
