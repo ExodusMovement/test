@@ -20,6 +20,7 @@ const DEFAULT_PATTERNS = [`**/?(*.)+(spec|test).?([cm])[jt]s?(x)`] // do not tru
 const bundleOpts = { pure: true, bundle: true, esbuild: true, ts: 'auto' }
 const bareboneOpts = { ...bundleOpts, barebone: true }
 const hermesA = ['-w', '-Xmicrotask-queue'] // -Xes6-class fails with -O0 / -Og, --block-scoping fails in default, any of that is bad
+const hermesS = [...hermesA, '-Xes6-block-scoping']
 const denoA = ['run', '--allow-all'] // also will set DENO_COMPAT=1 env flag below
 const denoT = ['test', '--allow-all']
 const nodeTS = process.features.typescript ? 'auto' : 'flag'
@@ -42,6 +43,7 @@ const ENGINES = new Map(
     'v8:bundle': { binary: 'd8', binaryArgs: ['--expose-gc'], ...bareboneOpts },
     'jsc:bundle': { binary: 'jsc', target: 'safari13', ...bareboneOpts },
     'hermes:bundle': { binary: 'hermes', binaryArgs: hermesA, target: 'es2018', ...bareboneOpts },
+    'shermes:bundle': { binary: 'shermes', binaryArgs: hermesS, target: 'es2018', ...bareboneOpts },
     'spidermonkey:bundle': { binary: 'spidermonkey', ...bareboneOpts },
     'engine262:bundle': { binary: 'engine262', ...bareboneOpts },
     'quickjs:bundle': { binary: 'quickjs', binaryArgs: ['--std'], ...bareboneOpts },
@@ -62,7 +64,7 @@ const ENGINES = new Map(
     'msedge:playwright': { binary: 'msedge', browsers: 'playwright', ...bundleOpts },
   })
 )
-const barebonesOk = ['v8', 'd8', 'spidermonkey', 'quickjs', 'xs', 'hermes']
+const barebonesOk = ['v8', 'd8', 'spidermonkey', 'quickjs', 'xs', 'hermes', 'shermes']
 const barebonesUnhandled = ['jsc', 'escargot', 'boa', 'graaljs', 'jerry', 'engine262']
 
 const getEnvFlag = (name) => {
@@ -282,7 +284,7 @@ Object.assign(options, engineOptions)
 options.platform = options.binary // binary can be overriden by c8 or electron
 const isBrowserLike = options.browsers || options.electron
 setEnv('EXODUS_TEST_ENGINE', options.engine) // e.g. 'hermes:bundle', 'node:bundle', 'node:test', 'node:pure'
-setEnv('EXODUS_TEST_PLATFORM', options.binary) // e.g. 'hermes', 'node'
+setEnv('EXODUS_TEST_PLATFORM', options.binary === 'shermes' ? 'hermes' : options.binary) // e.g. 'hermes', 'node'
 setEnv('EXODUS_TEST_TIMEOUT', options.testTimeout)
 setEnv('EXODUS_TEST_DEVTOOLS', options.devtools ? '1' : '')
 setEnv('EXODUS_TEST_IS_BROWSER', isBrowserLike ? '1' : '')

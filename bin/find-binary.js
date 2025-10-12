@@ -60,6 +60,7 @@ function findBinaryOnce(name) {
     case 'ladybird-js': // naming by esvu
     case 'engine262':
       return findFile([jsvu, esvu])
+    case 'shermes': // our temporary name for static hermes
     case 'xs':
       return findFile([jsvu, esvu], false)
     case 'electron':

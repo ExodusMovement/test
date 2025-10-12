@@ -498,6 +498,7 @@ export const build = async (...files) => {
     ],
   }
 
+  // eslint-disable-next-line unicorn/prefer-switch
   if (options.platform === 'hermes') {
     Object.assign(config.supported, {
       arrow: false,
@@ -506,6 +507,8 @@ export const build = async (...files) => {
       'const-and-let': false, // have to explicitly set for esbuild to not emit that in helpers, also to get a safeguard check
       'for-await': false,
     })
+  } else if (options.platform === 'shermes') {
+    Object.assign(config.supported, { 'async-generator': false, 'for-await': false })
   } else if (options.platform === 'jerryscript') {
     config.supported['class-private-field'] = false
     // config.minify = true // breaks on SyntaxError, FIXME
