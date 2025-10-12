@@ -245,15 +245,16 @@ export const build = async (...files) => {
 
     // copy of loader/jest
     input.push(`await (await import(${stringify(resolveSrc('jest.setup.js'))})).setupJest();`)
-
-    const ignoreFrom = /\/test\/src\/(jest(\.(mock|snapshot))?\.js|engine\.pure\.cjs|expect\.cjs)$/u // rechecked to not use those apis if no outside usage
-    specificLoadPipeline.push(async (source, filepath) => {
-      if (ignoreFrom.test(filepath.replaceAll('\\', '/'))) return source
-      haveJestAPIs.expect ||= /(^|[^#])\bexpect([(.]|$)/mu.test(source)
-      haveJestAPIs.exodus ||= /jest\.exodus/u.test(source)
-      return source
-    })
   }
+
+  const ignoreFrom = /\/test\/src\/(jest(\.(mock|snapshot))?\.js|engine\.pure\.cjs|expect\.cjs)$/u // rechecked to not use those apis if no outside usage
+  specificLoadPipeline.push(async (source, filepath) => {
+    if (ignoreFrom.test(filepath.replaceAll('\\', '/'))) return source
+    if (!options.jest && !/@(exodus\/test\/jest|jest\/globals)/u.test(source)) return source
+    haveJestAPIs.expect ||= /(^|[^#])\bexpect([(.]|$)/mu.test(source)
+    haveJestAPIs.exodus ||= /jest\.exodus/u.test(source)
+    return source
+  })
 
   for (const file of files) importFile(file)
 
