@@ -52,10 +52,11 @@ export async function benchmark(name, options, fn) {
   }
 
   const mean = total / BigInt(count)
-  let res = `${name} x ${fRps(1e9 / Number(mean))} ops/sec @ ${fTime(mean)}/op`
+  const rps = 1e9 / Number(mean)
+  let res = `${name} x ${fRps(rps)} ops/sec @ ${fTime(mean)}/op`
   if (fTime(min) !== fTime(max)) res += ` (${fTime(min)}..${fTime(max)})`
   console.log(res)
 
   if (gc) for (let i = 0; i < 4; i++) gc()
-  return { total, count, mean, min, max }
+  return { rps, total, count, mean, min, max }
 }
