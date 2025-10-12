@@ -22,5 +22,3 @@ export const features = {
   esmInterop: Boolean(insideEsbuild() && !isBundle), // loading/using ESM as CJS, ESM mocks creation without a mocker function
   concurrency: node.engine !== 'pure', // pure engine doesn't support concurrency
 }
-
-export * as mock from './mock.js'

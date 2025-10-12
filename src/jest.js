@@ -7,6 +7,7 @@ import * as jestTimers from './jest.timers.js'
 import { setupSnapshots } from './jest.snapshot.js'
 import { createCallerLocationHook } from './dark.cjs'
 import * as exodus from './exodus.js'
+import * as mock from './mock.js'
 import { expect } from './expect.cjs'
 import { format as prettyFormat } from './pretty-format.cjs'
 import { timersTrack, timersDebug } from './timers-track.js'
@@ -252,7 +253,7 @@ export const jest = {
     __proto__: null,
     ...exodus,
     mock: {
-      ...exodus.mock,
+      ...mock,
       fetchNoop: () => {
         // We can't use pure noop, it will break chained fetch().then(), so let's reject
         const fetch = () => Promise.reject(new Error('fetch is disabled by mock.fetchNoop()'))
