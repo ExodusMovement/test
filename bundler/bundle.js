@@ -452,6 +452,7 @@ export const build = async (...files) => {
       ...Object.fromEntries(Object.entries(nodeUnprefixed).map(([k, v]) => [`node:${k}`, v])),
       ...nodeUnprefixed,
       // Needed for polyfills but name conflicts with Node.js modules
+      'buffer/index.js': resolveRequire('buffer/index.js'),
       'url/url.js': resolveRequire('url/url.js'),
       'util/util.js': resolveRequire('util/util.js'),
       // expect-related deps
