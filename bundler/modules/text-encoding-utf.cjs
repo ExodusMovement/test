@@ -52,8 +52,12 @@ TextEncoder.prototype.encode = function (str) {
   return new Uint8Array(buf.buffer, buf.byteOffset, buf.length)
 }
 
-TextEncoder.prototype.encodeInto = function () {
-  throw new Error('not supported')
+TextEncoder.prototype.encodeInto = function (str, ua) {
+  if (!(ua instanceof Uint8Array)) throw new Error('second argument must be an Uint8Array')
+  const buf = Buffer.from(str)
+  if (ua.length < buf.length) throw new Error('Truncation not supported')
+  ua.set(buf)
+  return { read: str.length, written: buf.length }
 }
 
 function TextDecoder(encoding = UTF8, options = {}) {
