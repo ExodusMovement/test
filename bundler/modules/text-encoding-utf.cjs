@@ -29,9 +29,13 @@ const assertUTF8orUTF16LE = (enc) => {
   if (enc !== UTF8 && enc !== UTF16LE) throw new Error('only utf-8 and utf-16le are supported')
 }
 
-const assertBufferSource = (buf) => {
-  if (buf instanceof ArrayBuffer || ArrayBuffer.isView(buf)) return
-  if (globalThis.SharedArrayBuffer && buf instanceof globalThis.SharedArrayBuffer) return
+const fromBufferSouce = (buf) => {
+  if (buf instanceof ArrayBuffer) return Buffer.from(buf)
+  if (ArrayBuffer.isView(buf)) return Buffer.from(buf.buffer, buf.byteOffset, buf.byteLength)
+  if (globalThis.SharedArrayBuffer && buf instanceof globalThis.SharedArrayBuffer) {
+    return Buffer.from(buf.buffer, buf.byteOffset, buf.byteLength)
+  }
+
   throw new Error('argument must be a SharedArrayBuffer, ArrayBuffer or ArrayBufferView')
 }
 
@@ -71,8 +75,7 @@ function TextDecoder(encoding = UTF8, options = {}) {
 // Buffer.from([0xf0, 0x80, 0x80]).toString().length should be 3, see https://github.com/nodejs/node/issues/16894
 TextDecoder.prototype.decode = function (buf) {
   if (buf === undefined) return ''
-  assertBufferSource(buf)
-  if (!Buffer.isBuffer(buf)) buf = Buffer.from(buf)
+  buf = fromBufferSouce(buf)
   const res = buf.toString(this.encoding)
   if (this.fatal && res.includes('\uFFFD')) {
     // We have a replacement symbol, recheck if output matches input
