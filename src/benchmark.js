@@ -37,6 +37,7 @@ export async function benchmark(name, options, fn) {
   let min, max
   let total = 0n
   let count = 0
+  const endAt = getTime() + BigInt(timeout) * 10n ** 6n
   while (true) {
     const arg = args ? args[count % args.length] : count
     count++
@@ -48,7 +49,7 @@ export async function benchmark(name, options, fn) {
     total += diff
     if (min === undefined || min > diff) min = diff
     if (max === undefined || max < diff) max = diff
-    if (total >= BigInt(timeout) * 10n ** 6n) break
+    if (stop >= endAt) break
   }
 
   const mean = total / BigInt(count)
