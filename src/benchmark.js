@@ -53,7 +53,7 @@ export async function benchmark(name, options, fn) {
   }
 
   const mean = total / BigInt(count)
-  const rps = 1e9 / Number(mean)
+  const rps = (1e9 * count) / Number(total) // Loss in precision to doubles on very fast ops, but this is better than mean rounding
   let res = `${name} x ${fRps(rps)} ops/sec @ ${fTime(mean)}/op`
   if (fTime(min) !== fTime(max)) res += ` (${fTime(min)}..${fTime(max)})`
   console.log(res)
