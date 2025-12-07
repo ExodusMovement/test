@@ -65,7 +65,6 @@ function TextDecoder(encoding = UTF8, options = {}) {
   assertUTF8orUTF16LE(encoding)
 
   const { fatal = false, ignoreBOM = false, stream = false } = options
-  if (ignoreBOM !== false) throw new Error('option "ignoreBOM" is not supported')
   if (stream !== false) throw new Error('option "stream" is not supported')
 
   // see: https://github.com/inexorabletash/text-encoding/blob/master/lib/encoding.js#L1049
@@ -91,7 +90,7 @@ TextDecoder.prototype.decode = function (buf) {
     }
   }
 
-  return res
+  return !this.ignoreBOM && res.codePointAt(0) === 0xfe_ff ? res.slice(1) : res
 }
 
 module.exports = { TextEncoder, TextDecoder }
