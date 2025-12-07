@@ -76,7 +76,8 @@ function TextDecoder(encoding = UTF8, options = {}) {
 // Note: https://npmjs.com/package/buffer has a bug
 // Buffer.from([0xf0, 0x90, 0x80]).toString().length should be 1, but it is 3 in https://npmjs.com/package/buffer
 // Buffer.from([0xf0, 0x80, 0x80]).toString().length should be 3, see https://github.com/nodejs/node/issues/16894
-TextDecoder.prototype.decode = function (buf) {
+TextDecoder.prototype.decode = function (buf, { stream = false } = {}) {
+  if (stream) throw new Error('option "stream" is not supported')
   if (buf === undefined) return ''
   buf = fromBufferSouce(buf)
   const res = buf.toString(this.encoding)
