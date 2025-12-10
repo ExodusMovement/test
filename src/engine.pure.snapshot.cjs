@@ -1,7 +1,7 @@
 const nameCounts = new Map()
 let snapshotText, snapshotTextClean
 
-const escapeSnapshot = (str) => str.replaceAll(/([\\`])/gu, '\\$1')
+const escapeSnapshot = (str) => str.replaceAll(/([\\`]|\$\{)/gu, '\\$1')
 
 function matchSnapshot(readSnapshot, assert, name, serialized) {
   // We don't have native snapshots, polyfill reading

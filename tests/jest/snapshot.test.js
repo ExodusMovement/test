@@ -53,6 +53,12 @@ it('simple inline', () => {
   expect({}).toMatchInlineSnapshot(`{}`)
 })
 
+it('escape', () => {
+  expect('\\').toMatchSnapshot()
+  expect('${').toMatchSnapshot()
+  expect('$$\\${').toMatchSnapshot()
+})
+
 const TEST_ONE = { a: 20, d: Buffer.from('foo'), b: [1, 2, 'bar', 5], e: { foo: 'bar' } }
 // eslint-disable-next-line no-sparse-arrays
 const TEST_TWO = { ['__proto__']: [], b: [1, 2, , , 5], e: { foo: 'bar' }, f: -Infinity }
@@ -144,7 +150,19 @@ describe('weird  names', () => {
     .slice(0x20)
     .map((i) => String.fromCodePoint(i))
     .join('')
-  for (const key of ['\n', '{}', '$', '`', '>', '` ` `', '` `\n `', '\\', '\\\n`\n\\``', ascii]) {
+  for (const key of [
+    '\n',
+    '{}',
+    '$',
+    '`',
+    '>',
+    '` ` `',
+    '` `\n `',
+    '\\',
+    '\\\n`\n\\``',
+    '${',
+    ascii,
+  ]) {
     it(key, () => {
       expect(key).toMatchSnapshot()
     })

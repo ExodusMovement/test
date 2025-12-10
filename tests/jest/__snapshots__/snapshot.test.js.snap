@@ -112,6 +112,12 @@ I
 Failed"
 `;
 
+exports[`escape 1`] = `"\\"`;
+
+exports[`escape 2`] = `"\${"`;
+
+exports[`escape 3`] = `"$$\\\${"`;
+
 exports[`formateted objects 1`] = `Any<Number>`;
 
 exports[`formateted objects 2`] = `
@@ -353,6 +359,8 @@ exports[`weird  names
 exports[`weird  names  !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~ 1`] = `" !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~"`;
 
 exports[`weird  names $ 1`] = `"$"`;
+
+exports[`weird  names \${ 1`] = `"\${"`;
 
 exports[`weird  names > 1`] = `">"`;
 
