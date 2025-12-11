@@ -33,14 +33,15 @@ function findBinaryOnce(name) {
   }
 
   switch (name) {
-    case 'hermes': {
+    case 'hermes':
+    case 'hermesc': {
       const flavors = { darwin: 'osx-bin', linux: 'linux64-bin', win32: 'win64-bin' }
       const flavor = Object.hasOwn(flavors, process.platform) ? flavors[process.platform] : null
       return findFile([
         (bin) => flavor && require.resolve(`react-native/sdks/hermesc/${flavor}/${bin}`), // 1. Locally installed react-native dep (works only for osx)
         (bin) => jsvu(bin), // 2. jsvu
         (bin) => esvu(bin), // 3. esvu
-      ]) // 4. hermes installed in the system
+      ]) // 4. hermes/hermesc installed in the system
     }
 
     case 'jsc':
