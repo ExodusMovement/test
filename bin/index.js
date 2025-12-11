@@ -689,8 +689,23 @@ if (options.pure) {
   const runOne = async (inputFile) => {
     const bundled = buildFile ? await buildFile(inputFile) : undefined
     if (buildFile) assert(bundled.file)
-    const file = buildFile ? bundled.file : inputFile
+    let file = buildFile ? bundled.file : inputFile
     if (bundled?.errors.length > 0) return { ok: false, output: bundled.errors }
+
+    // Compile to Hermes bytecode if using hermes:bundle
+    let bytecodeFile
+    if (options.engine === 'hermes:bundle') {
+      bytecodeFile = file.replace(/\.js$/, '.hbc')
+      try {
+        const hermesc = findBinary('hermesc')
+        await execFile(hermesc, ['-emit-binary', '-out', bytecodeFile, file])
+        file = bytecodeFile
+      } catch (err) {
+        const output = [`Hermes bytecode compilation failed:`, err.stderr || err.message]
+        await unlink(bundled.file).catch(() => {})
+        return { ok: false, output }
+      }
+    }
 
     const failedBare = 'EXODUS_TEST_FAILED_EXIT_CODE_1'
     const cleanOut = (out) => out.replaceAll(`\n${failedBare}\n`, '\n').replaceAll(failedBare, '')
@@ -721,6 +736,7 @@ if (options.pure) {
       throw err // Internal test runner error, e.g. launch() failed
     } finally {
       if (bundled) await unlink(bundled.file)
+      if (bytecodeFile) await unlink(bytecodeFile).catch(() => {})
     }
   }
 
