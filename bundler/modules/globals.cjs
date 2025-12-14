@@ -245,7 +245,8 @@ if (
 
 const { setTimeout } = globalThis // we need non-overriden by fake timers one
 
-const isBarebone = process.env.EXODUS_TEST_IS_BAREBONE
+const isServoBundle = process.env.EXODUS_TEST_ENGINE === 'servo:bundle' // we treat it as a barebone
+const isBarebone = process.env.EXODUS_TEST_IS_BAREBONE || isServoBundle
 if (typeof process === 'undefined') {
   // Fixes process.exitCode handling
 
@@ -269,14 +270,18 @@ if (typeof process === 'undefined') {
     _exitHook: null,
     _maybeProcessExitCode: () => {
       if (globalThis.Deno) return // has native exitCode support
-      if (process._exitHook) return process._exitHook(process._exitCode)
+      if (process._exitHook && !isServoBundle) return process._exitHook(process._exitCode)
       if (process._exitCode !== 0) {
         setTimeout(() => {
           if (isBarebone) print('EXODUS_TEST_FAILED_EXIT_CODE_1')
+          if (isServoBundle) return setTimeout(() => window.close(), 50) // handles printed error code message, throwing below is useless for it
           const err = new Error('Test failed')
           err.stack = ''
           throw err
         }, 0)
+      } else if (isServoBundle) {
+        // No unfinished resources/promises tracking support, close explicitly even on success
+        setTimeout(() => window.close(), 50) // delaying webpage close seem to help at preventing internal Servo crashes
       }
     },
     cwd: () => {

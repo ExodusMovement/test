@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { basename, join } from 'node:path'
 import { randomUUID } from 'node:crypto'
 import { existsSync, rmSync, realpathSync } from 'node:fs'
-import { unlink } from 'node:fs/promises'
+import { writeFile, unlink } from 'node:fs/promises'
 import { tmpdir, availableParallelism, homedir } from 'node:os'
 import assert from 'node:assert/strict'
 // The following make sense only when we run the code in the same Node.js version, i.e. engineOptions.haveIsOk
@@ -52,6 +52,8 @@ const ENGINES = new Map(
     'escargot:bundle': { binary: 'escargot', ...bareboneOpts },
     'boa:bundle': { binary: 'boa', binaryArgs: ['-m'], ...bareboneOpts },
     'jerryscript:bundle': { binary: 'jerryscript', ...bareboneOpts },
+    // Special case: running a browser from CLI like a bundle
+    'servo:bundle': { binary: 'servo', binaryArgs: ['--headless'], ...bundleOpts, html: true },
     // Browser engines
     'chrome:puppeteer': { binary: 'chrome', browsers: 'puppeteer', ...bundleOpts },
     'firefox:puppeteer': { binary: 'firefox', browsers: 'puppeteer', ...bundleOpts },
@@ -65,7 +67,7 @@ const ENGINES = new Map(
   })
 )
 const barebonesOk = ['v8', 'd8', 'spidermonkey', 'quickjs', 'xs', 'hermes', 'shermes']
-const barebonesUnhandled = ['jsc', 'escargot', 'boa', 'graaljs', 'jerry', 'engine262']
+const barebonesUnhandled = ['jsc', 'escargot', 'boa', 'graaljs', 'jerry', 'engine262', 'servo']
 
 const getEnvFlag = (name) => {
   if (!Object.hasOwn(process.env, name)) return
@@ -282,7 +284,7 @@ const engineOptions = ENGINES.get(options.engine)
 assert(engineOptions, `Unknown engine: ${options.engine}`)
 Object.assign(options, engineOptions)
 options.platform = options.binary // binary can be overriden by c8 or electron
-const isBrowserLike = options.browsers || options.electron
+const isBrowserLike = options.browsers || options.electron || options.html
 setEnv('EXODUS_TEST_ENGINE', options.engine) // e.g. 'hermes:bundle', 'node:bundle', 'node:test', 'node:pure'
 setEnv('EXODUS_TEST_PLATFORM', options.binary === 'shermes' ? 'hermes' : options.binary) // e.g. 'hermes', 'node'
 setEnv('EXODUS_TEST_TIMEOUT', options.testTimeout)
@@ -595,7 +597,7 @@ if (options.binary === 'electron') {
   }
 }
 
-if (options.barebone || ['electron', 'workerd'].includes(options.binary)) {
+if (options.barebone || ['electron', 'workerd', 'servo'].includes(options.binary)) {
   options.binary = findBinary(options.binary)
   options.binaryCanBeAbsolute = true
 }
@@ -689,9 +691,14 @@ if (options.pure) {
   const runOne = async (inputFile) => {
     const bundled = buildFile ? await buildFile(inputFile) : undefined
     if (buildFile) assert(bundled.file)
-    const file = buildFile ? bundled.file : inputFile
     if (bundled?.errors.length > 0) return { ok: false, output: bundled.errors }
+    if (bundled && options.html) {
+      bundled.fileHtml = `${bundled.file}.html`
+      assert(/^[a-z0-9/_.-]+\.js$/iu.test(bundled.file), bundled.file)
+      await writeFile(bundled.fileHtml, `<script src="${bundled.file}"></script>`)
+    }
 
+    const file = buildFile ? bundled.fileHtml ?? bundled.file : inputFile
     const failedBare = 'EXODUS_TEST_FAILED_EXIT_CODE_1'
     const cleanOut = (out) => out.replaceAll(`\n${failedBare}\n`, '\n').replaceAll(failedBare, '')
     // Timeout is fallback if timeout in script hangs, 50x as it can be adjusted per-script inside them
@@ -721,6 +728,7 @@ if (options.pure) {
       throw err // Internal test runner error, e.g. launch() failed
     } finally {
       if (bundled) await unlink(bundled.file)
+      if (bundled?.fileHtml) await unlink(bundled.fileHtml)
     }
   }
 

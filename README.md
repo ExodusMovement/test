@@ -12,7 +12,7 @@ It can run your existing tests on [all runtimes and also browsers](#engines), wi
   and typestrip (via `--typescript`) modes
 - Runs on Node.js [node:test](https://nodejs.org/api/test.html), Bun, Deno, Electron,
   [v8 CLI](https://v8.dev/docs/d8), JSC, [Hermes](https://hermesengine.dev), [SpiderMonkey](https://spidermonkey.dev/),
-  Chrome, Firefox, WebKit, Brave, Microsoft Edge,
+  Chrome, Firefox, WebKit, Brave, Microsoft Edge, [Servo](https://servo.org/),
   [QuickJS](https://github.com/quickjs-ng/quickjs), [XS](https://github.com/Moddable-OpenSource/moddable-xst),
   [GraalJS](https://github.com/oracle/graaljs), [Escargot](https://github.com/Samsung/escargot),
   [Boa](https://github.com/boa-dev/boa), and even [engine262](https://github.com/engine262/engine262).
@@ -66,6 +66,8 @@ Use `--engine` (or `EXODUS_TEST_ENGINE=`) to specify one of:
     - `firefox:puppeteer` — Firefox
     - `brave:puppeteer` — Brave
     - `msedge:puppeteer` — Microsoft Edge
+  - Bundle
+    - `servo:bundle` — Servo (expects it to be installed in the system or in PATH)
 - Barebone engines (system-provided or installed with `npx jsvu` / `npx esvu`):
   - `v8:bundle` — [v8 CLI](https://v8.dev/docs/d8) (Chrome/Blink/Node.js JavaScript engine)
   - `jsc:bundle` — [JavaScriptCore](https://docs.webkit.org/Deep%20Dive/JSC/JavaScriptCore.html) (Safari/WebKit JavaScript engine)

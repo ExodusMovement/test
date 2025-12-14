@@ -124,6 +124,7 @@
     "test:hermes": "EXODUS_TEST_ENGINE=hermes:bundle npm run test:_bundle --",
     "test:shermes": "EXODUS_TEST_ENGINE=shermes:bundle npm run test:_bundle --",
     "test:spidermonkey": "EXODUS_TEST_ENGINE=spidermonkey:bundle npm run test:_bundle --",
+    "test:servo": "EXODUS_TEST_ENGINE=servo:bundle npm run test:_bundle --",
     "test:engine262": "EXODUS_TEST_ENGINE=engine262:bundle npm run test:_bundle --",
     "test:quickjs": "EXODUS_TEST_ENGINE=quickjs:bundle npm run test:_bundle --",
     "test:xs": "EXODUS_TEST_ENGINE=xs:bundle npm run test:_bundle --",
