@@ -128,7 +128,7 @@ Use `--engine` (or `EXODUS_TEST_ENGINE=`) to specify one of:
  </pre>
 </details>
 
-See live output in [CI](https://github.com/ExodusMovement/test/actions/workflows/checks.yaml)
+See live output in [CI](https://github.com/ExodusOSS/test/actions/workflows/checks.yaml)
 
 ## Library
 

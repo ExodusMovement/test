@@ -3,13 +3,13 @@
   "version": "1.0.0-rc.108",
   "author": "Exodus Movement, Inc.",
   "description": "A test suite runner",
-  "homepage": "https://github.com/ExodusMovement/test",
+  "homepage": "https://github.com/ExodusOSS/test",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ExodusMovement/test.git"
+    "url": "https://github.com/ExodusOSS/test.git"
   },
   "bugs": {
-    "url": "https://github.com/ExodusMovement/tests/issues"
+    "url": "https://github.com/ExodusOSS/tests/issues"
   },
   "keywords": [
     "test",
