@@ -67,7 +67,7 @@ Use `--engine` (or `EXODUS_TEST_ENGINE=`) to specify one of:
     - `brave:puppeteer` — Brave
     - `msedge:puppeteer` — Microsoft Edge
   - Bundle
-    - `servo:bundle` — Servo (expects it to be installed in the system or in PATH)
+    - `servo:bundle` — Servo (expects it to be installed in the system)
 - Barebone engines (system-provided or installed with `npx jsvu` / `npx esvu`):
   - `v8:bundle` — [v8 CLI](https://v8.dev/docs/d8) (Chrome/Blink/Node.js JavaScript engine)
   - `jsc:bundle` — [JavaScriptCore](https://docs.webkit.org/Deep%20Dive/JSC/JavaScriptCore.html) (Safari/WebKit JavaScript engine)
