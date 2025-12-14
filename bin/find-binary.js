@@ -91,6 +91,10 @@ function findBinaryOnce(name) {
     case 'safari':
       addPaths('darwin', '/Applications/Safari.app/Contents/MacOS/Safari')
       break
+    case 'servo':
+      addPaths('darwin', '/Applications/Servo.app/Contents/MacOS/servo')
+      addPaths('linux', '/usr/bin/servo')
+      break
     default:
       throw new Error('Trying to find an unexpected executable name')
   }
