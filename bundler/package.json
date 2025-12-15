@@ -47,7 +47,6 @@
     "modules/jest-util.js",
     "modules/module.cjs",
     "modules/node-buffer.cjs",
-    "modules/text-encoding-utf.cjs",
     "modules/tty.cjs",
     "modules/url.cjs",
     "modules/util.cjs",
@@ -56,6 +55,7 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
+    "@exodus/bytes": "^1.0.0-rc.10",
     "@ungap/url-search-params": "^0.2.2",
     "assert": "^2.1.0",
     "browserify-zlib": "^0.2.0",

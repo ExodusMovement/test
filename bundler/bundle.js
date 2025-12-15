@@ -446,7 +446,6 @@ export const build = async (...files) => {
       '@exodus/test/tape': resolveSrc('tape.cjs'),
       '@exodus/test/node': resolveSrc('node.js'),
       // Inner
-      'exodus-test:text-encoding-utf': api('text-encoding-utf.cjs'),
       'exodus-test:util-format': api('util-format.cjs'),
       // Node.js (except node:test)
       ...Object.fromEntries(Object.entries(nodeUnprefixed).map(([k, v]) => [`node:${k}`, v])),

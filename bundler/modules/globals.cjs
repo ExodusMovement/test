@@ -381,7 +381,7 @@ if (!globalThis.crypto.subtle) globalThis.crypto.subtle = {} // For getRandomVal
 if (process.env.EXODUS_TEST_IS_BAREBONE) {
   if (!globalThis.URLSearchParams) globalThis.URLSearchParams = require('@ungap/url-search-params')
   if (!globalThis.TextEncoder || !globalThis.TextDecoder) {
-    const { TextEncoder, TextDecoder } = require('exodus-test:text-encoding-utf')
+    const { TextEncoder, TextDecoder } = require('@exodus/bytes/encoding-lite.js')
     if (!globalThis.TextEncoder) globalThis.TextEncoder = TextEncoder
     if (!globalThis.TextDecoder) global.TextDecoder = TextDecoder
   }

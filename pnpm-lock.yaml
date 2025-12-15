@@ -104,6 +104,9 @@ importers:
 
   bundler:
     dependencies:
+      '@exodus/bytes':
+        specifier: ^1.0.0-rc.10
+        version: 1.0.0-rc.10
       '@ungap/url-search-params':
         specifier: ^0.2.2
         version: 0.2.2
@@ -625,6 +628,15 @@ packages:
   '@eslint/js@8.57.0':
     resolution: {integrity: sha512-Ys+3g2TaW7gADOJzPt83SJtCDhMjndcDMFVQ/Tj9iA1BfJzFKD9mAUXT3OenpuPHbI6P/myECxRJrofUsDx/5g==, tarball: https://registry.npmjs.org/@eslint/js/-/js-8.57.0.tgz}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+
+  '@exodus/bytes@1.0.0-rc.10':
+    resolution: {integrity: sha512-+cPseJRw9egx/KRH8/0789v8lXFO5ODj2C7v1qUBhNYQkL5oL0CZZwdsxjLiJcZHsCkIE5uVCqJb+wRTnHQqiQ==, tarball: https://registry.npmjs.org/@exodus/bytes/-/bytes-1.0.0-rc.10.tgz}
+    engines: {node: ^20.19.0 || >=22.13.0}
+    peerDependencies:
+      '@exodus/crypto': ^1.0.0-rc.4
+    peerDependenciesMeta:
+      '@exodus/crypto':
+        optional: true
 
   '@exodus/eslint-config@5.24.0':
     resolution: {integrity: sha512-DiVWUZZJXSePm9JkZhzXilQ/4HPLWTzlSkFV5KYGUjBlmsVEFNAtcEE30oecuo+/Dz2mx2r+HnFE1e/bbX/2oQ==, tarball: https://registry.npmjs.org/@exodus/eslint-config/-/eslint-config-5.24.0.tgz}
@@ -4495,6 +4507,8 @@ snapshots:
       - supports-color
 
   '@eslint/js@8.57.0': {}
+
+  '@exodus/bytes@1.0.0-rc.10': {}
 
   '@exodus/eslint-config@5.24.0(@types/eslint@8.56.10)(@typescript-eslint/eslint-plugin@7.15.0(@typescript-eslint/parser@7.15.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3))(@typescript-eslint/parser@7.15.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(jest@29.7.0(@types/node@24.0.11))(prettier@3.3.2)(typescript@5.5.3)':
     dependencies:
