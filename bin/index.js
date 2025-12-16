@@ -686,7 +686,6 @@ if (options.pure) {
   }
 
   setEnv('EXODUS_TEST_CONTEXT', 'pure')
-  warnHuman(`${engineName} is experimental and may not work an expected`)
   const missUnhandled = bareUnhandled.includes(options.platform) || isBrowserLike
   const isIncomplete = bareIncomplete.includes(options.platform)
   if (missUnhandled) warnHuman(`Warning: ${engineName} does not have unhandled rejections tracking`)
