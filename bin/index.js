@@ -703,7 +703,18 @@ if (options.pure) {
 
     const file = buildFile ? bundled.fileHtml ?? bundled.file : inputFile
     const failedBare = 'EXODUS_TEST_FAILED_EXIT_CODE_1'
-    const cleanOut = (out) => out.replaceAll(`\n${failedBare}\n`, '\n').replaceAll(failedBare, '')
+    const cleanOut = (out) => {
+      if (options.engine === 'ladybird-js:bundle') {
+        // It wrapps all prints/console.log in double quotes for strings, and escapes \b \n \v \f \r \, but does not wrap "
+        const unmap = { __proto__: null, b: '\b', n: '\n', v: '\v', f: '\f', r: '\r' }
+        const fix = (x) => x.slice(1, -1).replaceAll(/\\([bnvfr\\])/gu, (s) => unmap[s[1]] ?? s[1])
+        const lineMapper = (x) => (x.startsWith('"') && x.endsWith('"') ? fix(x) : x)
+        out = out.split('\n').map(lineMapper).join('\n')
+      }
+
+      return out.replaceAll(`\n${failedBare}\n`, '\n').replaceAll(failedBare, '')
+    }
+
     // Timeout is fallback if timeout in script hangs, 50x as it can be adjusted per-script inside them
     // Do we want to extract timeouts from script code instead? Also, hermes might be slower, so makes sense to increase
     const timeout = (options.testTimeout || jestConfig?.testTimeout || 5000) * 50
@@ -714,7 +725,7 @@ if (options.pure) {
       const ms = Number(process.hrtime.bigint() - start) / 1e6
       if (stdout.includes(failedBare)) return { ok: false, output: [cleanOut(stdout), stderr], ms }
       const ok = code === 0 && !/^(✖ FAIL|‼ FATAL) /mu.test(stdout)
-      return { ok, output: [stdout, stderr], ms }
+      return { ok, output: [cleanOut(stdout), stderr], ms }
     } catch (err) {
       const ms = Number(process.hrtime.bigint() - start) / 1e6
       const { code, stderr = '', signal, killed } = err
