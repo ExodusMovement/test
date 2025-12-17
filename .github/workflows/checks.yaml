@@ -184,6 +184,32 @@ jobs:
       - run: node --run playwright -- install --with-deps "${{ matrix.browser }}"
       - run: node --run "test:${{ matrix.browser }}:playwright"
 
+  servo:
+    runs-on: ubuntu-latest
+    name: 'Test on Servo ${{ matrix.servo-version }}'
+
+    strategy:
+      matrix:
+        servo-version: [0.0.2]
+
+    steps:
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda
+        with:
+          run_install: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: '.nvmrc'
+          cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
+      - run: wget "https://github.com/servo/servo/releases/download/v${{ matrix.servo-version }}/servo-x86_64-linux-gnu.tar.gz"
+      - run: tar -xf servo-x86_64-linux-gnu.tar.gz
+      - run: sudo ln -s "$GITHUB_WORKSPACE/servo/servo" /usr/bin/
+      - run: sudo apt update
+      - run: sudo apt install gstreamer1.0-plugins-bad
+      - run: pnpm i --frozen-lockfile
+      - run: node --run test:servo
+
   bun:
     runs-on: ubuntu-22.04
     name: 'Test on Bun'
