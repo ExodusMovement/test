@@ -13,7 +13,12 @@ describe('fetch replay', () => {
     expect(res.ok).toBe(true)
     expect(res.url).toBe('https://example.com/') // Normalized!
     expect(res.type).toBe('basic')
-    await expect(res.clone().json()).rejects.toThrow(JSON_ERROR_REGEX)
+
+    // Servo has a bug: https://github.com/servo/servo/issues/36503#issuecomment-3666724525
+    if (process.env.EXODUS_TEST_PLATFORM !== 'servo') {
+      await expect(res.clone().json()).rejects.toThrow(JSON_ERROR_REGEX)
+    }
+
     expect(await res.text()).toMatch(/This domain is for use in illustrative examples in documents/)
   })
 
@@ -61,7 +66,12 @@ describe('fetch replay', () => {
     expect(res.ok).toBe(false)
     expect(res.url).toBe('https://example.com/404')
     expect(res.type).toBe('basic')
-    await expect(res.clone().json()).rejects.toThrow(JSON_ERROR_REGEX)
+
+    // Servo has a bug: https://github.com/servo/servo/issues/36503#issuecomment-3666724525
+    if (process.env.EXODUS_TEST_PLATFORM !== 'servo') {
+      await expect(res.clone().json()).rejects.toThrow(JSON_ERROR_REGEX)
+    }
+
     expect(await res.text()).toMatch(/This domain is for use in illustrative examples in documents/) // same text
   })
 })
