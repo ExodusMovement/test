@@ -327,13 +327,9 @@ if (!globalThis.crypto?.getRandomValues && globalThis.EXODUS_TEST_CRYPTO_ENTROPY
   const loadEntropy = () => {
     if (Uint8Array.fromBase64) {
       entropy = Uint8Array.fromBase64(entropyBase64)
-    } else if (globalThis.atob) {
-      const raw = atob(entropyBase64)
-      const length = raw.length
-      entropy = new Uint8Array(length)
-      for (let i = 0; i < length; i++) entropy[i] = raw.charCodeAt(i) // eslint-disable-line unicorn/prefer-code-point
     } else {
-      entropy = Buffer.from(entropyBase64, 'base64')
+      const { fromBase64 } = require('@exodus/bytes/base64.js')
+      entropy = fromBase64(entropyBase64)
     }
 
     entropyBase64 = ''
@@ -362,10 +358,11 @@ if (globalThis.crypto?.getRandomValues && !globalThis.crypto?.randomUUID) {
   const getRandomValues = globalThis.crypto.getRandomValues.bind(globalThis.crypto)
   let entropy
 
-  const hex = (start, end) => entropy.slice(start, end).toString('hex')
+  const { toHex } = require('@exodus/bytes/hex.js')
+  const hex = (start, end) => toHex(entropy.slice(start, end))
 
   globalThis.crypto.randomUUID = () => {
-    if (!entropy) entropy = Buffer.alloc(16)
+    if (!entropy) entropy = new Uint8Array(16)
 
     getRandomValues(entropy)
     entropy[6] = (entropy[6] & 0x0f) | 0x40 // version 4: 0100xxxx
