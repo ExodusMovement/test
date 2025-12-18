@@ -137,9 +137,10 @@ async function runContext(context) {
     const guard = { id: null, failed: false }
     const timeout = options.timeout || Number(process.env.EXODUS_TEST_TIMEOUT) || 5000
     guard.promise = new Promise((resolve) => {
-      if (process.env.EXODUS_TEST_PLATFORM === 'engine262') {
+      if (['engine262', 'ladybird-js'].includes(process.env.EXODUS_TEST_PLATFORM)) {
         // parallel timeouts are slowing down everything on engine262
         // so we let only the host timeout to catch us, not individual test timeout
+        // ladybird-js has no timers but has a maximium promise chain length, so it breaks
         return
       }
 
