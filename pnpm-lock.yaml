@@ -35,8 +35,8 @@ importers:
         specifier: ^7.15.0
         version: 7.15.0(@typescript-eslint/parser@7.15.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3)
       electron:
-        specifier: ^37.3.1
-        version: 37.3.1
+        specifier: ^38.7.0
+        version: 38.7.2
       eslint:
         specifier: ^8.44.0
         version: 8.57.0
@@ -62,14 +62,14 @@ importers:
         specifier: ^26.1.0
         version: 26.1.0
       jsvu:
-        specifier: ^3.0.0
-        version: 3.0.0
+        specifier: ^3.0.3
+        version: 3.0.3
       prettier:
         specifier: ^3.0.3
         version: 3.3.2
       workerd:
-        specifier: ^1.20250826.0
-        version: 1.20250826.0
+        specifier: ^1.20251217.0
+        version: 1.20251217.0
     optionalDependencies:
       '@chalker/queue':
         specifier: ^1.0.1
@@ -389,32 +389,32 @@ packages:
   '@chalker/queue@1.0.1':
     resolution: {integrity: sha512-j8iu20wUUgTnW3V5r5UKuUab3hT2odAGBlB7G2qxu+BFw9GFO8se2B/Su9SAtLj/CcKZzMFrwHREIG9hDIFo2Q==, tarball: https://registry.npmjs.org/@chalker/queue/-/queue-1.0.1.tgz}
 
-  '@cloudflare/workerd-darwin-64@1.20250826.0':
-    resolution: {integrity: sha512-MflgMq3Skhctoh1/qmOZsB4DK4hzVCItSTTgZhBp5i4Z5Os8FvHimEcmViZdglhaf3Gd3MmYWqHx46MG1FZxKA==, tarball: https://registry.npmjs.org/@cloudflare/workerd-darwin-64/-/workerd-darwin-64-1.20250826.0.tgz}
+  '@cloudflare/workerd-darwin-64@1.20251217.0':
+    resolution: {integrity: sha512-DN6vT+9ho61d/1/YuILW4VS+N1JBLaixWRL1vqNmhgbf8J8VHwWWotrRruEUYigJKx2yZyw6YsasE+yLXgx/Fw==, tarball: https://registry.npmjs.org/@cloudflare/workerd-darwin-64/-/workerd-darwin-64-1.20251217.0.tgz}
     engines: {node: '>=16'}
     cpu: [x64]
     os: [darwin]
 
-  '@cloudflare/workerd-darwin-arm64@1.20250826.0':
-    resolution: {integrity: sha512-uOcEJPORiuN/pot5iOWb8dLiUqS1TZInX0/drobOKCfaVZMCmD7soOUpXRzmpnEQEYHpSXv3FAqPvMgP4Jgxgw==, tarball: https://registry.npmjs.org/@cloudflare/workerd-darwin-arm64/-/workerd-darwin-arm64-1.20250826.0.tgz}
+  '@cloudflare/workerd-darwin-arm64@1.20251217.0':
+    resolution: {integrity: sha512-5nZOpRTkHmtcTc4Wbr1mj/O3dLb6aHZSiJuVBgtdbVcVmOXueSay3hnw1PXEyR+vpTKGUPkM+omUIslKHWnXDw==, tarball: https://registry.npmjs.org/@cloudflare/workerd-darwin-arm64/-/workerd-darwin-arm64-1.20251217.0.tgz}
     engines: {node: '>=16'}
     cpu: [arm64]
     os: [darwin]
 
-  '@cloudflare/workerd-linux-64@1.20250826.0':
-    resolution: {integrity: sha512-7HubWwvtIQX4hbw3Gxp9S1cLFQiGdIoXlE7GBCwBE8UYbeGMoggKN+vLt53ygc2t6xVK5vODUw9yed7V8vjifA==, tarball: https://registry.npmjs.org/@cloudflare/workerd-linux-64/-/workerd-linux-64-1.20250826.0.tgz}
+  '@cloudflare/workerd-linux-64@1.20251217.0':
+    resolution: {integrity: sha512-uoPGhMaZVXPpCsU0oG3HQzyVpXCGi5rU+jcHRjUI7DXM4EwctBGvZ380Knkja36qtl+ZvSKVR1pUFSGdK+45Pg==, tarball: https://registry.npmjs.org/@cloudflare/workerd-linux-64/-/workerd-linux-64-1.20251217.0.tgz}
     engines: {node: '>=16'}
     cpu: [x64]
     os: [linux]
 
-  '@cloudflare/workerd-linux-arm64@1.20250826.0':
-    resolution: {integrity: sha512-9765Lt3L5ZShuBPArSgrT8E8xthlhtGaqdey2mLJkTcGkTxUFiM8PZ65U7cIxWagcgQKV6BoMqMYP+mRlUZ/bQ==, tarball: https://registry.npmjs.org/@cloudflare/workerd-linux-arm64/-/workerd-linux-arm64-1.20250826.0.tgz}
+  '@cloudflare/workerd-linux-arm64@1.20251217.0':
+    resolution: {integrity: sha512-ixHnHKsiz1Xko+eDgCJOZ7EEUZKtmnYq3AjW3nkVcLFypSLks4C29E45zVewdaN4wq8sCLeyQCl6r1kS17+DQQ==, tarball: https://registry.npmjs.org/@cloudflare/workerd-linux-arm64/-/workerd-linux-arm64-1.20251217.0.tgz}
     engines: {node: '>=16'}
     cpu: [arm64]
     os: [linux]
 
-  '@cloudflare/workerd-windows-64@1.20250826.0':
-    resolution: {integrity: sha512-L0aHhmi3d8Gzermxr+8Ws1QXLsqOC1E3QlOgPEO40PA1+ODhj8jgxGVIVyrOqQxU+BYS5T8vYN1kUNj/w4ClsQ==, tarball: https://registry.npmjs.org/@cloudflare/workerd-windows-64/-/workerd-windows-64-1.20250826.0.tgz}
+  '@cloudflare/workerd-windows-64@1.20251217.0':
+    resolution: {integrity: sha512-rP6USX+7ctynz3AtmKi+EvlLP3Xdr1ETrSdcnv693/I5QdUwBxq4yE1Lj6CV7GJizX6opXKYg8QMq0Q4eB9zRQ==, tarball: https://registry.npmjs.org/@cloudflare/workerd-windows-64/-/workerd-windows-64-1.20251217.0.tgz}
     engines: {node: '>=16'}
     cpu: [x64]
     os: [win32]
@@ -1634,8 +1634,8 @@ packages:
   electron-to-chromium@1.4.818:
     resolution: {integrity: sha512-eGvIk2V0dGImV9gWLq8fDfTTsCAeMDwZqEPMr+jMInxZdnp9Us8UpovYpRCf9NQ7VOFgrN2doNSgvISbsbNpxA==, tarball: https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.4.818.tgz}
 
-  electron@37.3.1:
-    resolution: {integrity: sha512-7DhktRLqhe6OJh/Bo75bTI0puUYEmIwSzMinocgO63mx3MVjtIn2tYMzLmAleNIlud2htkjpsMG2zT4PiTCloA==, tarball: https://registry.npmjs.org/electron/-/electron-37.3.1.tgz}
+  electron@38.7.2:
+    resolution: {integrity: sha512-BcjR0IHqp3uv4ytVQwW2/9zAWo17Rjwrydn6RS+g+vqhpcPTzmBHDCHKaEcqheSl/7zzKPgFZdvT21BoSfrxRQ==, tarball: https://registry.npmjs.org/electron/-/electron-38.7.2.tgz}
     engines: {node: '>= 12.20.55'}
     hasBin: true
 
@@ -2716,8 +2716,8 @@ packages:
   jsonfile@4.0.0:
     resolution: {integrity: sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg==, tarball: https://registry.npmjs.org/jsonfile/-/jsonfile-4.0.0.tgz}
 
-  jsvu@3.0.0:
-    resolution: {integrity: sha512-XbDV+OKoIkaU8YTrg/kRCun5TOpYHroO6JJm5kd/dLQb2w0luXmFP0jjuhmFu5+ypDaqVxV1lkwTyyyidXW/VA==, tarball: https://registry.npmjs.org/jsvu/-/jsvu-3.0.0.tgz}
+  jsvu@3.0.3:
+    resolution: {integrity: sha512-Vijqfmi/BLzPdi0I8Dya8ga6dG9nTaeen2eSZzrAJ5XfhL55baEbkhZEl6AgS8Xw/CMQwaj9NniSsLpl5IGvvg==, tarball: https://registry.npmjs.org/jsvu/-/jsvu-3.0.3.tgz}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -3961,8 +3961,8 @@ packages:
     resolution: {integrity: sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==, tarball: https://registry.npmjs.org/word-wrap/-/word-wrap-1.2.5.tgz}
     engines: {node: '>=0.10.0'}
 
-  workerd@1.20250826.0:
-    resolution: {integrity: sha512-up+gUpIRmLY7UoUvQl8EhG42v7SjXbNH15Z2Q5uwKRSeSJPKG5N/iFTuTM6H3z53MHXVuvWZX0DYn1lPiri2rQ==, tarball: https://registry.npmjs.org/workerd/-/workerd-1.20250826.0.tgz}
+  workerd@1.20251217.0:
+    resolution: {integrity: sha512-s3mHDSWwHTduyY8kpHOsl27ZJ4ziDBJlc18PfBvNMqNnhO7yBeemlxH7bo7yQyU1foJrIZ6IENHDDg0Z9N8zQA==, tarball: https://registry.npmjs.org/workerd/-/workerd-1.20251217.0.tgz}
     engines: {node: '>=16'}
     hasBin: true
 
@@ -4349,19 +4349,19 @@ snapshots:
   '@chalker/queue@1.0.1':
     optional: true
 
-  '@cloudflare/workerd-darwin-64@1.20250826.0':
+  '@cloudflare/workerd-darwin-64@1.20251217.0':
     optional: true
 
-  '@cloudflare/workerd-darwin-arm64@1.20250826.0':
+  '@cloudflare/workerd-darwin-arm64@1.20251217.0':
     optional: true
 
-  '@cloudflare/workerd-linux-64@1.20250826.0':
+  '@cloudflare/workerd-linux-64@1.20251217.0':
     optional: true
 
-  '@cloudflare/workerd-linux-arm64@1.20250826.0':
+  '@cloudflare/workerd-linux-arm64@1.20251217.0':
     optional: true
 
-  '@cloudflare/workerd-windows-64@1.20250826.0':
+  '@cloudflare/workerd-windows-64@1.20251217.0':
     optional: true
 
   '@csstools/color-helpers@5.0.2': {}
@@ -4386,7 +4386,7 @@ snapshots:
 
   '@electron/get@2.0.3':
     dependencies:
-      debug: 4.4.0
+      debug: 4.4.3
       env-paths: 2.2.1
       fs-extra: 8.1.0
       got: 11.8.6
@@ -5808,7 +5808,7 @@ snapshots:
 
   electron-to-chromium@1.4.818: {}
 
-  electron@37.3.1:
+  electron@38.7.2:
     dependencies:
       '@electron/get': 2.0.3
       '@types/node': 22.14.0
@@ -6471,7 +6471,7 @@ snapshots:
       es6-error: 4.1.1
       matcher: 3.0.0
       roarr: 2.15.4
-      semver: 7.7.1
+      semver: 7.7.3
       serialize-error: 7.0.1
     optional: true
 
@@ -7322,7 +7322,7 @@ snapshots:
     optionalDependencies:
       graceful-fs: 4.2.11
 
-  jsvu@3.0.0:
+  jsvu@3.0.3:
     dependencies:
       chalk: 2.4.2
       execa: 2.1.0
@@ -8281,7 +8281,7 @@ snapshots:
 
   sumchecker@3.0.1:
     dependencies:
-      debug: 4.4.0
+      debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
 
@@ -8651,13 +8651,13 @@ snapshots:
 
   word-wrap@1.2.5: {}
 
-  workerd@1.20250826.0:
+  workerd@1.20251217.0:
     optionalDependencies:
-      '@cloudflare/workerd-darwin-64': 1.20250826.0
-      '@cloudflare/workerd-darwin-arm64': 1.20250826.0
-      '@cloudflare/workerd-linux-64': 1.20250826.0
-      '@cloudflare/workerd-linux-arm64': 1.20250826.0
-      '@cloudflare/workerd-windows-64': 1.20250826.0
+      '@cloudflare/workerd-darwin-64': 1.20251217.0
+      '@cloudflare/workerd-darwin-arm64': 1.20251217.0
+      '@cloudflare/workerd-linux-64': 1.20251217.0
+      '@cloudflare/workerd-linux-arm64': 1.20251217.0
+      '@cloudflare/workerd-windows-64': 1.20251217.0
 
   wrap-ansi@6.2.0:
     dependencies:
