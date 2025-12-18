@@ -45,7 +45,7 @@ const ENGINES = new Map(
     'hermes:bundle': { binary: 'hermes', binaryArgs: hermesA, target: 'es2018', ...bareboneOpts },
     'shermes:bundle': { binary: 'shermes', binaryArgs: hermesS, target: 'es2018', ...bareboneOpts },
     'spidermonkey:bundle': { binary: 'spidermonkey', ...bareboneOpts },
-    'ladybird-js:bundle': { binary: 'ladybird-js', ...bareboneOpts },
+    'ladybird-js:bundle': { binary: 'ladybird-js', binaryArgs: ['-i'], ...bareboneOpts },
     'engine262:bundle': { binary: 'engine262', ...bareboneOpts },
     'quickjs:bundle': { binary: 'quickjs', binaryArgs: ['--std'], ...bareboneOpts },
     'xs:bundle': { binary: 'xs', ...bareboneOpts },
