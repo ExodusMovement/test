@@ -13,7 +13,8 @@ export const specialEnvironments = {
         runScripts: 'dangerously',
         virtualConsole,
       })
-      virtualConsole.sendTo(console, { omitJSDOMErrors: true })
+      const forwardTo = virtualConsole.forwardTo ? 'forwardTo' : 'sendTo'
+      virtualConsole[forwardTo](console, { omitJSDOMErrors: true })
       virtualConsole.on('jsdomError', (error) => {
         throw error
       })
