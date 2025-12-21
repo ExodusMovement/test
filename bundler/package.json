@@ -55,7 +55,7 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
-    "@exodus/bytes": "^1.0.0-rc.10",
+    "@exodus/bytes": "^1.0.0",
     "@ungap/url-search-params": "^0.2.2",
     "assert": "^2.1.0",
     "browserify-zlib": "^0.2.0",
